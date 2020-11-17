@@ -53,10 +53,12 @@ DataSaver* setupFile(QCustomPlot *f);
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+//    setGeometry(400, 250, 542, 390);
+//    setGeometry(0, 0, 1550, 980);
     DataSaver *ds_main;
     setWindowTitle("Area profile");
-    resize(1550, 980);
-    move(100, 100);
+//    resize(1550, 980);
+//    move(100, 100);
     ds_main = setupFile(ui->customPlot);
     setupArc(ui->customPlot, ds_main);
     setupCurve(ui->customPlot, ds_main);
@@ -64,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
     textItem = new QCPItemText(ui->customPlot);
     connect(ui->customPlot, &QCustomPlot::mouseMove, this, &MainWindow::onMouseMove);
+    ui->customPlot->replot();
 }
 
 MainWindow::~MainWindow()
@@ -119,8 +122,8 @@ DataSaver* setupFile(QCustomPlot *f){
 void setupAxis(QCustomPlot *axis){
     axis->rescaleAxes();
 
-    axis->yAxis->scaleRange(12);
-    axis->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
+//    axis->yAxis->scaleRange(2);
+    axis->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 
     QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
     QString str;
@@ -129,6 +132,13 @@ void setupAxis(QCustomPlot *axis){
         textTicker->addTick(i, str);
     }
     axis->xAxis->setTicker(textTicker);
+    QFont pfont("Arial", 8);
+    axis->xAxis->setTickLabelFont(pfont);
+    axis->xAxis->setTickLabelRotation(-45);
+    axis->xAxis->setTickLength(0);
+    axis->yAxis->setSubTickLength(0);
+    axis->xAxis->setRange(0, 2 * R_EVALUATED);
+//    axis->
     axis->replot();
 }
 
@@ -140,10 +150,10 @@ double DeltaY(double r, double eq_radius);
 DataSaver* setupArc(QCustomPlot *arcPlot, DataSaver *ds){
     QVector<double> x(2 * R_EVALUATED), y(2 * R_EVALUATED);
     QMap<double, double> m;
-    double equivalent_radius = EquivalentRadius(G_STANDARD);
     bool first = true;
     double move_graph_up_value;
-    double iteration_difference = 2 * R_EVALUATED / 338;
+    double equivalent_radius = EquivalentRadius(G_STANDARD);
+    double iteration_difference = 2 * R_EVALUATED / ds->GetCount();
     for (double i = -R_EVALUATED, iterator = 0; i < R_EVALUATED; i += iteration_difference, iterator += iteration_difference){
         x[i + R_EVALUATED] = i + R_EVALUATED;
         if (first){
@@ -166,8 +176,11 @@ DataSaver* setupArc(QCustomPlot *arcPlot, DataSaver *ds){
     tracer->setGraph(arcPlot->graph(0));
     tracer->updatePosition();
     assert(x.size() == y.size());
+//    qDebug() << arcPlot->x();
     return ds;
 }
+
+void StraightViewLine(QCustomPlot *linePlot);
 
 // кривая высот
 void setupCurve(QCustomPlot *curvPlot, DataSaver *ds){
@@ -177,16 +190,28 @@ void setupCurve(QCustomPlot *curvPlot, DataSaver *ds){
     curvPlot->addGraph();
     double iteration_difference = 2 * R_EVALUATED / count;
 
-    for (double i = 0, v = 0; v < 338; i += iteration_difference, v++)
+    for (double i = 0, v = 0; v < ds->GetCount(); i += iteration_difference, v++)
         heights[v] += y_from_x[i];
-    QCPItemLine *line;
-    for (double i = 0, v = 0; v + 1 < 338; i += iteration_difference, v++){
-        line = new QCPItemLine(curvPlot);
+//    QCPItemLine *line;
+    QVector<double> x(ds->GetCount() - 1), y(ds->GetCount() - 1);
+//    curvPlot
+    double i;
+    int v;
+    for (i = 0, v = 0; v + 1 < ds->GetCount(); i += iteration_difference, v++){
+        x[v] = i;
+        y[v] = heights[v];
+        /*line = new QCPItemLine(curvPlot);
         line->setPen(QPen(QColor("#137ea8")));
         line->start->setCoords(i, heights[v]);
         line->end->setCoords(i + iteration_difference, heights[v + 1]);
-        line->setClipToAxisRect(false);
+        line->setClipToAxisRect(false);*/
     }
+    curvPlot->addGraph();
+    curvPlot->graph(1)->setData(x, y);
+    curvPlot->graph(1)->setPen(QPen(QColor("#137ea8")));
+    for (auto a : y)
+        qDebug() << a;
+    StraightViewLine(curvPlot);
 }
 
 double EquivalentRadius(double g){
@@ -195,4 +220,17 @@ double EquivalentRadius(double g){
 
 double DeltaY(double r, double eq_radius){
     return (r * r) / (2 * eq_radius);
+}
+
+// прямая прямой видимости
+void StraightViewLine(QCustomPlot *linePlot){
+    QCPItemLine *sv_line = new QCPItemLine(linePlot);
+    sv_line->setPen(QPen(QColor(Qt::yellow)));
+    sv_line->start->setCoords(0, 117.49);
+    sv_line->end->setCoords(33700, 52.7);
+//    qDebug() << sv_line->
+}
+
+void IntervalType(){
+
 }
