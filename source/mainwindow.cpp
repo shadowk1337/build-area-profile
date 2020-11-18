@@ -14,6 +14,7 @@
 const double REAL_RADIUS = 6.37e+06; // действительный радиус Земли (в метрах)
 const double G_STANDARD = -8e-08; // вертикальный градиент индекса преломления в приземной части тропосферы
 const double R_EVALUATED = 16.9e+03; // предельное удаление края дуги от центра (в метрах)
+const double LAMBDA = 0.2; // длина волны
 
 class DataSaver{
 public:
@@ -46,9 +47,10 @@ private:
 };
 
 DataSaver* setupArc(QCustomPlot *arc, DataSaver *ds);
-void setupCurve(QCustomPlot *curvPlot, DataSaver *ds);
+DataSaver* setupCurve(QCustomPlot *curvPlot, DataSaver *ds);
 void setupAxis(QCustomPlot *axis);
 DataSaver* setupFile(QCustomPlot *f);
+void IntervalType(QCustomPlot *customPlot, DataSaver *ds);
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
@@ -63,6 +65,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     setupArc(ui->customPlot, ds_main);
     setupCurve(ui->customPlot, ds_main);
     setupAxis(ui->customPlot);
+    IntervalType(ui->customPlot, ds_main);
 
     textItem = new QCPItemText(ui->customPlot);
     connect(ui->customPlot, &QCustomPlot::mouseMove, this, &MainWindow::onMouseMove);
@@ -122,7 +125,7 @@ DataSaver* setupFile(QCustomPlot *f){
 void setupAxis(QCustomPlot *axis){
     axis->rescaleAxes();
 
-//    axis->yAxis->scaleRange(2);
+    axis->yAxis->scaleRange(2);
     axis->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables);
 
     QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
@@ -138,8 +141,10 @@ void setupAxis(QCustomPlot *axis){
     axis->xAxis->setTickLength(0);
     axis->yAxis->setSubTickLength(0);
     axis->xAxis->setRange(0, 2 * R_EVALUATED);
-//    axis->
-    axis->replot();
+//    qDebug() << axis->yAxis->pixelToCoord(axis->yAxis->coordToPixel(axis->yAxis->range().lower));
+//    qDebug() << axis->graph(1);
+//    qDebug() << axis->yAxis->plottables();
+//    qDebug() << axis->graph(1)->fin
 }
 
 
@@ -171,19 +176,17 @@ DataSaver* setupArc(QCustomPlot *arcPlot, DataSaver *ds){
     arcPlot->addGraph();
     arcPlot->graph(0)->setData(x, y);
     arcPlot->graph(0)->setPen(QPen(QColor("#014506")));
-//    arcPlot->graph(0)-
     QCPItemTracer *tracer = new QCPItemTracer(arcPlot);
     tracer->setGraph(arcPlot->graph(0));
     tracer->updatePosition();
     assert(x.size() == y.size());
-//    qDebug() << arcPlot->x();
     return ds;
 }
 
-void StraightViewLine(QCustomPlot *linePlot);
+void StraightViewLine(QCustomPlot *linePlot, DataSaver *ds);
 
 // кривая высот
-void setupCurve(QCustomPlot *curvPlot, DataSaver *ds){
+DataSaver* setupCurve(QCustomPlot *curvPlot, DataSaver *ds){
     QVector<double> heights = ds->GetHeightsArr();
     qint32 count = ds->GetCount();
     QMap<double, double> y_from_x = ds->GetMap();
@@ -192,26 +195,19 @@ void setupCurve(QCustomPlot *curvPlot, DataSaver *ds){
 
     for (double i = 0, v = 0; v < ds->GetCount(); i += iteration_difference, v++)
         heights[v] += y_from_x[i];
-//    QCPItemLine *line;
     QVector<double> x(ds->GetCount() - 1), y(ds->GetCount() - 1);
-//    curvPlot
     double i;
     int v;
     for (i = 0, v = 0; v + 1 < ds->GetCount(); i += iteration_difference, v++){
         x[v] = i;
         y[v] = heights[v];
-        /*line = new QCPItemLine(curvPlot);
-        line->setPen(QPen(QColor("#137ea8")));
-        line->start->setCoords(i, heights[v]);
-        line->end->setCoords(i + iteration_difference, heights[v + 1]);
-        line->setClipToAxisRect(false);*/
     }
     curvPlot->addGraph();
     curvPlot->graph(1)->setData(x, y);
     curvPlot->graph(1)->setPen(QPen(QColor("#137ea8")));
-    for (auto a : y)
-        qDebug() << a;
-    StraightViewLine(curvPlot);
+    StraightViewLine(curvPlot, ds);
+    ds->SetHeightsArr(heights);
+    return ds;
 }
 
 double EquivalentRadius(double g){
@@ -222,15 +218,53 @@ double DeltaY(double r, double eq_radius){
     return (r * r) / (2 * eq_radius);
 }
 
-// прямая прямой видимости
-void StraightViewLine(QCustomPlot *linePlot){
-    QCPItemLine *sv_line = new QCPItemLine(linePlot);
-    sv_line->setPen(QPen(QColor(Qt::yellow)));
-    sv_line->start->setCoords(0, 117.49);
-    sv_line->end->setCoords(33700, 52.7);
-//    qDebug() << sv_line->
+// линия прямой видимости
+void StraightViewLine(QCustomPlot *linePlot, DataSaver *ds){
+    QVector<double> x(ds->GetCount()), y(ds->GetCount());
+    double x_start = 0;
+    double y_start = 117.49;
+    double x_end = 33700;
+    double y_end = 52.7;
+    double x_diff = (x_end - x_start) / ds->GetCount();
+    double y_diff = (y_end - y_start) / ds->GetCount();
+    for (int i = 0; i < ds->GetCount(); i++){
+        x[i] = x_start + i * x_diff;
+        y[i] = y_start + i * y_diff;
+    }
+    linePlot->addGraph();
+    linePlot->graph(2)->setData(x, y);
+    linePlot->graph(2)->setPen(QPen(QColor("#d6ba06")));
 }
 
-void IntervalType(){
+#define k(R) \
+    R / (2 * R_EVALUATED)
 
+
+void IntervalType(QCustomPlot *customPlot, DataSaver *ds){
+    QVector<double> line_of_sight_heights(customPlot->graph(2)->dataCount());
+    QVector<double> curve_heights = ds->GetHeightsArr();
+    QVector<double> H_from_k(customPlot->graph(2)->dataCount());
+    QVector<double> H0_from_k(customPlot->graph(2)->dataCount());
+    QVector<double> h0(customPlot->graph(2)->dataCount());
+    int v_size = customPlot->graph(2)->dataCount();
+    double intervals_diff = 2 * R_EVALUATED / customPlot->graph(2)->dataCount();
+    for (int i = 0; i < v_size; ++i)
+        line_of_sight_heights[i] = customPlot->graph(2)->dataValueRange(i * (intervals_diff / 100)).center();
+    for (int i = 0; i < v_size; ++i)
+        H_from_k[i] = line_of_sight_heights[i] - curve_heights[i];
+    double z = 0;
+    for (int i = 0; i < v_size; ++i, z += intervals_diff)
+        H0_from_k[i] = sqrt(z  * LAMBDA * k(z) * (1 - k(z)) / 3);
+    for (int i = 0; i < v_size; ++i)
+        h0[i] = H_from_k[i] / H0_from_k[i];
+    for (int i = 0; i < v_size; ++i){
+        if (H_from_k[i] > H0_from_k[i] && h0[i] >= 0)
+            qDebug() << i + 14 << ": Открытый";
+        else if (H0_from_k[i] > H_from_k[i] && H_from_k[i] > 0 && h0[i] > 0)
+            qDebug() << i + 14 << ": Полуоткрытый";
+        else if (H0_from_k[i] > H_from_k[i] && h0[i] < 0)
+            qDebug() << i + 14 << ": Закрытый";
+        else
+            qDebug() << i + 14 << ": NF";
+    }
 }
