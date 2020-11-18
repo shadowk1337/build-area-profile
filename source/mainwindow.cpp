@@ -11,7 +11,6 @@
 #include <cassert>
 #include <iostream>
 
-//test #2
 const double REAL_RADIUS = 6.37e+06; // действительный радиус Земли (в метрах)
 const double G_STANDARD = -8e-08; // вертикальный градиент индекса преломления в приземной части тропосферы
 const double R_EVALUATED = 16.9e+03; // предельное удаление края дуги от центра (в метрах)
