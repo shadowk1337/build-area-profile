@@ -55,17 +55,12 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds);
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-//    setGeometry(400, 250, 542, 390);
-//    setGeometry(0, 0, 1550, 980);
-    DataSaver *ds_main;
     setWindowTitle("Area profile");
-//    resize(1550, 980);
-//    move(100, 100);
-    ds_main = setupFile(ui->customPlot);
-    setupArc(ui->customPlot, ds_main);
-    setupCurve(ui->customPlot, ds_main);
-    setupAxis(ui->customPlot);
-    IntervalType(ui->customPlot, ds_main);
+    DataSaver *ds_main = setupFile(ui->customPlot);
+//    setupArc(ui->customPlot, ds_main);
+//    setupCurve(ui->customPlot, ds_main);
+//    setupAxis(ui->customPlot);
+//    IntervalType(ui->customPlot, ds_main);
 
     textItem = new QCPItemText(ui->customPlot);
     connect(ui->customPlot, &QCustomPlot::mouseMove, this, &MainWindow::onMouseMove);
@@ -236,9 +231,10 @@ void StraightViewLine(QCustomPlot *linePlot, DataSaver *ds){
     linePlot->graph(2)->setPen(QPen(QColor("#d6ba06")));
 }
 
+//void OpenedIntervalApproximation(QCustomPlot *customPlot, const QVector<qint32>& interval_type, DataSaver *ds);
+
 #define k(R) \
     R / (2 * R_EVALUATED)
-
 
 void IntervalType(QCustomPlot *customPlot, DataSaver *ds){
     QVector<double> line_of_sight_heights(customPlot->graph(2)->dataCount());
@@ -246,6 +242,7 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds){
     QVector<double> H_from_k(customPlot->graph(2)->dataCount());
     QVector<double> H0_from_k(customPlot->graph(2)->dataCount());
     QVector<double> h0(customPlot->graph(2)->dataCount());
+    QVector<qint32> interval_type(customPlot->graph(2)->dataCount()); // 1 = Открытый, 2 - Полуоткрытый, 3 - Закрытый
     int v_size = customPlot->graph(2)->dataCount();
     double intervals_diff = 2 * R_EVALUATED / customPlot->graph(2)->dataCount();
     for (int i = 0; i < v_size; ++i)
@@ -259,12 +256,89 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds){
         h0[i] = H_from_k[i] / H0_from_k[i];
     for (int i = 0; i < v_size; ++i){
         if (H_from_k[i] > H0_from_k[i] && h0[i] >= 0)
-            qDebug() << i + 14 << ": Открытый";
+            interval_type[i] = 1;
         else if (H0_from_k[i] > H_from_k[i] && H_from_k[i] > 0 && h0[i] > 0)
-            qDebug() << i + 14 << ": Полуоткрытый";
+            interval_type[i] = 2;
         else if (H0_from_k[i] > H_from_k[i] && h0[i] < 0)
-            qDebug() << i + 14 << ": Закрытый";
-        else
-            qDebug() << i + 14 << ": NF";
+            interval_type[i] = 3;
+        else{
+            qDebug() << "Interval " << 2 * R_EVALUATED / i << " wasn't defined";
+            exit(EXIT_FAILURE);
+        }
     }
+//    OpenedIntervalApproximation(customPlot, interval_type, ds);
 }
+
+#define VECTOR_CLEARING(z){ \
+    z.erase(z.begin(), z.end()); \
+    z.resize(0);}
+
+/*void OpenedIntervalApproximation(QCustomPlot *customPlot, const QVector<qint32>& interval_type, DataSaver *ds){
+    QVector<double> x, y;
+    QVector<double> land_heights = ds->GetHeightsArr();
+    double intervals_diff = 2 * R_EVALUATED / ds->GetCount();
+    double it_line_start, it_line_end;
+//    QCPItemLine *upper_line;
+    QCPGraph *graph;
+    bool end = true;
+    for (qint32 i = 0; i < interval_type.size(); ++i){
+        if (interval_type[i] == 1 && i != interval_type.size() - 1){
+            if (end){
+                VECTOR_CLEARING(x);
+                VECTOR_CLEARING(y);
+                it_line_start = i;
+                end = false;
+            }
+            else{
+                it_line_end = i;
+            }
+        }
+        else{
+            if (!end){
+                if (i == interval_type.size() - 1)
+                    it_line_end = i;
+                double y_axis_diff = (land_heights[it_line_end] - land_heights[it_line_start]) / (it_line_end - it_line_start);
+                for (int t = it_line_start, y_mult = 0; t <= it_line_end; ++t, ++y_mult){
+                    x.push_back(t * intervals_diff);
+                    y.push_back(land_heights[it_line_start] + y_mult * y_axis_diff);
+                }
+                graph = new QCPGraph(customPlot->xAxis, customPlot->yAxis);
+                graph->setData(x, y);
+//                for (auto a : x)
+//                    std::cout << a << "\n";
+//                upper_line->end->setCoords((double)i * intervals_diff, land_heights.at(i));
+            }
+            end = true;
+        }
+    }
+}*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
