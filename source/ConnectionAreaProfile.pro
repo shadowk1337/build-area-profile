@@ -23,9 +23,6 @@ HEADERS += \
 FORMS += \
     mainwindow.ui
 
-DISTFILES += \
-    /Users/romanfedorov/Qtproj/WArea/source/dataBase.txt \
-
 INCLUDEPATH += \
     ../Qcustomplot
 
