@@ -194,7 +194,7 @@ DataSaver *setupCurve(QCustomPlot *curvPlot, DataSaver *ds) {
   curvPlot->graph(1)->setData(x, y);
   curvPlot->graph(1)->setPen(QPen(QColor("#137ea8")));
   StraightViewLine(curvPlot, ds);
-  ds->SetHeightsArr(heights);
+  ds->SetHeightsArr(heights); // H + h map
   return ds;
 }
 
@@ -236,7 +236,7 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds) {
   QVector<double> h0(customPlot->graph(2)->dataCount());
   QVector<qint32> interval_type(
       customPlot->graph(2)
-          ->dataCount());  // 1 = Открытый, 2 - Полуоткрытый, 3 - Закрытый
+          ->dataCount());  // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
   int v_size = customPlot->graph(2)->dataCount();
   double intervals_diff = 2 * R_EVALUATED / customPlot->graph(2)->dataCount();
   for (int i = 0; i < v_size; ++i)
@@ -269,6 +269,8 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds) {
     z.erase(z.begin(), z.end()); \
     z.resize(0);                 \
   }
+
+void FindIntersection(QCustomPlot *customPlot);
 
 void OpenedIntervalApproximation(QCustomPlot *customPlot,
                                  const QVector<qint32> &interval_type,
@@ -313,4 +315,8 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
       end = true;
     }
   }
+}
+
+void FindIntersection(QCustomPlot *customPlot){
+
 }
