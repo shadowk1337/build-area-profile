@@ -5,6 +5,7 @@
 #include <QIODevice>
 #include <QRegExp>
 #include <QTextStream>
+#include <algorithm>
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
@@ -121,18 +122,13 @@ void setupAxis(QCustomPlot *axis) {
     str = QString::number(static_cast<int>(i) / 1000);
     textTicker->addTick(i, str);
   }
-  axis->xAxis->setTicker(textTicker);
   QFont pfont("Arial", 8);
+  axis->xAxis->setTicker(textTicker);
   axis->xAxis->setTickLabelFont(pfont);
   axis->xAxis->setTickLabelRotation(-45);
   axis->xAxis->setTickLength(0);
   axis->yAxis->setSubTickLength(0);
   axis->xAxis->setRange(0, 2 * R_EVALUATED);
-  //    qDebug() <<
-  //    axis->yAxis->pixelToCoord(axis->yAxis->coordToPixel(axis->yAxis->range().lower));
-  //    qDebug() << axis->graph(1);
-  //    qDebug() << axis->yAxis->plottables();
-  //    qDebug() << axis->graph(1)->fin
 }
 
 // кривая земной поверхности
@@ -194,7 +190,7 @@ DataSaver *setupCurve(QCustomPlot *curvPlot, DataSaver *ds) {
   curvPlot->graph(1)->setData(x, y);
   curvPlot->graph(1)->setPen(QPen(QColor("#137ea8")));
   StraightViewLine(curvPlot, ds);
-  ds->SetHeightsArr(heights); // H + h map
+  ds->SetHeightsArr(heights);  // H + h map
   return ds;
 }
 
@@ -264,29 +260,48 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds) {
   OpenedIntervalApproximation(customPlot, interval_type, ds);
 }
 
-#define VECTOR_CLEARING(z)       \
-  {                              \
-    z.erase(z.begin(), z.end()); \
-    z.resize(0);                 \
-  }
+/*void AB_type_lines(QVector<QPair<QPoint, QPoint>> &v, const QPoint &start,
+const QPoint &end){ v.push_back(QPair<QPoint, QPoint>(start, end));
+}*/
 
-void FindIntersection(QCustomPlot *customPlot);
+void GD_type_lines(QVector<QPair<QPoint, QPoint>> &v_to_push,
+                   QVector<double>::const_iterator begin,
+                   QVector<double>::const_iterator end,
+                   double iterator_multiply) {
+  QVector<double>::const_iterator max_height_first_half =
+      std::max_element(begin, begin + std::distance(begin, end) / 2);
+  QVector<double>::const_iterator max_height_last_half =
+      std::max_element(begin + std::distance(begin, end) / 2, end);
+  std::cout << *max_height_first_half << " " << *max_height_last_half << '\n';
+  v_to_push.push_back(
+      QPair<QPoint, QPoint>(QPoint(*max_height_first_half * iterator_multiply,
+                                   *max_height_first_half),
+                            QPoint(*max_height_last_half * iterator_multiply,
+                                   *max_height_last_half)));
+}
+
+void FindIntersection(
+    const QCustomPlot *customPlot,
+    const QVector<QPair<QPoint, QPoint>> &making_lines_points);
 
 void OpenedIntervalApproximation(QCustomPlot *customPlot,
                                  const QVector<qint32> &interval_type,
                                  DataSaver *ds) {
   QVector<double> x, y;
   QVector<double> land_heights = ds->GetHeightsArr();
+  QVector<QPair<QPoint, QPoint>>
+      AB_lines_border_point,  // крайние точки линий А'Б
+      GD_lines_border_point;  // крайние точки линий ГД
   double intervals_diff = 2 * R_EVALUATED / ds->GetCount();
-  double it_line_start, it_line_end;
+  qint32 it_line_start, it_line_end;
   QCPGraph *graph;
   QCPItemLine *line;
   bool end = true;
   for (qint32 i = 0; i < interval_type.size(); ++i) {
     if (interval_type[i] == 1 && i != interval_type.size() - 1) {
       if (end) {
-        VECTOR_CLEARING(x);
-        VECTOR_CLEARING(y);
+        x.clear();
+        y.clear();
         it_line_start = i;
         end = false;
       } else {
@@ -304,19 +319,40 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
           y.push_back(land_heights[it_line_start] + 25 + y_mult * y_axis_diff);
         }
         assert(x.size() == y.size());
-        line = new QCPItemLine(customPlot);
+        line = new QCPItemLine(customPlot);  // прямые А'Б
         line->start->setCoords(*x.begin(),
                                land_heights[it_line_start] -
                                    (*y.begin() - land_heights[it_line_start]));
         line->end->setCoords(*(x.end() - 1), *(y.end() - 1));
         graph = new QCPGraph(customPlot->xAxis, customPlot->yAxis);
         graph->setData(x, y);
+        AB_lines_border_point.push_back(QPair<QPoint, QPoint>(
+            QPoint(*x.begin(), land_heights[it_line_start] -
+                                   (*y.begin() - land_heights[it_line_start])),
+            QPoint(*(x.end() - 1), *(y.end() - 1))));
+        GD_type_lines(GD_lines_border_point,
+                      land_heights.begin() + it_line_start,
+                      land_heights.begin() + it_line_end, intervals_diff);
       }
       end = true;
     }
   }
+  for (const auto &item : GD_lines_border_point) {
+      qDebug() << item.first.x() << " " << item.first.y();
+      qDebug() << item.second.x() << " " << item.second.y();
+//    line = new QCPItemLine(customPlot);  // прямые ГД
+//    line->start->setCoords(item.first.x(), item.first.y());
+//    line->end->setCoords(item.second.x(), item.second.y());
+  }
+  FindIntersection(customPlot, AB_lines_border_point);
 }
 
-void FindIntersection(QCustomPlot *customPlot){
-
+void FindIntersection(
+    const QCustomPlot *customPlot,
+    const QVector<QPair<QPoint, QPoint>> &making_lines_points) {
+  for (const auto &item : making_lines_points) {
+    double der = (double)(item.second.y() - item.first.y()) /
+                 (item.second.x() - item.first.x());
+    //    qDebug() << item.first.y() - item.first.x() * der << " + x" << der;
+  }
 }
