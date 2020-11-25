@@ -5,48 +5,51 @@
 #include <QIODevice>
 #include <QRegExp>
 #include <QTextStream>
-#include <bits\stdc++.h>
+#include <algorithm>
+#include <cassert>
+#include <cinttypes>
+#include <cmath>
+#include <iostream>
+#include <new>
 #include "ui_mainwindow.h"
 
-const double REAL_RADIUS = 6.37e+06;  // действительный радиус Земли (в метрах)
-const double G_STANDARD = -8e-08;  // вертикальный градиент индекса преломления
-                                   // в приземной части тропосферы
-const double R_EVALUATED =
+const qreal REAL_RADIUS = 6.37e+06;  // действительный радиус Земли (в метрах)
+const qreal G_STANDARD = -8e-08;  // вертикальный градиент индекса преломления
+                                  // в приземной части тропосферы
+const qreal R_EVALUATED =
     16.9e+03;  // предельное удаление края дуги от центра (в метрах)
-const double LAMBDA = 0.2;  // длина волны
+const qreal LAMBDA = 0.2;  // длина волны
 
 class DataSaver {
  public:
   DataSaver(qint32 names_count_ = 0) : names_count(names_count_) {
-    y_from_x = QMap<double, double>();
-    heights = QVector<double>();
+    y_from_x = QMap<qreal, qreal>();
+    heights = QVector<qreal>();
   }
-  QMap<double, double> &GetMap() { return y_from_x; }
-  void SetMap(const QMap<double, double> &m) {
-    y_from_x = QMap<double, double>(m);
-  }
+  QMap<qreal, qreal> &GetMap() { return y_from_x; }
+  void SetMap(const QMap<qreal, qreal> &m) { y_from_x = QMap<qreal, qreal>(m); }
   qint32 GetCount() { return names_count; }
   void SetCount(qint32 names_count_) { names_count = names_count_; }
-  QVector<double> &GetHeightsArr() { return heights; }
-  void SetHeightsArr(const QVector<double> &v) { heights = QVector<double>(v); }
+  QVector<qreal> &GetHeightsArr() { return heights; }
+  void SetHeightsArr(const QVector<qreal> &v) { heights = QVector<qreal>(v); }
 
  private:
-  QMap<double, double> y_from_x;
+  QMap<qreal, qreal> y_from_x;
   qint32 names_count;
-  QVector<double> heights;
+  QVector<qreal> heights;
 };
 
 DataSaver *setupArc(QCustomPlot *arc, DataSaver *ds);
 DataSaver *setupCurve(QCustomPlot *curvPlot, DataSaver *ds);
 void setupAxis(QCustomPlot *axis);
-DataSaver *setupFile(QCustomPlot *f);
+DataSaver *setupFile(void);
 void IntervalType(QCustomPlot *customPlot, DataSaver *ds);
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
   setWindowTitle("Area profile");
-  DataSaver *ds_main = setupFile(ui->customPlot);
+  DataSaver *ds_main = setupFile();
   setupArc(ui->customPlot, ds_main);
   setupCurve(ui->customPlot, ds_main);
   setupAxis(ui->customPlot);
@@ -62,18 +65,18 @@ MainWindow::~MainWindow() { delete ui; }
 
 void MainWindow::onMouseMove(QMouseEvent *event) {
   QCustomPlot *customPlot = qobject_cast<QCustomPlot *>(sender());
-  double x = customPlot->xAxis->pixelToCoord(event->pos().x());
-  double y = customPlot->yAxis->pixelToCoord(event->pos().y());
+  qreal x = customPlot->xAxis->pixelToCoord(event->pos().x());
+  qreal y = customPlot->yAxis->pixelToCoord(event->pos().y());
   textItem->setText(QString("(%1, %2)")
-                        .arg(static_cast<int>(x) / 1000)
-                        .arg(static_cast<int>(y)));
+                        .arg(static_cast<qint32>(x) / 1000)
+                        .arg(static_cast<qint32>(y)));
   textItem->position->setCoords(QPointF(x, y));
   customPlot->replot();
 }
 
-// чтение данных из файла
-DataSaver *setupFile(QCustomPlot *f) {
-  QVector<double> heights;
+// Чтение данных из файла с высотами
+DataSaver *setupFile(void) {
+  QVector<qreal> heights;
   DataSaver *ds = new DataSaver;
   QFile file("heights.csv");
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -104,7 +107,7 @@ DataSaver *setupFile(QCustomPlot *f) {
   return ds;
 }
 
-// настройки осей
+// Настройки осей
 void setupAxis(QCustomPlot *axis) {
   axis->rescaleAxes();
 
@@ -114,8 +117,8 @@ void setupAxis(QCustomPlot *axis) {
 
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   QString str;
-  for (double i = 0; i < 2 * R_EVALUATED + 500; i += 500) {
-    str = QString::number(static_cast<int>(i) / 1000);
+  for (qreal i = 0; i < 2 * R_EVALUATED + 500; i += 500) {
+    str = QString::number(static_cast<qint32>(i) / 1000);
     textTicker->addTick(i, str);
   }
   QFont pfont("Arial", 8);
@@ -128,17 +131,17 @@ void setupAxis(QCustomPlot *axis) {
 }
 
 // кривая земной поверхности
-double EquivalentRadius(double g);
-double DeltaY(double r, double eq_radius);
+qreal EquivalentRadius(qreal g);
+qreal DeltaY(qreal r, qreal eq_radius);
 
 DataSaver *setupArc(QCustomPlot *arcPlot, DataSaver *ds) {
-  QVector<double> x(2 * R_EVALUATED), y(2 * R_EVALUATED);
-  QMap<double, double> m;
+  QVector<qreal> x(2 * R_EVALUATED), y(2 * R_EVALUATED);
+  QMap<qreal, qreal> m;
   bool first = true;
-  double move_graph_up_value;
-  double equivalent_radius = EquivalentRadius(G_STANDARD);
-  double iteration_difference = 2 * R_EVALUATED / ds->GetCount();
-  for (double i = -R_EVALUATED, iterator = 0; i < R_EVALUATED;
+  qreal move_graph_up_value;
+  qreal equivalent_radius = EquivalentRadius(G_STANDARD);
+  qreal iteration_difference = 2 * R_EVALUATED / ds->GetCount();
+  for (qreal i = -R_EVALUATED, iterator = 0; i < R_EVALUATED;
        i += iteration_difference, iterator += iteration_difference) {
     x[i + R_EVALUATED] = i + R_EVALUATED;
     if (first) {
@@ -162,20 +165,20 @@ DataSaver *setupArc(QCustomPlot *arcPlot, DataSaver *ds) {
   return ds;
 }
 
-void StraightViewLine(QCustomPlot *linePlot, DataSaver *ds);
+void LineOfSight(QCustomPlot *linePlot, DataSaver *ds);
 
-// кривая высот
+// Кривая высот
 DataSaver *setupCurve(QCustomPlot *curvPlot, DataSaver *ds) {
-  QVector<double> heights = ds->GetHeightsArr();
+  QVector<qreal> heights = ds->GetHeightsArr();
   qint32 count = ds->GetCount();
-  QMap<double, double> y_from_x = ds->GetMap();
+  QMap<qreal, qreal> y_from_x = ds->GetMap();
   curvPlot->addGraph();
-  double iteration_difference = 2 * R_EVALUATED / count;
+  qreal iteration_difference = 2 * R_EVALUATED / count;
 
-  for (double i = 0, v = 0; v < ds->GetCount(); i += iteration_difference, v++)
+  for (qreal i = 0, v = 0; v < ds->GetCount(); i += iteration_difference, v++)
     heights[v] += y_from_x[i];
-  QVector<double> x(ds->GetCount() - 1), y(ds->GetCount() - 1);
-  double i;
+  QVector<qreal> x(ds->GetCount() - 1), y(ds->GetCount() - 1);
+  qreal i;
   int v;
   for (i = 0, v = 0; v + 1 < ds->GetCount(); i += iteration_difference, v++) {
     x[v] = i;
@@ -185,27 +188,27 @@ DataSaver *setupCurve(QCustomPlot *curvPlot, DataSaver *ds) {
   curvPlot->addGraph();
   curvPlot->graph(1)->setData(x, y);
   curvPlot->graph(1)->setPen(QPen(QColor("#137ea8")));
-  StraightViewLine(curvPlot, ds);
+  LineOfSight(curvPlot, ds);
   ds->SetHeightsArr(heights);  // H + h map
   return ds;
 }
 
-double EquivalentRadius(double g) {
+qreal EquivalentRadius(qreal g) {
   return REAL_RADIUS / (1 + g * REAL_RADIUS / 2);
 }
 
-double DeltaY(double r, double eq_radius) { return (r * r) / (2 * eq_radius); }
+qreal DeltaY(qreal r, qreal eq_radius) { return (r * r) / (2 * eq_radius); }
 
-// линия прямой видимости
-void StraightViewLine(QCustomPlot *linePlot, DataSaver *ds) {
-  QVector<double> x(ds->GetCount()), y(ds->GetCount());
-  double x_start = 0;
-  double y_start = 117.49;
-  double x_end = 33700;
-  double y_end = 52.7;
-  double x_diff = (x_end - x_start) / ds->GetCount();
-  double y_diff = (y_end - y_start) / ds->GetCount();
-  for (int i = 0; i < ds->GetCount(); i++) {
+// Линия прямой видимости
+void LineOfSight(QCustomPlot *linePlot, DataSaver *ds) {
+  QVector<qreal> x(ds->GetCount()), y(ds->GetCount());
+  qreal x_start = 0;
+  qreal y_start = 117.49;
+  qreal x_end = 33700;
+  qreal y_end = 52.7;
+  qreal x_diff = (x_end - x_start) / ds->GetCount();
+  qreal y_diff = (y_end - y_start) / ds->GetCount();
+  for (qint32 i = 0; i < ds->GetCount(); i++) {
     x[i] = x_start + i * x_diff;
     y[i] = y_start + i * y_diff;
   }
@@ -216,32 +219,33 @@ void StraightViewLine(QCustomPlot *linePlot, DataSaver *ds) {
 
 void OpenedIntervalApproximation(QCustomPlot *customPlot,
                                  const QVector<qint32> &interval_type,
-                                 DataSaver *ds);
+                                 DataSaver *ds, const QVector<qreal> &h0);
 
-#define k(R) R / (2 * R_EVALUATED)
+inline qreal k_from_R(qreal R) { return R / (2 * R_EVALUATED); }
 
+// Определение типов интервалов
 void IntervalType(QCustomPlot *customPlot, DataSaver *ds) {
-  QVector<double> line_of_sight_heights(customPlot->graph(2)->dataCount());
-  QVector<double> curve_heights = ds->GetHeightsArr();
-  QVector<double> H_from_k(customPlot->graph(2)->dataCount());
-  QVector<double> H0_from_k(customPlot->graph(2)->dataCount());
-  QVector<double> h0(customPlot->graph(2)->dataCount());
+  QVector<qreal> curve_heights = ds->GetHeightsArr();
+  QVector<qreal> line_of_sight_heights(customPlot->graph(2)->dataCount()),
+      H_from_k(customPlot->graph(2)->dataCount()),
+      H0_from_k(customPlot->graph(2)->dataCount()),
+      h0(customPlot->graph(2)->dataCount());
   QVector<qint32> interval_type(
       customPlot->graph(2)
           ->dataCount());  // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
-  int v_size = customPlot->graph(2)->dataCount();
-  double intervals_diff = 2 * R_EVALUATED / customPlot->graph(2)->dataCount();
-  for (int i = 0; i < v_size; ++i)
+  qint32 v_size = customPlot->graph(2)->dataCount();
+  qreal intervals_diff = 2 * R_EVALUATED / customPlot->graph(2)->dataCount();
+  for (qint32 i = 0; i < v_size; ++i)
     line_of_sight_heights[i] = customPlot->graph(2)
                                    ->dataValueRange(i * (intervals_diff / 100))
                                    .center();
-  for (int i = 0; i < v_size; ++i)
+  for (qint32 i = 0; i < v_size; ++i)
     H_from_k[i] = line_of_sight_heights[i] - curve_heights[i];
-  double z = 0;
-  for (int i = 0; i < v_size; ++i, z += intervals_diff)
-    H0_from_k[i] = sqrt(z * LAMBDA * k(z) * (1 - k(z)) / 3);
-  for (int i = 0; i < v_size; ++i) h0[i] = H_from_k[i] / H0_from_k[i];
-  for (int i = 0; i < v_size; ++i) {
+  qreal z = 0;
+  for (qint32 i = 0; i < v_size; ++i, z += intervals_diff)
+    H0_from_k[i] = sqrt(z * LAMBDA * k_from_R(z) * (1 - k_from_R(z)) / 3);
+  for (qint32 i = 0; i < v_size; ++i) {
+    h0[i] = H_from_k[i] / H0_from_k[i];
     if (H_from_k[i] > H0_from_k[i] && h0[i] >= 0)
       interval_type[i] = 1;
     else if (H0_from_k[i] > H_from_k[i] && H_from_k[i] > 0 && h0[i] > 0)
@@ -253,46 +257,46 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds) {
       exit(EXIT_FAILURE);
     }
   }
-  OpenedIntervalApproximation(customPlot, interval_type, ds);
+  OpenedIntervalApproximation(customPlot, interval_type, ds, h0);
 }
 
 /*void AB_type_lines(QVector<QPair<QPointF, QPointF>> &v, const QPointF &start,
 const QPointF &end){ v.push_back(QPair<QPointF, QPointF>(start, end));
 }*/
 
+// Линни ГД типа для открытых интервалов
 void GD_type_lines(QVector<QPair<QPointF, QPointF>> &v_to_push,
-                   QVector<double>::const_iterator begin,
-                   QVector<double>::const_iterator end,
-                   QVector<double>::const_iterator graph_start,
-                   double iterator_multiply) {
-  QVector<double>::const_iterator max_height_first_half =
+                   QVector<qreal>::const_iterator begin,
+                   QVector<qreal>::const_iterator end,
+                   QVector<qreal>::const_iterator graph_start,
+                   qreal iterator_multiply) {
+  QVector<qreal>::const_iterator max_height_first_half =
       std::max_element(begin, begin + std::distance(begin, end) / 2);
-  QVector<double>::const_iterator max_height_last_half =
+  QVector<qreal>::const_iterator max_height_last_half =
       std::max_element(begin + std::distance(begin, end) / 2, end);
-  std::cout << *max_height_first_half << " " << *max_height_last_half << '\n';
   v_to_push.push_back(QPair<QPointF, QPointF>(
-      QPointF(std::distance(graph_start, max_height_first_half) *
-                  iterator_multiply,  // нужно, чтобы было число
-              *max_height_first_half),
+      QPointF(
+          std::distance(graph_start, max_height_first_half) * iterator_multiply,
+          *max_height_first_half),
       QPointF(
           std::distance(graph_start, max_height_last_half) * iterator_multiply,
           *max_height_last_half)));
 }
 
-void FindIntersectionXCoord(
-    const QCustomPlot *customPlot,
+QVector<qreal> FindIntersectionXCoord(
     const QVector<QPair<QPointF, QPointF>> &making_lines_points,
     const QVector<QPair<QPointF, QPointF>> &land_lines_points);
 
+// Открытые интервалы
 void OpenedIntervalApproximation(QCustomPlot *customPlot,
                                  const QVector<qint32> &interval_type,
-                                 DataSaver *ds) {
-  QVector<double> x, y;
-  QVector<double> land_heights = ds->GetHeightsArr();
+                                 DataSaver *ds, const QVector<qreal> &h0) {
+  QVector<qreal> x, y;
+  QVector<qreal> land_heights = ds->GetHeightsArr();
   QVector<QPair<QPointF, QPointF>>
       AB_lines_border_point,  // крайние точки линий А'Б
       GD_lines_border_point;  // крайние точки линий ГД
-  double intervals_diff = 2 * R_EVALUATED / ds->GetCount();
+  qreal intervals_diff = 2 * R_EVALUATED / ds->GetCount();
   qint32 it_line_start, it_line_end;
   QCPGraph *graph;
   QCPItemLine *line;
@@ -310,7 +314,7 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
     } else {
       if (!end) {
         if (i == interval_type.size() - 1) it_line_end = i;
-        double y_axis_diff =
+        qreal y_axis_diff =
             (land_heights[it_line_end] - land_heights[it_line_start]) /
             (it_line_end - it_line_start);
         for (int t = it_line_start, y_mult = 0; t <= it_line_end;
@@ -344,24 +348,44 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
     line->start->setCoords(item.first.x(), item.first.y());
     line->end->setCoords(item.second.x(), item.second.y());
   }
-  FindIntersectionXCoord(customPlot, AB_lines_border_point,
-                         GD_lines_border_point);
+  QVector<qreal> intersection_points_x =
+      FindIntersectionXCoord(AB_lines_border_point, GD_lines_border_point);
 }
 
-// qint32 LengthOfReflection() {}
+// qint32 LengthOfReflection(QVector<qreal> &h0) {
 
-void FindIntersectionXCoord(
-    const QCustomPlot *customPlot,
+// }
+
+// Нахождение точки пересечения двух линий, заданных двумя точками
+QVector<qreal> FindIntersectionXCoord(
     const QVector<QPair<QPointF, QPointF>> &making_lines_points,
     const QVector<QPair<QPointF, QPointF>> &land_lines_points) {
   assert(making_lines_points.size() == land_lines_points.size());
-  for (const auto &item : making_lines_points, land_lines_points) {
-    double der = (double)(item.second.y() - item.first.y()) /
+  QVector<qreal> x_coords;
+  for (qint32 i = 0; i < making_lines_points.size(); ++i) {
+    qreal der1 =
+        (making_lines_points[i].second.y() - making_lines_points[i].first.y()) /
+        (making_lines_points[i].second.x() - making_lines_points[i].first.x());
+    qreal der2 =
+        (land_lines_points[i].second.y() - land_lines_points[i].first.y()) /
+        (land_lines_points[i].second.x() - land_lines_points[i].first.x());
+    assert(der1 != der2);
+    x_coords.push_back(((land_lines_points[i].first.y() -
+                         land_lines_points[i].first.x() * der2) -
+                        (making_lines_points[i].first.y() -
+                         making_lines_points[i].first.x() * der1)) /
+                       (der1 - der2));
+  }
+  return x_coords;
+  /*for (auto x : x_coords)
+    qDebug() << x;
+  for (const auto &item : making_lines_points) {
+    qreal der = (qreal)(item.second.y() - item.first.y()) /
                  (item.second.x() - item.first.x());
     qDebug() << item.first.y() - item.first.x() * der << " + x" << der;
   }
-  /*for (const auto &item : land_lines_points) {
-    double der = (double)(item.second.y() - item.first.y()) /
+  for (const auto &item : land_lines_points) {
+    qreal der = (qreal)(item.second.y() - item.first.y()) /
                  (item.second.x() - item.first.x());
     qDebug() << item.first.y() - item.first.x() * der << " + x" << der;
   }*/
