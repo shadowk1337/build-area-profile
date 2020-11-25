@@ -5,11 +5,7 @@
 #include <QIODevice>
 #include <QRegExp>
 #include <QTextStream>
-#include <algorithm>
-#include <cassert>
-#include <cinttypes>
-#include <cmath>
-#include <iostream>
+#include <bits\stdc++.h>
 #include "ui_mainwindow.h"
 
 const double REAL_RADIUS = 6.37e+06;  // действительный радиус Земли (в метрах)
@@ -260,36 +256,40 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds) {
   OpenedIntervalApproximation(customPlot, interval_type, ds);
 }
 
-/*void AB_type_lines(QVector<QPair<QPoint, QPoint>> &v, const QPoint &start,
-const QPoint &end){ v.push_back(QPair<QPoint, QPoint>(start, end));
+/*void AB_type_lines(QVector<QPair<QPointF, QPointF>> &v, const QPointF &start,
+const QPointF &end){ v.push_back(QPair<QPointF, QPointF>(start, end));
 }*/
 
-void GD_type_lines(QVector<QPair<QPoint, QPoint>> &v_to_push,
+void GD_type_lines(QVector<QPair<QPointF, QPointF>> &v_to_push,
                    QVector<double>::const_iterator begin,
                    QVector<double>::const_iterator end,
+                   QVector<double>::const_iterator graph_start,
                    double iterator_multiply) {
   QVector<double>::const_iterator max_height_first_half =
       std::max_element(begin, begin + std::distance(begin, end) / 2);
   QVector<double>::const_iterator max_height_last_half =
       std::max_element(begin + std::distance(begin, end) / 2, end);
   std::cout << *max_height_first_half << " " << *max_height_last_half << '\n';
-  v_to_push.push_back(
-      QPair<QPoint, QPoint>(QPoint(*max_height_first_half * iterator_multiply,
-                                   *max_height_first_half),
-                            QPoint(*max_height_last_half * iterator_multiply,
-                                   *max_height_last_half)));
+  v_to_push.push_back(QPair<QPointF, QPointF>(
+      QPointF(std::distance(graph_start, max_height_first_half) *
+                  iterator_multiply,  // нужно, чтобы было число
+              *max_height_first_half),
+      QPointF(
+          std::distance(graph_start, max_height_last_half) * iterator_multiply,
+          *max_height_last_half)));
 }
 
-void FindIntersection(
+void FindIntersectionXCoord(
     const QCustomPlot *customPlot,
-    const QVector<QPair<QPoint, QPoint>> &making_lines_points);
+    const QVector<QPair<QPointF, QPointF>> &making_lines_points,
+    const QVector<QPair<QPointF, QPointF>> &land_lines_points);
 
 void OpenedIntervalApproximation(QCustomPlot *customPlot,
                                  const QVector<qint32> &interval_type,
                                  DataSaver *ds) {
   QVector<double> x, y;
   QVector<double> land_heights = ds->GetHeightsArr();
-  QVector<QPair<QPoint, QPoint>>
+  QVector<QPair<QPointF, QPointF>>
       AB_lines_border_point,  // крайние точки линий А'Б
       GD_lines_border_point;  // крайние точки линий ГД
   double intervals_diff = 2 * R_EVALUATED / ds->GetCount();
@@ -326,33 +326,43 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
         line->end->setCoords(*(x.end() - 1), *(y.end() - 1));
         graph = new QCPGraph(customPlot->xAxis, customPlot->yAxis);
         graph->setData(x, y);
-        AB_lines_border_point.push_back(QPair<QPoint, QPoint>(
-            QPoint(*x.begin(), land_heights[it_line_start] -
-                                   (*y.begin() - land_heights[it_line_start])),
-            QPoint(*(x.end() - 1), *(y.end() - 1))));
+        AB_lines_border_point.push_back(QPair<QPointF, QPointF>(
+            QPointF(*x.begin(), land_heights[it_line_start] -
+                                    (*y.begin() - land_heights[it_line_start])),
+            QPointF(*(x.end() - 1), *(y.end() - 1))));
         GD_type_lines(GD_lines_border_point,
                       land_heights.begin() + it_line_start,
-                      land_heights.begin() + it_line_end, intervals_diff);
+                      land_heights.begin() + it_line_end, land_heights.begin(),
+                      intervals_diff);
       }
       end = true;
     }
   }
   for (const auto &item : GD_lines_border_point) {
-      qDebug() << item.first.x() << " " << item.first.y();
-      qDebug() << item.second.x() << " " << item.second.y();
-//    line = new QCPItemLine(customPlot);  // прямые ГД
-//    line->start->setCoords(item.first.x(), item.first.y());
-//    line->end->setCoords(item.second.x(), item.second.y());
+    line = new QCPItemLine(customPlot);  // прямые ГД
+    line->setPen(QPen(QColor(Qt::red)));
+    line->start->setCoords(item.first.x(), item.first.y());
+    line->end->setCoords(item.second.x(), item.second.y());
   }
-  FindIntersection(customPlot, AB_lines_border_point);
+  FindIntersectionXCoord(customPlot, AB_lines_border_point,
+                         GD_lines_border_point);
 }
 
-void FindIntersection(
+// qint32 LengthOfReflection() {}
+
+void FindIntersectionXCoord(
     const QCustomPlot *customPlot,
-    const QVector<QPair<QPoint, QPoint>> &making_lines_points) {
-  for (const auto &item : making_lines_points) {
+    const QVector<QPair<QPointF, QPointF>> &making_lines_points,
+    const QVector<QPair<QPointF, QPointF>> &land_lines_points) {
+  assert(making_lines_points.size() == land_lines_points.size());
+  for (const auto &item : making_lines_points, land_lines_points) {
     double der = (double)(item.second.y() - item.first.y()) /
                  (item.second.x() - item.first.x());
-    //    qDebug() << item.first.y() - item.first.x() * der << " + x" << der;
+    qDebug() << item.first.y() - item.first.x() * der << " + x" << der;
   }
+  /*for (const auto &item : land_lines_points) {
+    double der = (double)(item.second.y() - item.first.y()) /
+                 (item.second.x() - item.first.x());
+    qDebug() << item.first.y() - item.first.x() * der << " + x" << der;
+  }*/
 }
