@@ -51,8 +51,8 @@ MainWindow::MainWindow(QWidget *parent)
   setWindowTitle("Area profile");
   DataSaver *ds_main = setupFile();
   setupArc(ui->customPlot, ds_main);
-  setupCurve(ui->customPlot, ds_main);
   setupAxis(ui->customPlot);
+  setupCurve(ui->customPlot, ds_main);
   IntervalType(ui->customPlot, ds_main);
 
   textItem = new QCPItemText(ui->customPlot);
@@ -260,10 +260,6 @@ void IntervalType(QCustomPlot *customPlot, DataSaver *ds) {
   OpenedIntervalApproximation(customPlot, interval_type, ds, h0);
 }
 
-/*void AB_type_lines(QVector<QPair<QPointF, QPointF>> &v, const QPointF &start,
-const QPointF &end){ v.push_back(QPair<QPointF, QPointF>(start, end));
-}*/
-
 // Линни ГД типа для открытых интервалов
 void GD_type_lines(QVector<QPair<QPointF, QPointF>> &v_to_push,
                    QVector<qreal>::const_iterator begin,
@@ -286,6 +282,11 @@ void GD_type_lines(QVector<QPair<QPointF, QPointF>> &v_to_push,
 QVector<qreal> FindIntersectionXCoord(
     const QVector<QPair<QPointF, QPointF>> &making_lines_points,
     const QVector<QPair<QPointF, QPointF>> &land_lines_points);
+
+inline qreal l0(qreal h0, qreal k) {
+  return ((2 * R_EVALUATED) * sqrt(1 + h0 * h0)) /
+         (1 + h0 * h0 / (4 * k * (1 - k)));
+}
 
 // Открытые интервалы
 void OpenedIntervalApproximation(QCustomPlot *customPlot,
@@ -350,6 +351,9 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
   }
   QVector<qreal> intersection_points_x =
       FindIntersectionXCoord(AB_lines_border_point, GD_lines_border_point);
+  for (auto it : intersection_points_x) { // дописать уравнение прямой видимости
+
+  }
 }
 
 // qint32 LengthOfReflection(QVector<qreal> &h0) {
