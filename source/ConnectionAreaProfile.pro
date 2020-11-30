@@ -18,8 +18,8 @@ SOURCES += \
 
 HEADERS += \
     ../Qcustomplot/qcustomplot.h \
-    mainwindow.h \
-#    qcustomplot.h
+    mainwindow.h
+ #    qcustomplot.h
 
 FORMS += \
     mainwindow.ui

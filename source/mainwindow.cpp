@@ -9,7 +9,6 @@
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
-#include <iostream>
 #include <new>
 #include "ui_mainwindow.h"
 
@@ -45,20 +44,22 @@ class VectorSaver {
   QVector<T> v;
 };
 
-bool setupFile(void);
-void setupArc(QCustomPlot *arc);
-void setupAxis(QCustomPlot *axis);
-void setupCurve(QCustomPlot *curvPlot);
+VectorSaver<qreal> saver;
+
+bool SetupFile(void);
+void SetupArc(QCustomPlot *arc);
+void SetupAxis(QCustomPlot *axis);
+void SetupCurve(QCustomPlot *curvPlot);
 void IntervalType(QCustomPlot *customPlot);
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
   ui->setupUi(this);
   setWindowTitle("Area profile");
-  assert(setupFile() == true);
-  setupArc(ui->customPlot);
-  setupAxis(ui->customPlot);
-  setupCurve(ui->customPlot);
+  assert(SetupFile() == true);
+  SetupArc(ui->customPlot);
+  SetupAxis(ui->customPlot);
+  SetupCurve(ui->customPlot);
   IntervalType(ui->customPlot);
 
   textItem = new QCPItemText(ui->customPlot);
@@ -81,7 +82,7 @@ void MainWindow::onMouseMove(QMouseEvent *event) {
 }
 
 // Чтение данных из файла с высотами
-bool setupFile(void) {
+bool SetupFile(void) {
   QVector<qreal> heights;
   QFile file("heights.csv");
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -113,14 +114,14 @@ bool setupFile(void) {
 }
 
 // Настройки осей
-void setupAxis(QCustomPlot *axis) {
+void SetupAxis(QCustomPlot *axis) {
   axis->rescaleAxes();
 
   axis->yAxis->scaleRange(2);
   axis->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom |
                         QCP::iSelectPlottables);
 
-  QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+  /*QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   QString str;
   for (qreal i = 0; i < 2 * R_EVALUATED + 500; i += 500) {
     str = QString::number(static_cast<qint32>(i) / 1000);
@@ -132,14 +133,14 @@ void setupAxis(QCustomPlot *axis) {
   axis->xAxis->setTickLabelRotation(-45);
   axis->xAxis->setTickLength(0);
   axis->yAxis->setSubTickLength(0);
-  axis->xAxis->setRange(0, 2 * R_EVALUATED);
+  axis->xAxis->setRange(0, 2 * R_EVALUATED);*/
 }
 
 // кривая земной поверхности
 qreal EquivalentRadius(qreal g);
 qreal DeltaY(qreal r, qreal eq_radius);
 
-void setupArc(QCustomPlot *arcPlot) {
+void SetupArc(QCustomPlot *arcPlot) {
   QVector<qreal> x(2 * R_EVALUATED), y(2 * R_EVALUATED);
   QMap<qreal, qreal> m;
   bool first = true;
@@ -172,7 +173,7 @@ void setupArc(QCustomPlot *arcPlot) {
 void LineOfSight(QCustomPlot *linePlot);
 
 // Кривая высот
-void setupCurve(QCustomPlot *curvPlot) {
+void SetupCurve(QCustomPlot *curvPlot) {
   QVector<qreal> heights = useful_data.GetHeightsArr();
   curvPlot->addGraph();
   qreal iteration_difference = 2 * R_EVALUATED / useful_data.GetCount();
@@ -241,25 +242,33 @@ void IntervalType(QCustomPlot *customPlot) {
     H_from_k[i] = line_of_sight_heights[i] - curve_heights[i];
   qreal z = 0;
   for (qint32 i = 0; i < v_size; ++i, z += intervals_diff)
-    H0_from_k[i] = sqrt(z * LAMBDA * k_from_R(z) * (1 - k_from_R(z)) / 3);
+    H0_from_k[i] =
+        sqrt(2 * R_EVALUATED * LAMBDA * k_from_R(z) * (1 - k_from_R(z)) / 3);
   for (qint32 i = 0; i < v_size; ++i) {
     h0[i] = H_from_k[i] / H0_from_k[i];
-    if (H_from_k[i] > H0_from_k[i] && h0[i] >= 0)
+    if (H_from_k[i] >= H0_from_k[i] && h0[i] >= 0)
       interval_type[i] = 1;
-    else if (H0_from_k[i] > H_from_k[i] && H_from_k[i] > 0 && h0[i] > 0)
+    else if (H0_from_k[i] > H_from_k[i] && H_from_k[i] > 0.1 && h0[i] < 0.1 &&
+             h0[i] > 0)
       interval_type[i] = 2;
     else if (H0_from_k[i] > H_from_k[i] && h0[i] < 0)
       interval_type[i] = 3;
     else {
-      qDebug() << "Interval " << 2 * R_EVALUATED / i << " wasn't defined";
-      exit(EXIT_FAILURE);
+      interval_type[i] = 1;
     }
+    //    to_save.push_back(H0_from_k[i] / h0[i]);
   }
+  assert(H0_from_k.size() == h0.size());
+  QVector<qreal> to_save;
+  for (auto i = 0; i < h0.size(); ++i) {
+    to_save.push_back(H0_from_k[i] / h0[i]);
+  }
+  saver.SetVector(to_save);  //  вектор со значениями H0 / h0 ---> save вектор
   IntervalTypeCalc(customPlot, interval_type);
 }
 
-void AB_type_lines(QCustomPlot *customPlot, const QVector<double> &x,
-                   const QVector<double> &y, qint32 it_line_start,
+void AB_type_lines(QCustomPlot *customPlot, const QVector<qreal> &x,
+                   const QVector<qreal> &y, qint32 it_line_start,
                    QVector<QPair<QPointF, QPointF>> &AB_lines_border_point) {
   QCPItemLine *line = new QCPItemLine(customPlot);
   line->start->setCoords(
@@ -301,9 +310,9 @@ void GD_type_lines(QCustomPlot *customPlot,
   }
 }
 
-/*QVector<qreal> FindIntersectionXCoord(
+QVector<qreal> FindIntersectionXCoord(
     const QVector<QPair<QPointF, QPointF>> &making_lines_points,
-    const QVector<QPair<QPointF, QPointF>> &land_lines_points);*/
+    const QVector<QPair<QPointF, QPointF>> &land_lines_points);
 
 void IntervalTypeCalc(QCustomPlot *customPlot,
                       const QVector<qint32> &interval_type) {
@@ -329,6 +338,9 @@ inline qreal l0(qreal h0, qreal k) {
          (1 + h0 * h0 / (4 * k * (1 - k)));
 }
 
+// Критерий Рэлея
+void RayleighCriteria(qint32 index_line_start, qint32 index_line_end);
+
 // Открытые интервалы
 void OpenedIntervalApproximation(QCustomPlot *customPlot,
                                  const QVector<qint32> &interval_type) {
@@ -338,20 +350,19 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
   QVector<QPair<QPointF, QPointF>>
       AB_lines_border_point,  // крайние точки линий А'Б
       GD_lines_border_point;  // крайние точки линий ГД
-  qint32 it_line_start, it_line_end, prev;
-  it_line_start = prev = interval_type[0];
+  qint32 idx_line_start, idx_line_end, prev;
+  idx_line_start = prev = interval_type[0];
   QCPItemLine *line;
-  //  QCPGraph *graph;
   for (auto it : interval_type) {
-    if (abs(it - prev) > 1) {
-        qDebug() << prev;
+    if (abs(it - prev) > 1 || it == *(interval_type.end() - 1)) {
       line = new QCPItemLine(customPlot);
-      it_line_end = prev;
-      line->start->setCoords(it_line_start * intervals_diff,
-                             useful_data.GetHeightsArr()[it_line_start]);
-      line->end->setCoords(it_line_end * intervals_diff,
-                           useful_data.GetHeightsArr()[it_line_end]);
-      it_line_start = it;
+      idx_line_end = prev;
+      line->start->setCoords(idx_line_start * intervals_diff,
+                             useful_data.GetHeightsArr()[idx_line_start]);
+      line->end->setCoords(idx_line_end * intervals_diff,
+                           useful_data.GetHeightsArr()[idx_line_end]);
+      RayleighCriteria(idx_line_start, idx_line_end);
+      idx_line_start = it;
     }
     prev = it;
   }
@@ -390,12 +401,36 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
   }*/
 }
 
+void RayleighCriteria(qint32 index_line_start, qint32 index_line_end) {
+  qreal k, b, denominator, y, delta_h;
+  QVector<qreal> H0_h0_division = saver.GetVector();
+  denominator = (index_line_end - index_line_start);
+  k = (useful_data.GetHeightsArr().at(index_line_end) -
+       useful_data.GetHeightsArr().at(index_line_start)) /
+      denominator;
+  b = (index_line_end * useful_data.GetHeightsArr().at(index_line_start) -
+       index_line_start * useful_data.GetHeightsArr().at(index_line_end)) /
+      denominator;
+  for (auto i = index_line_start; i < index_line_end; ++i) {
+    y = k * i + b;
+    delta_h = abs(y - useful_data.GetHeightsArr().at(i));
+    //    qDebug() << i << " " << delta_h << " " << H0_h0_division[i];
+    //    if (delta_h > 0.75 * H0_h0_division[i])
+    //      qDebug() << i;
+  }
+}
+
+void HalfOpenedIntervalApproximation(QCustomPlot *customPlot, const QVector<qint32> &interval_type){
+
+}
+
+
 // qint32 LengthOfReflection(QVector<qreal> &h0) {
 
 // }
 
 // Нахождение точки пересечения двух линий, заданных двумя точками
-/*QVector<qreal> FindIntersectionXCoord(
+QVector<qreal> FindIntersectionXCoord(
     const QVector<QPair<QPointF, QPointF>> &making_lines_points,
     const QVector<QPair<QPointF, QPointF>> &land_lines_points) {
   assert(making_lines_points.size() == land_lines_points.size());
@@ -427,7 +462,7 @@ void OpenedIntervalApproximation(QCustomPlot *customPlot,
                  (item.second.x() - item.first.x());
     qDebug() << item.first.y() - item.first.x() * der << " + x" << der;
   }
-}*/
+}
 
 qreal EquivalentRadius(qreal g) {
   return REAL_RADIUS / (1 + g * REAL_RADIUS / 2);
