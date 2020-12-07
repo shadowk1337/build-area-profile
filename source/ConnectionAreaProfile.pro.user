@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.13.0, 2020-12-03T20:19:22. -->
+<!-- Written by QtCreator 4.13.0, 2020-12-07T20:12:03. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -146,8 +146,8 @@
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.1">
     <value type="bool">true</value>
     <value type="int" key="EnableQmlDebugging">2</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/roman/WArea/area-profile-graph/build-ConnectionAreaProfile-Qt_5_9_5-Release</value>
-    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">/home/roman/WArea/area-profile-graph/build-ConnectionAreaProfile-Qt_5_9_5-Release</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory">/home/roman/svn/rvision/source/etc/area-profile-graph/build-ConnectionAreaProfile-Qt_5_9_5-Release</value>
+    <value type="QString" key="ProjectExplorer.BuildConfiguration.BuildDirectory.shadowDir">/home/roman/svn/rvision/source/etc/area-profile-graph/build-ConnectionAreaProfile-Qt_5_9_5-Release</value>
     <valuemap type="QVariantMap" key="ProjectExplorer.BuildConfiguration.BuildStepList.0">
      <valuemap type="QVariantMap" key="ProjectExplorer.BuildStepList.Step.0">
       <value type="bool" key="ProjectExplorer.BuildStep.Enabled">true</value>
@@ -323,8 +323,9 @@
     <valuelist type="QVariantList" key="CustomOutputParsers"/>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/roman/WArea/area-profile-graph/source/ConnectionAreaProfile.pro</value>
-    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/roman/WArea/area-profile-graph/source/ConnectionAreaProfile.pro</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">ConnectionAreaProfile2</value>
+    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">Qt4ProjectManager.Qt4RunConfiguration:/home/roman/svn/rvision/source/etc/area-profile-graph/source/ConnectionAreaProfile.pro</value>
+    <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey">/home/roman/svn/rvision/source/etc/area-profile-graph/source/ConnectionAreaProfile.pro</value>
     <value type="QString" key="RunConfiguration.Arguments"></value>
     <value type="bool" key="RunConfiguration.Arguments.multi">false</value>
     <value type="QString" key="RunConfiguration.OverrideDebuggerStartup"></value>
@@ -335,7 +336,7 @@
     <value type="bool" key="RunConfiguration.UseQmlDebugger">false</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
     <value type="QString" key="RunConfiguration.WorkingDirectory"></value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/roman/WArea/area-profile-graph/build-ConnectionAreaProfile-Qt_5_9_5-Release</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory.default">/home/roman/svn/rvision/source/etc/area-profile-graph/build-ConnectionAreaProfile-Qt_5_9_5-Release</value>
    </valuemap>
    <value type="int" key="ProjectExplorer.Target.RunConfigurationCount">1</value>
   </valuemap>
