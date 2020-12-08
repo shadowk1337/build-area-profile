@@ -54,14 +54,17 @@ void MainWindow::onMouseMove(QMouseEvent *event) {
 // Чтение данных из файла с высотами
 bool MainWindow::setupFile(void) {
   QFile file("heights.csv");
+  QVector<qreal> heights;
+  QTextStream in(&file);
+  QRegExp rx("[ ;]");
+
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     qDebug() << "Could't open the data file";
     return false;
   }
-  QVector<qreal> heights;
-  QTextStream in(&file);
-  QRegExp rx("[ ;]");
+
   bool first = true;
+
   while (!in.atEnd()) {
     QString line = in.readLine();
     if (first) {
@@ -72,6 +75,7 @@ bool MainWindow::setupFile(void) {
     heights.push_back(line.section(";", 3, 3).toDouble());
     useful_data.s_counter++;
   }
+
   assert(heights.size() <= useful_data.s_counter);
   file.close();
 
@@ -79,6 +83,7 @@ bool MainWindow::setupFile(void) {
     qDebug() << "File is empty";
     return false;
   }
+
   useful_data.s_heights.setVector(heights);
   useful_data.s_intervals_difference =
       constants::AREA_LENGTH / useful_data.s_counter;
@@ -87,19 +92,20 @@ bool MainWindow::setupFile(void) {
 
 // Настройки осей
 void MainWindow::setupAxis(QCustomPlot *axis) {
-  axis->rescaleAxes();
+  QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
+  QString str;
+  QFont pfont("Arial", 8);
 
+  axis->rescaleAxes();
   axis->yAxis->scaleRange(2);
   axis->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom |
                         QCP::iSelectPlottables);
 
-  QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-  QString str;
   for (qreal i = 0; i < constants::AREA_LENGTH + 500; i += 500) {
     str = QString::number(static_cast<qint32>(i) / 1000);
     textTicker->addTick(i, str);
   }
-  QFont pfont("Arial", 8);
+
   axis->xAxis->setTicker(textTicker);
   axis->xAxis->setTickLabelFont(pfont);
   axis->xAxis->setTickLabelRotation(-45);
@@ -119,6 +125,7 @@ void MainWindow::setupArc(QCustomPlot *arcPlot) {
   qreal move_graph_up_value;
   qreal equivalent_radius = equivalentRadius(constants::G_STANDARD);
   qreal s_intervals_difference = constants::AREA_LENGTH / useful_data.s_counter;
+
   for (qreal i = -constants::R_EVALUATED, iterator = 0;
        i < constants::R_EVALUATED;
        i += s_intervals_difference, iterator += s_intervals_difference) {
@@ -134,6 +141,7 @@ void MainWindow::setupArc(QCustomPlot *arcPlot) {
       m[iterator] = y[i + constants::R_EVALUATED];
     }
   }
+
   useful_data.s_map.setMap(m);
   arcPlot->addGraph();
   arcPlot->graph(0)->setData(x, y);
@@ -149,17 +157,20 @@ void lineOfSight(QCustomPlot *linePlot);
 // Кривая высот
 void MainWindow::setupCurve(QCustomPlot *curvPlot) {
   QVector<qreal> heights = useful_data.s_heights.getVector();
-  for (qreal i = 0, v = 0; v < useful_data.s_counter;
-       i += useful_data.s_intervals_difference, v++)
-    heights[v] += useful_data.s_map[i];
   QVector<qreal> x(useful_data.s_counter - 1), y(useful_data.s_counter - 1);
   qreal i;
   qint32 v;
+
+  for (qreal i = 0, v = 0; v < useful_data.s_counter;
+       i += useful_data.s_intervals_difference, v++)
+    heights[v] += useful_data.s_map[i];
+
   for (i = 0, v = 0; v + 1 < useful_data.s_counter;
        i += useful_data.s_intervals_difference, v++) {
     x[v] = i;
     y[v] = heights[v];
   }
+
   assert(x.size() == y.size());
   curvPlot->addGraph();
   curvPlot->graph(1)->setData(x, y);
@@ -171,19 +182,21 @@ void MainWindow::setupCurve(QCustomPlot *curvPlot) {
 // Линия прямой видимости
 void lineOfSight(QCustomPlot *linePlot) {
   QVector<qreal> x(useful_data.s_counter), y(useful_data.s_counter);
-    qreal x_start = 0;
-    qreal y_start = 117.49;
-    qreal x_end = 33700;
-    qreal y_end = 52.7;
-    qreal x_diff = (x_end - x_start) / useful_data.s_counter;
-    qreal y_diff = (y_end - y_start) / useful_data.s_counter;
-    for (qint32 i = 0; i < useful_data.s_counter; i++) {
-      x[i] = x_start + i * x_diff;
-      y[i] = y_start + i * y_diff;
-    }
-    linePlot->addGraph();
-    linePlot->graph(2)->setData(x, y);
-    linePlot->graph(2)->setPen(QPen(QColor("#d6ba06")));
+  qreal x_start = 0;
+  qreal y_start = 117.49;
+  qreal x_end = 33700;
+  qreal y_end = 52.7;
+  qreal x_diff = (x_end - x_start) / useful_data.s_counter;
+  qreal y_diff = (y_end - y_start) / useful_data.s_counter;
+
+  for (qint32 i = 0; i < useful_data.s_counter; i++) {
+    x[i] = x_start + i * x_diff;
+    y[i] = y_start + i * y_diff;
+  }
+
+  linePlot->addGraph();
+  linePlot->graph(2)->setData(x, y);
+  linePlot->graph(2)->setPen(QPen(QColor("#d6ba06")));
 }
 
 void intervalTypeCalc(QCustomPlot *customPlot,
@@ -195,6 +208,7 @@ void typeDefinition(const QVector<qreal> &H, const QVector<qreal> &HNull,
                     const QVector<qreal> &hNull,
                     QVector<qint32> &interval_type) {
   assert(HNull.size() == hNull.size());
+
   for (qint32 i = 0; i < H.size(); ++i) {
     if (H.at(i) >= HNull.at(i) && hNull.at(i) >= 0)
       interval_type[i] = 1;
@@ -208,13 +222,13 @@ void typeDefinition(const QVector<qreal> &H, const QVector<qreal> &HNull,
   }
 }
 
-// Определение типов интервалов // TODO
+// Определение типов интервалов
 void MainWindow::intervalType(QCustomPlot *customPlot) {
   customPlot->addGraph();
   QVector<qreal> curve_heights = useful_data.s_heights.getVector();
   QVector<qreal> line_of_sight_heights(useful_data.s_counter),
       H(useful_data.s_counter), HNull(useful_data.s_counter),
-      hNull(useful_data.s_counter), it_x_vector, it_y_vector;
+      hNull(useful_data.s_counter), it_x_vector, it_y_vector, to_save;
   QVector<qint32> interval_type(
       useful_data.s_counter);  // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
   for (qint32 i = 0; i < useful_data.s_counter; ++i) {
@@ -233,16 +247,6 @@ void MainWindow::intervalType(QCustomPlot *customPlot) {
     typeDefinition(H, HNull, hNull, interval_type);
   }
   assert(HNull.size() == hNull.size());
-  customPlot->addGraph();                                   // для теста
-  customPlot->graph(3)->setData(it_x_vector, it_y_vector);  //
-
-  std::for_each(it_y_vector.begin(), it_y_vector.end(), [&](qreal &x) {  //
-    static qint32 i = 0;                                                 //
-    x += 2 * HNull[i];                                                   //
-    i++;                                                                 //
-  });                                                                    //
-  customPlot->graph(4)->setData(it_x_vector, it_y_vector);               //
-  QVector<qreal> to_save;
   for (auto i = 0; i < hNull.size(); ++i) {
     to_save.push_back(HNull[i] / hNull[i]);
   }
@@ -287,36 +291,30 @@ void openedIntervalSphereApproximation(qint32, qint32, qint32);
 void openedInterval(const QVector<qint32> &interval_type) {
   qint32 idx_interval_start, idx_interval_end, prev, l0_length;
   idx_interval_start = prev = interval_type[0];
+
   for (auto it : interval_type) {
     if (abs(it - prev) > 1 || it == *(interval_type.end() - 1)) {
       idx_interval_end = prev;
       qint32 difference = idx_interval_end - idx_interval_start;
+
       for (qint32 i = idx_interval_start + difference / 4;
            i <= idx_interval_end; i += difference / 4 + 1) {
+        auto a = i - l0_length / (2 * useful_data.s_intervals_difference);
+        auto b = i + l0_length / (2 * useful_data.s_intervals_difference);
         if ((l0_length = l0(useful_data.s_hNull[i],
                             i * useful_data.s_intervals_difference /
                                 (constants::AREA_LENGTH))) <=
             0.25 * constants::AREA_LENGTH) {
           openedIntervalPlaneApproximation(
-              std::max(
-                  static_cast<qint32>(
-                      i - l0_length / (2 * useful_data.s_intervals_difference)),
-                  0),
-              std::min(
-                  static_cast<qint32>(
-                      i + l0_length / (2 * useful_data.s_intervals_difference)),
-                  static_cast<qint32>(constants::AREA_LENGTH)),
+              std::max(static_cast<qint32>(a), 0),
+              std::min(static_cast<qint32>(b),
+                       static_cast<qint32>(constants::AREA_LENGTH)),
               i);
         } else {
           openedIntervalSphereApproximation(
-              std::max(
-                  static_cast<qint32>(
-                      i - l0_length / (2 * useful_data.s_intervals_difference)),
-                  0),
-              std::min(
-                  static_cast<qint32>(
-                      i + l0_length / (2 * useful_data.s_intervals_difference)),
-                  static_cast<qint32>(constants::AREA_LENGTH)),
+              std::max(static_cast<qint32>(a), 0),
+              std::min(static_cast<qint32>(b),
+                       static_cast<qint32>(constants::AREA_LENGTH)),
               i);
         }
       }
@@ -381,20 +379,22 @@ inline qreal attenuationP(qreal areaReliefParameter) {
   return 6 + 16.4 / (areaReliefParameter * (1 + 0.8 * areaReliefParameter));
 }
 
-void halfopenedInterval(const QVector<qint32> &interval_type) {
+void halfopenedInterval(const QVector<qint32> &interval_type) { // TODO
   qint32 idx_interval_start, idx_interval_end, prev, l0, delta_y;
-  idx_interval_start = prev = interval_type[0];
-  qreal min_height, max_height;
   QVector<qreal> land_heights = useful_data.s_heights.getVector();
+  idx_interval_start = prev = interval_type[0];
   for (auto it : interval_type) {
     if (it - prev > 3 ||
         it == *(interval_type.end() -
                 1)) {  // допускаем наличие интервалов другого типа между
                        // интервалами полуоткрытого типа
       idx_interval_end = prev;
-      auto [min, max] =
-          std::minmax_element(land_heights.begin() + idx_interval_start,
-                              land_heights.begin() + idx_interval_end);
+//      auto [min, max] =
+//          std::minmax_element(land_heights.begin() + idx_interval_start,
+//                              land_heights.begin() + idx_interval_end);
+//      qDebug() << *max << *min;
+//      qDebug() << obstacleSphereRadius(idx_interval_end - idx_interval_start,
+//                                       max - min);
       idx_interval_start = it;
     }
     prev = it;
@@ -441,3 +441,14 @@ qreal equivalentRadius(qreal g) {
 }
 
 qreal deltaY(qreal r, qreal eq_radius) { return (r * r) / (2 * eq_radius); }
+
+/*customPlot->addGraph();                                   // для теста
+customPlot->graph(3)->setData(it_x_vector, it_y_vector);  //
+
+std::for_each(it_y_vector.begin(), it_y_vector.end(), [&](qreal &x) {  //
+  static qint32 i = 0;                                                 //
+  x += 2 * HNull[i];                                                   //
+  i++;                                                                 //
+});                                                                    //
+customPlot->graph(4)->setData(it_x_vector, it_y_vector);               //
+*/
