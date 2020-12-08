@@ -12,7 +12,7 @@ class Map {
   explicit Map(const QMap<K, V>&);
   void setMap(const QMap<K, V>&);
   QMap<K, V> getMap(void) const;
-  V operator[](K);
+  V& operator[](K);
  private:
   QMap<qreal, qreal> m_map;
 };
@@ -24,6 +24,7 @@ class Vector {
   explicit Vector(const QVector<T>&);
   void setVector(const QVector<T>&);
   QVector<T> getVector(void) const;
+  T& operator[](qint32);
 
  private:
   QVector<T> m_vector;
@@ -50,6 +51,11 @@ QMap<K, V> UsefulData::Map<K, V>::getMap(void) const {
   return m_map;
 }
 
+template <typename K, typename V>
+V& UsefulData::Map<K, V>::operator[](K idx){
+    return m_map[idx];
+}
+
 template <typename T>
 UsefulData::Vector<T>::Vector() {
   m_vector.resize(0);
@@ -72,4 +78,8 @@ QVector<T> UsefulData::Vector<T>::getVector(void) const {
   return m_vector;
 }
 
+template <typename T>
+T& UsefulData::Vector<T>::operator[](qint32 idx){
+    return m_vector[idx];
+}
 #endif  // USEFULDATA_H

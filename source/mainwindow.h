@@ -29,10 +29,6 @@ class MainWindow : public QMainWindow {
   Ui::MainWindow *ui;
   QCustomPlot *customPlot;
   QCPItemText *textItem;
-  qint32 s_counter;
-  qreal s_intervals_difference;
-  UsefulData::Map<qreal, qreal> s_map;
-  UsefulData::Vector<qreal> s_vector;
 
  private slots:
   void onMouseMove(QMouseEvent *event);
