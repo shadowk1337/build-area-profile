@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include <qcustomplot.h>
-#include <usefuldata.h>
+//#include <usefuldata.h>
 #include <QDebug>
 #include <QDir>
 #include <QFile>
@@ -12,6 +12,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
+#include <map>
 #include <new>
 #include "constants.h"
 #include "ui_mainwindow.h"
@@ -19,9 +20,9 @@
 struct {
   qint32 s_counter;
   qreal s_intervals_difference;
-  UsefulData::Map<qreal, qreal> s_map;
-  UsefulData::Vector<qreal> s_heights, s_HNull_hNull_div, s_hNull;
-} useful_data;
+  std::map<qreal, qreal> s_map;
+  QVector<qreal> s_heights, s_HNull_hNull_div, s_hNull, s_HNull;
+} data_usage;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -54,7 +55,6 @@ void MainWindow::onMouseMove(QMouseEvent *event) {
 // Чтение данных из файла с высотами
 bool MainWindow::setupFile(void) {
   QFile file("heights.csv");
-  QVector<qreal> heights;
   QTextStream in(&file);
   QRegExp rx("[ ;]");
 
@@ -72,21 +72,20 @@ bool MainWindow::setupFile(void) {
       continue;
     }
     line.replace(",", ".");
-    heights.push_back(line.section(";", 3, 3).toDouble());
-    useful_data.s_counter++;
+    data_usage.s_heights.push_back(line.section(";", 3, 3).toDouble());
+    data_usage.s_counter++;
   }
 
-  assert(heights.size() <= useful_data.s_counter);
+  assert(data_usage.s_heights.size() <= data_usage.s_counter);
   file.close();
 
-  if (!useful_data.s_counter) {
+  if (!data_usage.s_counter) {
     qDebug() << "File is empty";
     return false;
   }
 
-  useful_data.s_heights.setVector(heights);
-  useful_data.s_intervals_difference =
-      constants::AREA_LENGTH / useful_data.s_counter;
+  data_usage.s_intervals_difference =
+      constants::AREA_LENGTH / data_usage.s_counter;
   return true;
 }
 
@@ -120,11 +119,10 @@ qreal deltaY(qreal r, qreal eq_radius);
 
 void MainWindow::setupArc(QCustomPlot *arcPlot) {
   QVector<qreal> x(constants::AREA_LENGTH), y(constants::AREA_LENGTH);
-  QMap<qreal, qreal> m;
   bool first = true;
   qreal move_graph_up_value;
   qreal equivalent_radius = equivalentRadius(constants::G_STANDARD);
-  qreal s_intervals_difference = constants::AREA_LENGTH / useful_data.s_counter;
+  qreal s_intervals_difference = constants::AREA_LENGTH / data_usage.s_counter;
 
   for (qreal i = -constants::R_EVALUATED, iterator = 0;
        i < constants::R_EVALUATED;
@@ -134,15 +132,13 @@ void MainWindow::setupArc(QCustomPlot *arcPlot) {
       move_graph_up_value = qAbs(deltaY(i, equivalent_radius));
       y[i + constants::R_EVALUATED] = 0;
       first = false;
-      m[iterator] = y[i + constants::R_EVALUATED];
+      data_usage.s_map[iterator] = y[i + constants::R_EVALUATED];
     } else {
       y[i + constants::R_EVALUATED] =
           -deltaY(i, equivalent_radius) + move_graph_up_value;
-      m[iterator] = y[i + constants::R_EVALUATED];
+      data_usage.s_map[iterator] = y[i + constants::R_EVALUATED];
     }
   }
-
-  useful_data.s_map.setMap(m);
   arcPlot->addGraph();
   arcPlot->graph(0)->setData(x, y);
   arcPlot->graph(0)->setPen(QPen(QColor("#014506")));
@@ -156,17 +152,17 @@ void lineOfSight(QCustomPlot *linePlot);
 
 // Кривая высот
 void MainWindow::setupCurve(QCustomPlot *curvPlot) {
-  QVector<qreal> heights = useful_data.s_heights.getVector();
-  QVector<qreal> x(useful_data.s_counter - 1), y(useful_data.s_counter - 1);
+  QVector<qreal> heights = data_usage.s_heights;
+  QVector<qreal> x(data_usage.s_counter - 1), y(data_usage.s_counter - 1);
   qreal i;
   qint32 v;
 
-  for (qreal i = 0, v = 0; v < useful_data.s_counter;
-       i += useful_data.s_intervals_difference, v++)
-    heights[v] += useful_data.s_map[i];
+  for (qreal i = 0, v = 0; v < data_usage.s_counter;
+       i += data_usage.s_intervals_difference, v++)
+    heights[v] += data_usage.s_map[i];
 
-  for (i = 0, v = 0; v + 1 < useful_data.s_counter;
-       i += useful_data.s_intervals_difference, v++) {
+  for (i = 0, v = 0; v + 1 < data_usage.s_counter;
+       i += data_usage.s_intervals_difference, v++) {
     x[v] = i;
     y[v] = heights[v];
   }
@@ -176,20 +172,20 @@ void MainWindow::setupCurve(QCustomPlot *curvPlot) {
   curvPlot->graph(1)->setData(x, y);
   curvPlot->graph(1)->setPen(QPen(QColor("#137ea8")));
   lineOfSight(curvPlot);
-  useful_data.s_heights.setVector(heights);  // H + h map
+  data_usage.s_heights = heights;  // H + h map
 }
 
 // Линия прямой видимости
 void lineOfSight(QCustomPlot *linePlot) {
-  QVector<qreal> x(useful_data.s_counter), y(useful_data.s_counter);
+  QVector<qreal> x(data_usage.s_counter), y(data_usage.s_counter);
   qreal x_start = 0;
   qreal y_start = 117.49;
   qreal x_end = 33700;
   qreal y_end = 52.7;
-  qreal x_diff = (x_end - x_start) / useful_data.s_counter;
-  qreal y_diff = (y_end - y_start) / useful_data.s_counter;
+  qreal x_diff = (x_end - x_start) / data_usage.s_counter;
+  qreal y_diff = (y_end - y_start) / data_usage.s_counter;
 
-  for (qint32 i = 0; i < useful_data.s_counter; i++) {
+  for (qint32 i = 0; i < data_usage.s_counter; i++) {
     x[i] = x_start + i * x_diff;
     y[i] = y_start + i * y_diff;
   }
@@ -225,24 +221,24 @@ void typeDefinition(const QVector<qreal> &H, const QVector<qreal> &HNull,
 // Определение типов интервалов
 void MainWindow::intervalType(QCustomPlot *customPlot) {
   customPlot->addGraph();
-  QVector<qreal> curve_heights = useful_data.s_heights.getVector();
-  QVector<qreal> line_of_sight_heights(useful_data.s_counter),
-      H(useful_data.s_counter), HNull(useful_data.s_counter),
-      hNull(useful_data.s_counter), it_x_vector, it_y_vector, to_save;
+  QVector<qreal> curve_heights = data_usage.s_heights;
+  QVector<qreal> line_of_sight_heights(data_usage.s_counter),
+      H(data_usage.s_counter), HNull(data_usage.s_counter),
+      hNull(data_usage.s_counter), it_x_vector, it_y_vector, to_save;
   QVector<qint32> interval_type(
-      useful_data.s_counter);  // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
-  for (qint32 i = 0; i < useful_data.s_counter; ++i) {
+      data_usage.s_counter);  // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
+  for (qint32 i = 0; i < data_usage.s_counter; ++i) {
     line_of_sight_heights[i] =
         customPlot->graph(2)
-            ->dataValueRange(i * (useful_data.s_intervals_difference / 100))
+            ->dataValueRange(i * (data_usage.s_intervals_difference / 100))
             .center();
     H[i] = line_of_sight_heights[i] - curve_heights[i];
     HNull[i] =
         sqrt(constants::AREA_LENGTH * constants::LAMBDA *
-             k_from_R(i * useful_data.s_intervals_difference) *
-             ((1 - k_from_R(i * useful_data.s_intervals_difference)) / 3));
+             k_from_R(i * data_usage.s_intervals_difference) *
+             ((1 - k_from_R(i * data_usage.s_intervals_difference)) / 3));
     hNull[i] = H[i] / HNull[i];
-    it_x_vector.push_back(i * useful_data.s_intervals_difference);
+    it_x_vector.push_back(i * data_usage.s_intervals_difference);
     it_y_vector.push_back(-HNull.at(i) + line_of_sight_heights[i]);
     typeDefinition(H, HNull, hNull, interval_type);
   }
@@ -250,10 +246,21 @@ void MainWindow::intervalType(QCustomPlot *customPlot) {
   for (auto i = 0; i < hNull.size(); ++i) {
     to_save.push_back(HNull[i] / hNull[i]);
   }
-  useful_data.s_HNull_hNull_div.setVector(
-      to_save);  //  вектор со значениями hNull / hNull ---> save вектор
-  useful_data.s_hNull.setVector(hNull);
+  data_usage.s_HNull_hNull_div =
+      to_save;  //  вектор со значениями hNull / hNull ---> save вектор
+  data_usage.s_hNull = hNull;
+  data_usage.s_HNull = HNull;
   intervalTypeCalc(customPlot, interval_type);
+
+  customPlot->addGraph();                                   // для теста
+  customPlot->graph(3)->setData(it_x_vector, it_y_vector);  //
+
+  std::for_each(it_y_vector.begin(), it_y_vector.end(), [&](qreal &x) {  //
+    static qint32 i = 0;                                                 //
+    x += 2 * HNull[i];                                                   //
+    i++;                                                                 //
+  });                                                                    //
+  customPlot->graph(4)->setData(it_x_vector, it_y_vector);               //
 }
 
 void openedInterval(const QVector<qint32> &);
@@ -299,10 +306,10 @@ void openedInterval(const QVector<qint32> &interval_type) {
 
       for (qint32 i = idx_interval_start + difference / 4;
            i <= idx_interval_end; i += difference / 4 + 1) {
-        auto a = i - l0_length / (2 * useful_data.s_intervals_difference);
-        auto b = i + l0_length / (2 * useful_data.s_intervals_difference);
-        if ((l0_length = l0(useful_data.s_hNull[i],
-                            i * useful_data.s_intervals_difference /
+        auto a = i - l0_length / (2 * data_usage.s_intervals_difference);
+        auto b = i + l0_length / (2 * data_usage.s_intervals_difference);
+        if ((l0_length = l0(data_usage.s_hNull[i],
+                            i * data_usage.s_intervals_difference /
                                 (constants::AREA_LENGTH))) <=
             0.25 * constants::AREA_LENGTH) {
           openedIntervalPlaneApproximation(
@@ -338,7 +345,7 @@ void openedIntervalPlaneApproximation(qint32 idx_line_start,
 
 void openedIntervalSphereApproximation(qint32 line_start, qint32 line_end,
                                        qint32 idx_line_mid) {
-  QVector<qreal> H0_h0_div = useful_data.s_HNull_hNull_div.getVector();
+  QVector<qreal> H0_h0_div = data_usage.s_HNull_hNull_div;
   auto max_H0_h0 = 0.75 * H0_h0_div.at(idx_line_mid);
   for (auto i = line_start; i < line_end; i++) {
     //    if (H0_h0_div.at(i) < max_H0_h0) qDebug() << "Гладкая";
@@ -350,14 +357,13 @@ void openedIntervalSphereApproximation(qint32 line_start, qint32 line_end,
 void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end,
                                qint32 idx_line_mid) {
   qreal k, b, denominator, y, delta_h;
-  auto heights = useful_data.s_heights.getVector();
+  auto heights = data_usage.s_heights;
   denominator = (line_end - line_start);
   k = (heights.at(line_end) -  // TODO
        heights.at(line_start) / denominator);
   b = (line_end * heights.at(line_start) - line_start * heights.at(line_end)) /
       denominator;
-  auto max_H0_h0 =
-      0.75 * useful_data.s_HNull_hNull_div.getVector().at(idx_line_mid);
+  auto max_H0_h0 = 0.75 * data_usage.s_HNull_hNull_div.at(idx_line_mid);
   for (auto i = line_start; i <= line_end; ++i) {
     y = k * i + b;
     delta_h = abs(y - heights.at(i));
@@ -366,22 +372,35 @@ void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end,
 }
 
 inline qreal obstacleSphereRadius(qreal l0, qreal delta_y) {
-  return (l0 * l0) / (8 * delta_y);
+  return ((l0 * l0) / (8 * delta_y)) * 0.001;
 }
 
-inline qreal areaReliefParameter(qreal R, qreal k, qreal H0,
-                                 qreal obstacleShereRadius) {
-  return pow(R * R * k * k * ((1 - k) * (1 - k)) / (obstacleShereRadius * H0),
+inline qreal areaReliefParameter(qreal k, qreal H0, qreal obstacleShereRadius) {
+  return pow(qPow(constants::AREA_LENGTH, 2) * k * k * ((1 - k) * (1 - k)) /
+                 (obstacleShereRadius * H0),
              1.0 / 3);
 }
 
-inline qreal attenuationP(qreal areaReliefParameter) {
+inline qreal attenuationPSph(qreal areaReliefParameter) {
   return 6 + 16.4 / (areaReliefParameter * (1 + 0.8 * areaReliefParameter));
 }
 
-void halfopenedInterval(const QVector<qint32> &interval_type) { // TODO
+inline qreal nuWedg(qreal H, qreal k) {  // TODO
+  return -H *
+         qSqrt(2 / (constants::LAMBDA * constants::AREA_LENGTH * k * (1 - k)));
+}
+
+inline qreal attentuationPWedg(qreal nu) {
+  return 6.9 + 20 * log10(qSqrt(pow(nu - 0.1, 2) + 1) + nu - 0.1);
+}
+
+qreal findDGDots(qint32, qint32);
+void halfopenedIntervalSphereApproximation(qint32, qreal);
+void halfopenedIntervalWedgeApproximation();
+
+void halfopenedInterval(const QVector<qint32> &interval_type) {  // TODO
   qint32 idx_interval_start, idx_interval_end, prev, l0, delta_y;
-  QVector<qreal> land_heights = useful_data.s_heights.getVector();
+  QVector<qreal> land_heights = data_usage.s_heights;
   idx_interval_start = prev = interval_type[0];
   for (auto it : interval_type) {
     if (it - prev > 3 ||
@@ -389,16 +408,69 @@ void halfopenedInterval(const QVector<qint32> &interval_type) { // TODO
                 1)) {  // допускаем наличие интервалов другого типа между
                        // интервалами полуоткрытого типа
       idx_interval_end = prev;
-//      auto [min, max] =
-//          std::minmax_element(land_heights.begin() + idx_interval_start,
-//                              land_heights.begin() + idx_interval_end);
-//      qDebug() << *max << *min;
-//      qDebug() << obstacleSphereRadius(idx_interval_end - idx_interval_start,
-//                                       max - min);
+
+      qreal a = obstacleSphereRadius(
+          (idx_interval_end - idx_interval_start) *
+              data_usage.s_intervals_difference,
+          findDGDots(idx_interval_start, idx_interval_end));
+      if (a >=
+          sqrt(constants::AREA_LENGTH * constants::LAMBDA * 0.5 * (0.5 / 3)))
+        halfopenedIntervalSphereApproximation(
+            (idx_interval_end + idx_interval_start) / 2, a);
+      else
+        halfopenedIntervalWedgeApproximation();
       idx_interval_start = it;
     }
     prev = it;
   }
+}
+
+void halfopenedIntervalSphereApproximation(qint32 idx_avg,
+                                           qreal obst_sph_redius) {
+  qreal k_avg = k_from_R(idx_avg * data_usage.s_intervals_difference);
+  qreal mu = areaReliefParameter(k_avg, data_usage.s_HNull.at(idx_avg),
+                                 obst_sph_redius);
+  qDebug() << attenuationPSph(mu);
+}
+
+void halfopenedIntervalWedgeApproximation() {
+  qDebug() << "h";
+  return;
+}
+
+qreal findDGDots(qint32 first, qint32 last) {  // сделать считывание из файла
+  QVector<qreal> x(data_usage.s_counter), y(data_usage.s_counter);
+  qreal x_start = 0;
+  qreal y_start = 117.49;
+  qreal x_end = 33700;
+  qreal y_end = 52.7;
+  qreal x_diff = (x_end - x_start) / data_usage.s_counter;
+  qreal y_diff = (y_end - y_start) / data_usage.s_counter;
+
+  for (qint32 i = 0; i < data_usage.s_counter; i++) {
+    x[i] = x_start + i * x_diff;
+    y[i] = y_start + i * y_diff;
+  }
+
+  QVector<qint32> intersec_heights;
+  for (qint32 i = 0; i < data_usage.s_counter; ++i) {
+    auto a = static_cast<qint32>(data_usage.s_heights.at(i));
+    auto b = static_cast<qint32>(y.at(i) - data_usage.s_HNull.at(i));
+    if (a == b || a + 1 == b || b + 1 == a) intersec_heights.push_back(i);
+  }
+  if (intersec_heights.size() == 1 || !intersec_heights.size()) {
+    qDebug() << "Not enough intersections";
+    return 0;
+  }
+  auto right = *std::lower_bound(intersec_heights.begin(),
+                                 intersec_heights.end(), first);
+  auto left =
+      *std::lower_bound(intersec_heights.rbegin(), intersec_heights.rend(),
+                        last, [](qint32 a, qint32 b) { return a > b; });
+  if (right == left)
+    right = *std::lower_bound(intersec_heights.begin(), intersec_heights.end(),
+                              right);
+  return abs(data_usage.s_heights.at(right) - data_usage.s_heights.at(left));
 }
 
 // qint32 LengthOfReflection(QVector<qreal> &h0) {
