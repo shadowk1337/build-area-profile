@@ -1,28 +1,16 @@
 #include "mainwindow.h"
-#include <qcustomplot.h>
-//#include <usefuldata.h>
-#include <QDebug>
-#include <QDir>
-#include <QFile>
-#include <QIODevice>
-#include <QRegExp>
-#include <QTextStream>
-#include <QtGlobal>
 #include <algorithm>
 #include <cassert>
 #include <cinttypes>
 #include <cmath>
 #include <map>
 #include <new>
+#include "intervals.h"
+#include "datastruct.h"
 #include "constants.h"
 #include "ui_mainwindow.h"
 
-struct {
-  qint32 s_counter;
-  qreal s_intervals_difference;
-  std::map<qreal, qreal> s_map;
-  QVector<qreal> s_heights, s_HNull_hNull_div, s_hNull, s_HNull, s_H;
-} data_usage;
+//using namespace ClosedI;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -57,6 +45,7 @@ bool MainWindow::setupFile(void) {
   QFile file("heights.csv");
   QTextStream in(&file);
   QRegExp rx("[ ;]");
+  qint32 j = 0;
 
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     qDebug() << "Could't open the data file";
@@ -268,8 +257,6 @@ void MainWindow::intervalType(QCustomPlot *customPlot) {
 FUNC_DECL(openedInterval);
 FUNC_DECL(halfopenedInterval);
 // FUNC_DECL(closedInterval);
-
-void closedInterval(QCustomPlot *, const QVector<qint32> &);
 
 QVector<qreal> findIntersectionXCoord(const QVector<QPair<QPointF, QPointF>> &,
                                       const QVector<QPair<QPointF, QPointF>> &);
@@ -489,90 +476,6 @@ qreal findDGDots(qint32 first,
     right = *std::lower_bound(intersec_heights.begin(), intersec_heights.end(),
                               right);
   return abs(data_usage.s_heights.at(right) - data_usage.s_heights.at(left));
-}
-
-//-------------------------------------------Закрытый_интервал-------------------------------------------
-
-qint32 findLongestInterval(const QVector<qint32> &v);
-void reliefTangentStraightLines(QCustomPlot *, qint32, qint32);
-
-void closedInterval(QCustomPlot *cp, const QVector<qint32> &interval_type) {
-  qint32 idx_interval_start, prev = 0;
-  idx_interval_start = prev = interval_type[0];
-  auto max = findLongestInterval(interval_type) / 2;
-
-  for (auto it : interval_type) {
-    if (it - prev >= max && prev == *interval_type.begin())
-      idx_interval_start = it;
-    if ((it - prev >= max && prev != *interval_type.begin()) ||
-        it == *(interval_type.end() - 1)) {
-      reliefTangentStraightLines(cp, idx_interval_start, prev);
-      idx_interval_start = it;
-    }
-    prev = it;
-  }
-}
-
-qint32 findLongestInterval(const QVector<qint32> &v) {
-  qint32 a, int_begin = v.at(0), prev = v.at(0), longestSize = 0;
-  for (qint32 i = 0; i < v.size(); ++i) {
-    if (v.at(i) - prev > 1) {
-      a = prev - int_begin;
-      longestSize = (a > longestSize) ? a : longestSize;
-      int_begin = v.at(i);
-    }
-    prev = v.at(i);
-  }
-  return longestSize;
-}
-
-inline std::pair<qreal, qreal> strLineEquation(qreal, qreal, qreal, qreal);
-// inline std::pair<qreal, qreal> findClosestMaxPoint(qint32 int_curr, qreal x,
-// qreal y, qreal a, qreal b);
-
-void reliefTangentStraightLines(QCustomPlot *cp, qint32 int_start,
-                                qint32 int_end) {
-  qreal dist = data_usage.s_intervals_difference;
-  bool is_higher_sender, is_higher_reciever;
-  is_higher_sender = is_higher_reciever = 1;
-
-  for (auto i = int_start; i <= int_end; ++i) {
-    auto [a_sender, b_sender] =
-        strLineEquation(0, 117.49, i * dist, data_usage.s_heights.at(i));
-    //    auto [a_reciever, b_reciever] = strLineEquation(
-    //        constants::AREA_LENGTH, 52.7, i * dist,
-    //        data_usage.s_heights.at(i));
-    //    if (!is_higher_sender) {
-    for (auto j = i; j <= int_end; ++j) {
-      if (a_sender * j * dist + b_sender < data_usage.s_heights.at(j))
-        is_higher_sender = 0;
-    }
-    //    }
-    /*if (!is_higher_reciever) {
-      is_higher_reciever = 1;
-      for (auto k = i; k >= int_start; --k) {
-        if (a_reciever * k * dist + b_reciever < data_usage.s_heights.at(k))
-          is_higher_reciever = 0;
-      }
-    }*/
-
-    if (is_higher_sender) {
-      qDebug() << "h";
-      QCPItemLine *line = new QCPItemLine(cp);  // TODO: QCustomPlot
-      line->start->setCoords(0, 117.49);
-      line->end->setCoords(i * dist, data_usage.s_heights.at(i));
-      return;
-    }
-    is_higher_sender = 1;
-  }
-}
-
-// y = ax + b
-std::pair<qreal, qreal> strLineEquation(qreal x, qreal x_relief, qreal y,
-                                        qreal y_relief) {
-  qreal c = (y_relief - y);
-  qreal d = (x_relief - x);
-  return {c / d, y - (x * c / d)};
 }
 
 //-------------------------------------------_-------------------------------------------

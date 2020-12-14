@@ -1,6 +1,6 @@
 QT       += \
     printsupport \
-    widgets
+    widgets \
     core
 
 greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
@@ -12,22 +12,26 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-#    qcustomplot.cpp \
+    ../intervals/closed.cpp \
     main.cpp \
     mainwindow.cpp \
     ../Qcustomplot/qcustomplot.cpp
 
 HEADERS += \
     ../Qcustomplot/qcustomplot.h \
-    constants.h \
+    ../data/datastruct.h \
+    ../data/constants.h \
+    ../intervals/intervals.h \
+    headings.h \
     mainwindow.h
- #    qcustomplot.h
 
 FORMS += \
     mainwindow.ui
 
 INCLUDEPATH += \
-    ../Qcustomplot
+    ../Qcustomplot \
+    ../data \
+    ../intervals
 
 
 # Default rules for deployment.
