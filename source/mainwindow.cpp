@@ -5,12 +5,13 @@
 #include <cmath>
 #include <map>
 #include <new>
-#include "intervals.h"
-#include "datastruct.h"
+#include "calcformulas.h"
 #include "constants.h"
+#include "datastruct.h"
+#include "intervals.h"
 #include "ui_mainwindow.h"
 
-//using namespace ClosedI;
+Data data_usage;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -45,7 +46,6 @@ bool MainWindow::setupFile(void) {
   QFile file("heights.csv");
   QTextStream in(&file);
   QRegExp rx("[ ;]");
-  qint32 j = 0;
 
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     qDebug() << "Could't open the data file";
@@ -103,9 +103,6 @@ void MainWindow::setupAxis(QCustomPlot *axis) {
 }
 
 // кривая земной поверхности
-qreal equivalentRadius(qreal g);
-qreal deltaY(qreal r, qreal eq_radius);
-
 void MainWindow::setupArc(QCustomPlot *arcPlot) {
   QVector<qreal> x(constants::AREA_LENGTH), y(constants::AREA_LENGTH);
   bool first = true;
@@ -187,8 +184,6 @@ void lineOfSight(QCustomPlot *linePlot) {
 void intervalTypeCalc(QCustomPlot *customPlot,
                       const QVector<qint32> &interval_type);
 
-inline qreal k_from_R(qreal R) { return R / constants::AREA_LENGTH; }
-
 void typeDefinition(const QVector<qreal> &H, const QVector<qreal> &HNull,
                     const QVector<qreal> &hNull,
                     QVector<qint32> &interval_type) {
@@ -252,12 +247,6 @@ void MainWindow::intervalType(QCustomPlot *customPlot) {
   customPlot->graph(4)->setData(it_x_vector, it_y_vector);               //
 }
 
-#define FUNC_DECL(s) void s(const QVector<qint32> &)
-
-FUNC_DECL(openedInterval);
-FUNC_DECL(halfopenedInterval);
-// FUNC_DECL(closedInterval);
-
 QVector<qreal> findIntersectionXCoord(const QVector<QPair<QPointF, QPointF>> &,
                                       const QVector<QPair<QPointF, QPointF>> &);
 
@@ -273,209 +262,23 @@ void intervalTypeCalc(QCustomPlot *customPlot,
     else
       third_type_indexes.push_back(i);
   }
-  if (!first_type_indexes.empty()) openedInterval(first_type_indexes);
-  if (!second_type_indexes.empty()) halfopenedInterval(second_type_indexes);
-  if (!third_type_indexes.empty())
-    closedInterval(customPlot, third_type_indexes);
+  if (!first_type_indexes.empty()) {
+    Interval *i = new OpenedInterval(first_type_indexes);
+    i->IntervalType(customPlot, first_type_indexes);
+  }
+  if (!second_type_indexes.empty()) {
+    Interval *i = new HalfOpenedInterval(second_type_indexes);
+    i->IntervalType(customPlot, second_type_indexes);
+  }
+  if (!third_type_indexes.empty()) {
+    Interval *i = new ClosedInterval(third_type_indexes);
+    i->IntervalType(customPlot, third_type_indexes);
+  }
 }
 
 inline qreal l0(qreal h0, qreal k) {
   return ((constants::AREA_LENGTH)*qSqrt(1 + h0 * h0)) /
          (1 + (h0 * h0) / (4 * k * (1 - k)));
-}
-
-//-------------------------------------------Открытый_интервал-------------------------------------------
-
-void openedIntervalPlaneApproximation(qint32, qint32, qint32);
-
-void openedIntervalSphereApproximation(qint32, qint32, qint32);
-
-void openedInterval(const QVector<qint32> &interval_type) {
-  qint32 idx_interval_start, idx_interval_end, prev, l0_length;
-  idx_interval_start = prev = interval_type[0];
-
-  for (auto it : interval_type) {
-    if (abs(it - prev) > 1 || it == *(interval_type.end() - 1)) {
-      idx_interval_end = prev;
-      qint32 difference = idx_interval_end - idx_interval_start;
-
-      for (qint32 i = idx_interval_start + difference / 4;
-           i <= idx_interval_end; i += difference / 4 + 1) {
-        auto a = i - l0_length / (2 * data_usage.s_intervals_difference);
-        auto b = i + l0_length / (2 * data_usage.s_intervals_difference);
-        if ((l0_length = l0(data_usage.s_hNull[i],
-                            i * data_usage.s_intervals_difference /
-                                (constants::AREA_LENGTH))) <=
-            0.25 * constants::AREA_LENGTH) {
-          openedIntervalPlaneApproximation(
-              std::max(static_cast<qint32>(a), 0),
-              std::min(static_cast<qint32>(b),
-                       static_cast<qint32>(constants::AREA_LENGTH)),
-              i);
-        } else {
-          openedIntervalSphereApproximation(
-              std::max(static_cast<qint32>(a), 0),
-              std::min(static_cast<qint32>(b),
-                       static_cast<qint32>(constants::AREA_LENGTH)),
-              i);
-        }
-      }
-      idx_interval_start = it;
-    }
-    prev = it;
-  }
-}
-
-// Критерий Рэлея
-void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end,
-                               qint32 idx_line_mid);
-
-// Открытые интервалы
-void openedIntervalPlaneApproximation(qint32 idx_line_start,
-                                      qint32 idx_line_end,
-                                      qint32 idx_line_mid) {
-  QVector<qreal> x, y;
-  rayleighAndGroundCriteria(idx_line_start, idx_line_end, idx_line_mid);
-}
-
-void openedIntervalSphereApproximation(qint32 line_start, qint32 line_end,
-                                       qint32 idx_line_mid) {
-  QVector<qreal> H0_h0_div = data_usage.s_HNull_hNull_div;
-  auto max_H0_h0 = 0.75 * H0_h0_div.at(idx_line_mid);
-  for (auto i = line_start; i < line_end; i++) {
-    //    if (H0_h0_div.at(i) < max_H0_h0) qDebug() << "Гладкая";
-    //    else
-    //      qDebug() << "-";
-  }
-}
-
-void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end,
-                               qint32 idx_line_mid) {
-  qreal k, b, denominator, y, delta_h;
-  auto heights = data_usage.s_heights;
-  denominator = (line_end - line_start);
-  k = (heights.at(line_end) -  // TODO
-       heights.at(line_start) / denominator);
-  b = (line_end * heights.at(line_start) - line_start * heights.at(line_end)) /
-      denominator;
-  auto max_H0_h0 = 0.75 * data_usage.s_HNull_hNull_div.at(idx_line_mid);
-  for (auto i = line_start; i <= line_end; ++i) {
-    y = k * i + b;
-    delta_h = abs(y - heights.at(i));
-    //    if (delta_h < 0.75 * max_H0_h0) qDebug() << i << ": Гладкая";
-  }
-}
-
-//-------------------------------------------Полуоткрытый_интервал-------------------------------------------
-
-inline qreal obstacleSphereRadius(qreal l0, qreal delta_y) {
-  return ((l0 * l0) / (8 * delta_y)) * 0.001;
-}
-
-inline qreal areaReliefParameter(qreal k, qreal H0, qreal obstacleShereRadius) {
-  return pow(qPow(constants::AREA_LENGTH, 2) * k * k * ((1 - k) * (1 - k)) /
-                 (obstacleShereRadius * H0),
-             1.0 / 3);
-}
-
-inline qreal reliefParFuncSph(qreal mu) { return 4 + 10 / (mu - 0.1); }
-
-inline qreal attenuationPSph(qreal mu) {
-  return 6 + 16.4 / (mu * (1 + 0.8 * mu));
-}
-
-inline qreal nuWedg(qreal H, qreal k) {
-  return -H *
-         qSqrt(2 / (constants::LAMBDA * constants::AREA_LENGTH * k * (1 - k)));
-}
-
-inline qreal attentuationPWedg(qreal nu) {
-  return 6.9 + 20 * log10(qSqrt(pow(nu - 0.1, 2) + 1) + nu - 0.1);
-}
-
-qreal findDGDots(qint32, qint32);
-std::pair<qreal, qreal> halfopenedIntervalSphereApproximation(qint32, qreal);
-qreal halfopenedIntervalWedgeApproximation(qint32);
-
-void halfopenedInterval(
-    const QVector<qint32> &interval_type) {  // TODO: добавить аппроксимацию
-                                             // двух соседних препятствий
-  qint32 idx_interval_start, idx_interval_end, prev;
-  idx_interval_start = prev = interval_type[0];
-  QVector<qreal> attentuationP;
-
-  for (auto it : interval_type) {
-    if (it - prev > 3 ||
-        it == *(interval_type.end() -
-                1)) {  // допускаем наличие интервалов другого типа между
-                       // интервалами полуоткрытого типа
-      idx_interval_end = prev;
-
-      qreal a = obstacleSphereRadius(
-          (idx_interval_end - idx_interval_start) *
-              data_usage.s_intervals_difference,
-          findDGDots(idx_interval_start, idx_interval_end));
-      qint32 idx_avg = (idx_interval_end + idx_interval_start) / 2;
-      if (a >=
-          sqrt(constants::AREA_LENGTH * constants::LAMBDA * 0.5 * (0.5 / 3))) {
-        halfopenedIntervalSphereApproximation(idx_avg, a);
-      } else {
-        halfopenedIntervalWedgeApproximation(idx_avg);
-      }
-      idx_interval_start = it;
-    }
-    prev = it;
-  }
-}
-
-std::pair<qreal, qreal> halfopenedIntervalSphereApproximation(
-    qint32 idx_avg, qreal obst_sph_radius) {
-  qreal k_avg = k_from_R(idx_avg * data_usage.s_intervals_difference);
-  qreal mu = areaReliefParameter(k_avg, data_usage.s_HNull.at(idx_avg),
-                                 obst_sph_radius);
-  return {reliefParFuncSph(mu), attenuationPSph(mu)};
-}
-
-qreal halfopenedIntervalWedgeApproximation(qint32 idx_avg) {
-  qreal k_avg = k_from_R(idx_avg * data_usage.s_intervals_difference);
-  qreal nu = nuWedg(data_usage.s_H.at(idx_avg), k_avg);
-  return attentuationPWedg(nu);
-}
-
-qreal findDGDots(qint32 first,
-                 qint32 last) {  // TODO: сделать считывание из файла
-  QVector<qreal> x(data_usage.s_counter), y(data_usage.s_counter);
-  qreal x_start = 0;
-  qreal y_start = 117.49;
-  qreal x_end = 33700;
-  qreal y_end = 52.7;
-  qreal x_diff = (x_end - x_start) / data_usage.s_counter;
-  qreal y_diff = (y_end - y_start) / data_usage.s_counter;
-
-  for (qint32 i = 0; i < data_usage.s_counter; i++) {
-    x[i] = x_start + i * x_diff;
-    y[i] = y_start + i * y_diff;
-  }
-
-  QVector<qint32> intersec_heights;
-  for (qint32 i = 0; i < data_usage.s_counter; ++i) {
-    auto a = static_cast<qint32>(data_usage.s_heights.at(i));
-    auto b = static_cast<qint32>(y.at(i) - data_usage.s_HNull.at(i));
-    if (a == b || a + 1 == b || b + 1 == a) intersec_heights.push_back(i);
-  }
-  if (intersec_heights.size() == 1 || !intersec_heights.size()) {
-    qDebug() << "Not enough intersections";
-    return 0;
-  }
-  auto right = *std::lower_bound(intersec_heights.begin(),
-                                 intersec_heights.end(), first);
-  auto left =
-      *std::lower_bound(intersec_heights.rbegin(), intersec_heights.rend(),
-                        last, [](qint32 a, qint32 b) { return a > b; });
-  if (right == left)
-    right = *std::lower_bound(intersec_heights.begin(), intersec_heights.end(),
-                              right);
-  return abs(data_usage.s_heights.at(right) - data_usage.s_heights.at(left));
 }
 
 //-------------------------------------------_-------------------------------------------
@@ -502,12 +305,6 @@ QVector<qreal> findIntersectionXCoord(
   }
   return x_coords;
 }
-
-qreal equivalentRadius(qreal g) {
-  return constants::REAL_RADIUS / (1 + g * constants::REAL_RADIUS / 2);
-}
-
-qreal deltaY(qreal r, qreal eq_radius) { return (r * r) / (2 * eq_radius); }
 
 /*customPlot->addGraph();                                   // для теста
 customPlot->graph(3)->setData(it_x_vector, it_y_vector);  //

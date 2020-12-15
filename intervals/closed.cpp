@@ -1,19 +1,24 @@
-#include "datastruct.h"
 #include "constants.h"
+#include "datastruct.h"
 #include "intervals.h"
 
+extern struct Data data_usage;
 
+ClosedInterval::ClosedInterval() : Interval() {}
 
-void closedInterval(QCustomPlot *cp, const QVector<qint32> &interval_type) {
+ClosedInterval::ClosedInterval(const QVector<qint32> &v) : Interval(v) {}
+
+void ClosedInterval::IntervalType(QCustomPlot *cp, const QVector<qint32> &v) {
+  m_interval_type = v;
   qint32 idx_interval_start, prev = 0;
-  idx_interval_start = prev = interval_type[0];
-  auto max = findLongestInterval(interval_type) / 2;
+  idx_interval_start = prev = m_interval_type[0];
+  auto max = findLongestInterval() / 2;
 
-  for (auto it : interval_type) {
-    if (it - prev >= max && prev == *interval_type.begin())
+  for (auto it : m_interval_type) {
+    if (it - prev >= max && prev == *m_interval_type.begin())
       idx_interval_start = it;
-    if ((it - prev >= max && prev != *interval_type.begin()) ||
-        it == *(interval_type.end() - 1)) {
+    if ((it - prev >= max && prev != *m_interval_type.begin()) ||
+        it == *(m_interval_type.end() - 1)) {
       reliefTangentStraightLines(cp, idx_interval_start, prev);
       idx_interval_start = it;
     }
@@ -21,29 +26,29 @@ void closedInterval(QCustomPlot *cp, const QVector<qint32> &interval_type) {
   }
 }
 
-qint32 findLongestInterval(const QVector<qint32> &v) {
-  qint32 a, int_begin = v.at(0), prev = v.at(0), longestSize = 0;
-  for (qint32 i = 0; i < v.size(); ++i) {
-    if (v.at(i) - prev > 1) {
+qint32 ClosedInterval::findLongestInterval() {
+  qint32 a, int_begin = m_interval_type.at(0), prev = m_interval_type.at(0),
+            longestSize = 0;
+  for (qint32 i = 0; i < m_interval_type.size(); ++i) {
+    if (m_interval_type.at(i) - prev > 1) {
       a = prev - int_begin;
       longestSize = (a > longestSize) ? a : longestSize;
-      int_begin = v.at(i);
+      int_begin = m_interval_type.at(i);
     }
-    prev = v.at(i);
+    prev = m_interval_type.at(i);
   }
   return longestSize;
 }
 
-inline std::pair<qreal, qreal> strLineEquation(qreal, qreal, qreal, qreal);
-bool checkTangentLine(qint32, qint32, qreal, qreal);
-
-void reliefTangentStraightLines(QCustomPlot *cp, qint32 int_start,
-                                qint32 int_end) {
+void ClosedInterval::reliefTangentStraightLines(QCustomPlot *cp,
+                                                qint32 int_start,
+                                                qint32 int_end) {
   qreal dist = data_usage.s_intervals_difference;
   bool is_higher_sender, is_higher_reciever;
   is_higher_sender = is_higher_reciever = 1;
-  for (auto it : data_usage.s_heights)
-    qDebug() << it;
+
+  //  for (auto it : data_usage.s_heights) qDebug() << it;
+
 
   for (auto i = int_start; i <= int_end; ++i) {
     auto [a_sender, b_sender] =
@@ -66,14 +71,16 @@ void reliefTangentStraightLines(QCustomPlot *cp, qint32 int_start,
 }
 
 // y = ax + b
-std::pair<qreal, qreal> strLineEquation(qreal x, qreal y, qreal x_relief,
-                                        qreal y_relief) {
+std::pair<qreal, qreal> ClosedInterval::strLineEquation(qreal x, qreal y,
+                                                        qreal x_relief,
+                                                        qreal y_relief) {
   qreal c = (y_relief - y);
   qreal d = (x_relief - x);
   return {c / d, y - (x * c / d)};
 }
 
-bool checkTangentLine(qint32 int_start, qint32 int_end, qreal a, qreal b) {
+bool ClosedInterval::checkTangentLine(qint32 int_start, qint32 int_end, qreal a,
+                                      qreal b) {
   for (auto j = int_start; j <= int_end; ++j) {
     if (a * j * data_usage.s_intervals_difference + b <
         data_usage.s_heights.at(j))
