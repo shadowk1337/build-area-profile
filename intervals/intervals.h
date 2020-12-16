@@ -15,12 +15,12 @@ class Interval {
 };
 
 class OpenedInterval : public Interval {
-public:
+ public:
   OpenedInterval();
   OpenedInterval(const QVector<qint32> &);
   void IntervalType(QCustomPlot *, const QVector<qint32> &) override;
 
-private:
+ private:
   void openedIntervalPlaneApproximation(qint32, qint32, qint32);
   void openedIntervalSphereApproximation(qint32, qint32, qint32);
   void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end,
@@ -53,10 +53,11 @@ class ClosedInterval : public Interval {
   void IntervalType(QCustomPlot *, const QVector<qint32> &) override;
 
  private:
-  qint32 findLongestInterval();
+  qint32 findLongestInterval() const;
   void reliefTangentStraightLines(QCustomPlot *, qint32, qint32);
-  inline std::pair<qreal, qreal> strLineEquation(qreal, qreal, qreal, qreal);
-  inline bool checkTangentLine(qint32, qint32, qreal, qreal);
+  inline std::pair<qreal, qreal> strLineEquation(qreal, qreal, qreal,
+                                                 qreal) const;
+  inline bool checkTangentLine(qint32, qint32, qreal, qreal) const;
 };
 
 #endif  // INTERVALS_H

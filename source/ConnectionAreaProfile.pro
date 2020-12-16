@@ -12,21 +12,21 @@ CONFIG += c++1z
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    ../data/calcformulas.cpp \
-    ../intervals/closed.cpp \
-    ../intervals/halfopened.cpp \
+    ../data/formules/calcformules.cpp \
+    ../intervals/types/closed.cpp \
+    ../intervals/types/halfopened.cpp \
+    ../intervals/types/opened.cpp \
     ../intervals/intervals.cpp \
-    ../intervals/opened.cpp \
     main.cpp \
     mainwindow.cpp \
     ../Qcustomplot/qcustomplot.cpp
 
 HEADERS += \
-    ../Qcustomplot/qcustomplot.h \
-    ../data/calcformulas.h \
+    ../data/formules/calcformules.h \
     ../data/datastruct.h \
     ../data/constants.h \
     ../intervals/intervals.h \
+    ../Qcustomplot/qcustomplot.h \
     headings.h \
     mainwindow.h
 
@@ -36,7 +36,9 @@ FORMS += \
 INCLUDEPATH += \
     ../Qcustomplot \
     ../data \
+    ../data/formules \
     ../intervals
+    ../intervals/types \
 
 
 # Default rules for deployment.
