@@ -12,4 +12,24 @@ qreal lNull(qreal, qreal);
 
 qreal HNull(qint32);
 
-#endif // CALCFORMULES_H
+qreal obstacleSphereRadius(qreal, qreal);
+
+qreal areaReliefParameter(qreal, qreal, qreal);
+
+qreal reliefParFuncSph(qreal);
+
+qreal attenuationPSph(qreal);
+
+qreal nuWedg(qreal, qreal);
+
+qreal attentuationPWedg(qreal);
+
+qreal distanceSquare(qreal);
+
+qreal relativeDistances(qreal, qreal);
+
+qreal relativePoint(qreal a, qint32 i);
+
+qreal t(qreal, qreal);
+
+#endif  // CALCFORMULES_H

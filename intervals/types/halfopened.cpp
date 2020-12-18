@@ -10,34 +10,6 @@ HalfOpenedInterval::HalfOpenedInterval() : Interval() {}
 HalfOpenedInterval::HalfOpenedInterval(const QVector<qint32> &v)
     : Interval(v) {}
 
-inline qreal HalfOpenedInterval::obstacleSphereRadius(qreal l0, qreal delta_y) {
-  return ((l0 * l0) / (8 * delta_y)) * 0.001;
-}
-
-inline qreal HalfOpenedInterval::areaReliefParameter(
-    qreal k, qreal H0, qreal obstacleShereRadius) {
-  return pow(qPow(constants::AREA_LENGTH, 2) * k * k * ((1 - k) * (1 - k)) /
-                 (obstacleShereRadius * H0),
-             1.0 / 3);
-}
-
-inline qreal HalfOpenedInterval::reliefParFuncSph(qreal mu) {
-  return 4 + 10 / (mu - 0.1);
-}
-
-inline qreal HalfOpenedInterval::attenuationPSph(qreal mu) {
-  return 6 + 16.4 / (mu * (1 + 0.8 * mu));
-}
-
-inline qreal HalfOpenedInterval::nuWedg(qreal H, qreal k) {
-  return -H *
-         qSqrt(2 / (constants::LAMBDA * constants::AREA_LENGTH * k * (1 - k)));
-}
-
-inline qreal HalfOpenedInterval::attentuationPWedg(qreal nu) {
-  return 6.9 + 20 * log10(qSqrt(pow(nu - 0.1, 2) + 1) + nu - 0.1);
-}
-
 void HalfOpenedInterval::IntervalType(
     QCustomPlot *cp,
     const QVector<qint32> &interval_type) {  // TODO: добавить аппроксимацию
