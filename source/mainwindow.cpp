@@ -9,7 +9,11 @@
 #include "intervals.h"
 #include "ui_mainwindow.h"
 
-Data s_data;
+#ifndef INIT
+#define INIT
+Data *s_data = new Data;
+SenRecCoords *s_tower_coords = new SenRecCoords;
+#endif
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow) {
@@ -26,7 +30,11 @@ MainWindow::MainWindow(QWidget *parent)
   ui->customPlot->replot();
 }
 
-MainWindow::~MainWindow() { delete ui, delete customPlot, delete textItem; }
+MainWindow::~MainWindow() {
+  delete ui, delete customPlot, delete textItem;
+  delete s_data;
+  delete s_tower_coords;
+}
 
 void MainWindow::onMouseMove(QMouseEvent *event) {
   QCustomPlot *customPlot = qobject_cast<QCustomPlot *>(sender());
@@ -59,19 +67,19 @@ bool MainWindow::setupFile(void) {
       continue;
     }
     line.replace(",", ".");
-    s_data.heights.push_back(line.section(";", 3, 3).toDouble());
-    s_data.counter++;
+    s_data->heights.push_back(line.section(";", 3, 3).toDouble());
+    s_data->counter++;
   }
 
-  assert(s_data.heights.size() <= s_data.counter);
+  assert(s_data->heights.size() <= s_data->counter);
   file.close();
 
-  if (!s_data.counter) {
+  if (!s_data->counter) {
     qDebug() << "File is empty";
     return false;
   }
 
-  s_data.intervals_difference = constants::AREA_LENGTH / s_data.counter;
+  s_data->intervals_difference = constants::AREA_LENGTH / s_data->counter;
   return true;
 }
 
@@ -105,7 +113,7 @@ void MainWindow::setupArc(QCustomPlot *arcPlot) {
   bool first = true;
   qreal move_graph_up_value;
   qreal equivalent_radius = equivalentRadius(constants::G_STANDARD);
-  qreal s_intervals_difference = constants::AREA_LENGTH / s_data.counter;
+  qreal s_intervals_difference = constants::AREA_LENGTH / s_data->counter;
 
   for (qreal i = -constants::R_EVALUATED, iterator = 0;
        i < constants::R_EVALUATED;
@@ -115,11 +123,11 @@ void MainWindow::setupArc(QCustomPlot *arcPlot) {
       move_graph_up_value = qAbs(deltaY(i, equivalent_radius));
       y[i + constants::R_EVALUATED] = 0;
       first = false;
-      s_data.map[iterator] = y[i + constants::R_EVALUATED];
+      s_data->map[iterator] = y[i + constants::R_EVALUATED];
     } else {
       y[i + constants::R_EVALUATED] =
           -deltaY(i, equivalent_radius) + move_graph_up_value;
-      s_data.map[iterator] = y[i + constants::R_EVALUATED];
+      s_data->map[iterator] = y[i + constants::R_EVALUATED];
     }
   }
   arcPlot->addGraph();
@@ -135,17 +143,17 @@ void lineOfSight(QCustomPlot *linePlot);
 
 // Кривая высот
 void MainWindow::setupCurve(QCustomPlot *curvPlot) {
-  QVector<qreal> heights = s_data.heights;
-  QVector<qreal> x(s_data.counter - 1), y(s_data.counter - 1);
+  QVector<qreal> heights = s_data->heights;
+  QVector<qreal> x(s_data->counter - 1), y(s_data->counter - 1);
   qreal i;
   qint32 v;
 
-  for (qreal i = 0, v = 0; v < s_data.counter;
-       i += s_data.intervals_difference, v++)
-    heights[v] += s_data.map[i];
+  for (qreal i = 0, v = 0; v < s_data->counter;
+       i += s_data->intervals_difference, v++)
+    heights[v] += s_data->map[i];
 
-  for (i = 0, v = 0; v + 1 < s_data.counter;
-       i += s_data.intervals_difference, v++) {
+  for (i = 0, v = 0; v + 1 < s_data->counter;
+       i += s_data->intervals_difference, v++) {
     x[v] = i;
     y[v] = heights[v];
   }
@@ -155,22 +163,24 @@ void MainWindow::setupCurve(QCustomPlot *curvPlot) {
   curvPlot->graph(1)->setData(x, y);
   curvPlot->graph(1)->setPen(QPen(QColor("#137ea8")));
   lineOfSight(curvPlot);
-  s_data.heights = heights;  // H + h map
+  s_data->heights = heights;  // H + h map
 }
 
 // Линия прямой видимости
 void lineOfSight(QCustomPlot *linePlot) {
-  QVector<qreal> x(s_data.counter), y(s_data.counter);
-  qreal x_start = 0;
-  qreal y_start = 117.49;
-  qreal x_end = 33700;
-  qreal y_end = 52.7;
-  qreal x_diff = (x_end - x_start) / s_data.counter;
-  qreal y_diff = (y_end - y_start) / s_data.counter;
+  QVector<qreal> x(s_data->counter), y(s_data->counter);
+  s_tower_coords->x_sender = 0;
+  s_tower_coords->y_sender = 117.49;
+  s_tower_coords->x_reciever = 33700;
+  s_tower_coords->y_reciever = 52.7;
+  s_tower_coords->x_diff =
+      (s_tower_coords->x_reciever - s_tower_coords->x_sender) / s_data->counter;
+  s_tower_coords->y_diff =
+      (s_tower_coords->y_reciever - s_tower_coords->y_sender) / s_data->counter;
 
-  for (qint32 i = 0; i < s_data.counter; i++) {
-    x[i] = x_start + i * x_diff;
-    y[i] = y_start + i * y_diff;
+  for (qint32 i = 0; i < s_data->counter; i++) {
+    x[i] = s_tower_coords->x_sender + i * s_tower_coords->x_diff;
+    y[i] = s_tower_coords->y_sender + i * s_tower_coords->y_diff;
   }
 
   linePlot->addGraph();
@@ -182,38 +192,44 @@ void intervalTypeCalc(QCustomPlot *customPlot,
                       const QVector<qint32> &interval_type);
 
 void typeDefinition(QVector<qint32> &interval_type) {
-  for (qint32 i = 0; i < s_data.H.size(); ++i) {
-    if (s_data.H.at(i) >= s_data.H_null.at(i) && s_data.h_null.at(i) >= 0)
+  for (qint32 i = 0; i < s_data->H.size(); ++i) {
+//      qDebug() << s_data->H_null.at(i) << s_data->H.at(i)
+//               << s_data->h_null.at(i);
+    if (s_data->H.at(i) >= s_data->H_null.at(i) && s_data->h_null.at(i) >= 0)
       interval_type[i] = 1;
-    else if (s_data.H_null.at(i) > s_data.H.at(i) && s_data.H.at(i) > 0.1 &&
-             s_data.h_null.at(i) < 0.1 && s_data.h_null.at(i) > 0)
+    else if (s_data->H_null.at(i) > s_data->H.at(i) && s_data->H.at(i) > 0.1 &&
+             s_data->h_null.at(i) < 0.1 && s_data->h_null.at(i) > 0)
       interval_type[i] = 2;
-    else if (s_data.H_null.at(i) > s_data.H.at(i) && s_data.h_null.at(i) < 0)
+    else if (s_data->H_null.at(i) > s_data->H.at(i) && s_data->h_null.at(i) < 0)
       interval_type[i] = 3;
     else
       interval_type[i] = 1;
   }
+  //  for (auto i = 0; i < interval_type.size(); ++i)
+  //    qDebug() << i << interval_type[i];
 }
 
 void MainWindow::intervalType(QCustomPlot *customPlot) {
   customPlot->addGraph();
-  QVector<qreal> line_of_sight_heights(s_data.counter);
+  QVector<qreal> line_of_sight_heights(s_data->counter);
   QVector<qint32> interval_type(
-      s_data.counter);  // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
+      s_data->counter);  // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
 
-  for (qint32 i = 0; i < s_data.counter; ++i) {
+  for (qint32 i = 0; i < s_data->counter; ++i) {
     line_of_sight_heights[i] =
         customPlot->graph(2)
-            ->dataValueRange(i * (s_data.intervals_difference / 100))
+            ->dataValueRange(i * (s_data->intervals_difference / 100))
             .center();
-    s_data.H.push_back(line_of_sight_heights.at(i) - s_data.heights.at(i));
-    s_data.H_null.push_back(HNull(i));
-    s_data.h_null.push_back(s_data.H.at(i) / s_data.H_null[i]);
-    s_data.HNull_hNull_div.push_back(s_data.H_null.at(i) / s_data.h_null.at(i));
+    s_data->H.push_back(line_of_sight_heights.at(i) - s_data->heights.at(i));
+    s_data->H_null.push_back(HNull(i));
+//    qDebug() << HNull(i);
+    s_data->h_null.push_back(s_data->H.at(i) / s_data->H_null[i]);
+    s_data->HNull_hNull_div.push_back(s_data->H_null.at(i) /
+                                      s_data->h_null.at(i));
   }
   typeDefinition(interval_type);
 
-  assert(s_data.H_null.size() == s_data.h_null.size());
+  assert(s_data->H_null.size() == s_data->h_null.size());
   intervalTypeCalc(customPlot, interval_type);
 }
 
@@ -229,7 +245,6 @@ void intervalTypeCalc(QCustomPlot *customPlot,
     else
       third_type_indexes.push_back(i);
   }
-
   Interval *i = nullptr;
   if (!first_type_indexes.empty()) {
     i = new OpenedInterval(first_type_indexes);

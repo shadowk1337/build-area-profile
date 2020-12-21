@@ -3,7 +3,8 @@
 #include "intervals.h"
 #include "calcformules.h"
 
-extern struct Data s_data;
+extern struct Data *s_data;
+extern struct SenRecCoords *s_tower_coords;
 
 OpenedInterval::OpenedInterval() : Interval() {}
 
@@ -20,10 +21,10 @@ void OpenedInterval::IntervalType(QCustomPlot *cp, const QVector<qint32> &interv
 
       for (qint32 i = idx_interval_start + difference / 4;
            i <= idx_interval_end; i += difference / 4 + 1) {
-        auto a = i - lNull_length / (2 * s_data.intervals_difference);
-        auto b = i + lNull_length / (2 * s_data.intervals_difference);
-        if ((lNull_length = lNull(s_data.h_null[i],
-                            i * s_data.intervals_difference /
+        auto a = i - lNull_length / (2 * s_data->intervals_difference);
+        auto b = i + lNull_length / (2 * s_data->intervals_difference);
+        if ((lNull_length = lNull(s_data->h_null[i],
+                            i * s_data->intervals_difference /
                                 (constants::AREA_LENGTH))) <=
             0.25 * constants::AREA_LENGTH) {
           openedIntervalPlaneApproximation(
@@ -55,7 +56,7 @@ void OpenedInterval::openedIntervalPlaneApproximation(qint32 idx_line_start,
 
 void OpenedInterval::openedIntervalSphereApproximation(qint32 line_start, qint32 line_end,
                                        qint32 idx_line_mid) {
-  QVector<qreal> H0_h0_div = s_data.HNull_hNull_div;
+  QVector<qreal> H0_h0_div = s_data->HNull_hNull_div;
   auto max_H0_h0 = 0.75 * H0_h0_div.at(idx_line_mid);
 //  for (auto i = line_start; i < line_end; i++) {
 //        if (H0_h0_div.at(i) < max_H0_h0) qDebug() << "Гладкая";
@@ -67,13 +68,13 @@ void OpenedInterval::openedIntervalSphereApproximation(qint32 line_start, qint32
 void OpenedInterval::rayleighAndGroundCriteria(qint32 line_start, qint32 line_end,
                                qint32 idx_line_mid) {
   qreal k, b, denominator, y, delta_h;
-  auto heights = s_data.heights;
+  auto heights = s_data->heights;
   denominator = (line_end - line_start);
   k = (heights.at(line_end) -  // TODO
        heights.at(line_start) / denominator);
   b = (line_end * heights.at(line_start) - line_start * heights.at(line_end)) /
       denominator;
-  auto max_H0_h0 = 0.75 * s_data.HNull_hNull_div.at(idx_line_mid);
+  auto max_H0_h0 = 0.75 * s_data->HNull_hNull_div.at(idx_line_mid);
   for (auto i = line_start; i <= line_end; ++i) {
     y = k * i + b;
     delta_h = abs(y - heights.at(i));

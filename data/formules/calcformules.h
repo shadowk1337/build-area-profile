@@ -32,4 +32,6 @@ qreal relativePoint(qreal a, qint32 i);
 
 qreal t(qreal, qreal);
 
+qreal uniteApprox(qreal, qreal);
+
 #endif  // CALCFORMULES_H

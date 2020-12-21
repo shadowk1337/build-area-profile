@@ -34,9 +34,10 @@ class HalfOpenedInterval : public Interval {
   void IntervalType(QCustomPlot *, const QVector<qint32> &) override;
 
  private:
-  qreal findDGDots(qint32, qint32);
+  qreal deltaY(qint32, qint32);
   std::pair<qreal, qreal> halfopenedIntervalSphereApproximation(qint32, qreal);
   qreal halfopenedIntervalWedgeApproximation(qint32);
+  bool uniteObstacles(QVector<qint32> &);
 };
 
 class ClosedInterval : public Interval {

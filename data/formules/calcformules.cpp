@@ -4,7 +4,7 @@
 #include "datastruct.h"
 #include "headings.h"
 
-extern struct Data s_data;
+extern struct Data *s_data;
 
 qreal k(qreal R) { return R / constants::AREA_LENGTH; }
 
@@ -21,8 +21,8 @@ qreal lNull(qreal h0, qreal k) {
 
 qreal HNull(qint32 i) {
   return sqrt(constants::AREA_LENGTH * constants::LAMBDA *
-              k(i * s_data.intervals_difference) *
-              ((1 - k(i * s_data.intervals_difference)) / 3));
+              k(i * s_data->intervals_difference) *
+              ((1 - k(i * s_data->intervals_difference)) / 3));
 }
 
 qreal obstacleSphereRadius(qreal l0, qreal delta_y) {
@@ -56,8 +56,13 @@ qreal distanceSquare(qreal obstSphRadius) {
 qreal relativeDistances(qreal s, qreal r) { return s / r; }
 
 qreal relativePoint(qreal a, qint32 i) {
-  auto z = k(i * s_data.intervals_difference);
-  return (a * s_data.H.at(i)) / (constants::AREA_LENGTH * z * (1 - z));
+  auto z = k(i * s_data->intervals_difference);
+  return (a * s_data->H.at(i)) / (constants::AREA_LENGTH * z * (1 - z));
 }
 
 qreal t(qreal l, qreal s) { return l / s; }
+
+qreal uniteApprox(qreal R1, qreal R2) {
+  return log10(M_PI - qAsin(qSqrt(constants::AREA_LENGTH * (R2 - R1) /
+                                  (R2 * (constants::AREA_LENGTH - R1)))));
+}

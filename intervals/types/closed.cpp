@@ -4,7 +4,8 @@
 #include "datastruct.h"
 #include "intervals.h"
 
-extern struct Data s_data;
+extern struct Data *s_data;
+extern struct SenRecCoords *s_tower_coords;
 
 ClosedInterval::ClosedInterval() : Interval() {}
 
@@ -46,15 +47,15 @@ qreal findlNull(qint32, qint32, std::pair<qint32, qreal>);
 
 void ClosedInterval::reliefTangentStraightLines(qint32 int_start,
                                                 qint32 int_end) {
-  qreal dist = s_data.intervals_difference;
+  qreal dist = s_data->intervals_difference;
   std::pair<qint32, qreal> min_height_send, min_height_rec;
   qreal ind_send, ind_rec;  // индексы точек касания
 
   for (auto i = int_start; i <= int_end; ++i) {
     auto [a_sender, b_sender] =
-        strLineEquation(0, 117.49, i * dist, s_data.heights.at(i));
+        strLineEquation(0, 117.49, i * dist, s_data->heights.at(i));
     auto [a_reciever, b_reciever] = strLineEquation(
-        constants::AREA_LENGTH, 52.7, i * dist, s_data.heights.at(i));
+        constants::AREA_LENGTH, 52.7, i * dist, s_data->heights.at(i));
     if (checkTangentLine(int_start, int_end, a_sender, b_sender)) {
       ind_send = i;
       min_height_send = findMinHeight(a_sender, b_sender, int_start, int_end);
@@ -69,14 +70,14 @@ void ClosedInterval::reliefTangentStraightLines(qint32 int_start,
                     ? std::make_pair(ind_send, min_height_send)
                     : std::make_pair(ind_rec, min_height_rec);
 
-  qreal delta_y = qAbs(s_data.heights.at(x) - p.second);
+  qreal delta_y = qAbs(s_data->heights.at(x) - p.second);
   qreal a =
       obstacleSphereRadius(findlNull(int_start, int_end, p) * dist, delta_y);
   qreal s = distanceSquare(a);
-  qDebug() << s;
-  qDebug() << relativeDistances(s, min_height_send.first * dist);
-  qDebug() << relativeDistances(
-      s, qAbs(s_data.heights.size() - min_height_rec.first - 1));
+//  qDebug() << s;
+//  qDebug() << relativeDistances(s, min_height_send.first * dist);
+//  qDebug() << relativeDistances(
+//      s, qAbs(s_data->heights.size() - min_height_rec.first - 1));
 }
 
 // y = ax + b
@@ -91,7 +92,7 @@ std::pair<qreal, qreal> ClosedInterval::strLineEquation(qreal x, qreal y,
 bool ClosedInterval::checkTangentLine(qint32 int_start, qint32 int_end, qreal a,
                                       qreal b) const {
   for (auto j = int_start; j <= int_end; ++j) {
-    if (a * j * s_data.intervals_difference + b < s_data.heights.at(j))
+    if (a * j * s_data->intervals_difference + b < s_data->heights.at(j))
       return false;
   }
   return true;
@@ -101,17 +102,17 @@ std::pair<qint32, qreal> ClosedInterval::findMinHeight(qreal a, qreal b,
                                                        qint32 start,
                                                        qint32 end) {
   auto min_height =
-      std::max_element(s_data.heights.begin(), s_data.heights.end());
+      std::max_element(s_data->heights.begin(), s_data->heights.end());
   qint32 height_index = 0;
   QVector<qreal> x, y;
   for (qint32 i = start, k = 0; i <= end; ++i, ++k) {
-    x.push_back(i * s_data.intervals_difference);
-    y.push_back(a * i * s_data.intervals_difference + b -
-                qAbs(s_data.H_null.at(i)));
+    x.push_back(i * s_data->intervals_difference);
+    y.push_back(a * i * s_data->intervals_difference + b -
+                qAbs(s_data->H_null.at(i)));
 
-    if (y.at(k) < s_data.heights.at(i) + 1 &&
-        y.at(k) > s_data.heights.at(i) - 1) {
-      *min_height = std::min(*min_height, s_data.heights.at(i));
+    if (y.at(k) < s_data->heights.at(i) + 1 &&
+        y.at(k) > s_data->heights.at(i) - 1) {
+      *min_height = std::min(*min_height, s_data->heights.at(i));
       height_index = i;
     }
   }
@@ -124,7 +125,7 @@ std::pair<qint32, qreal> ClosedInterval::findMinHeight(qreal a, qreal b,
 qreal findlNull(qint32 start, qint32 end,
                 std::pair<qint32, qreal> p) {  // TODO: нужен больший обзор
   auto it = std::find_if(
-      s_data.heights.begin() + start, s_data.heights.begin() + end,
+      s_data->heights.begin() + start, s_data->heights.begin() + end,
       [=](auto val) { return (val + 1 > p.second) && (val - 1 < p.second); });
-  return qAbs(std::distance(it, s_data.heights.begin() + p.first));
+  return qAbs(std::distance(it, s_data->heights.begin() + p.first));
 }
