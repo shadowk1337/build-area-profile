@@ -25,6 +25,10 @@ qreal HNull(qint32 i) {
               ((1 - k(i * s_data->intervals_difference)) / 3));
 }
 
+qreal attentuationPlane(qreal delta_h){
+  return -10 * log10(2 - 2 * qCos(M_PI / 3 * delta_h * delta_h));
+}
+
 qreal obstacleSphereRadius(qreal l0, qreal delta_y) {
   return ((l0 * l0) / (8 * delta_y)) * 0.001;
 }

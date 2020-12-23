@@ -21,10 +21,9 @@ class OpenedInterval : public Interval {
   void IntervalType(QCustomPlot *, const QVector<qint32> &) override;
 
  private:
-  void openedIntervalPlaneApproximation(qint32, qint32, qint32);
-  void openedIntervalSphereApproximation(qint32, qint32, qint32);
-  void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end,
-                                 qint32 idx_line_mid);
+  void openedIntervalPlaneApproximation(qint32, qint32);
+  void openedIntervalSphereApproximation(qint32, qint32);
+  void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end);
 };
 
 class HalfOpenedInterval : public Interval {

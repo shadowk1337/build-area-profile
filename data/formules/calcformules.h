@@ -12,6 +12,8 @@ qreal lNull(qreal, qreal);
 
 qreal HNull(qint32);
 
+qreal attentuationPlane(qreal);
+
 qreal obstacleSphereRadius(qreal, qreal);
 
 qreal areaReliefParameter(qreal, qreal, qreal);
