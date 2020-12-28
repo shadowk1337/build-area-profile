@@ -25,3 +25,4 @@ Thumbs.db
 .qmake.stash
 moc_mainwindow.cpp
 ui_mainwindow.h
+ConnectionAreaProfile.pro.user*
