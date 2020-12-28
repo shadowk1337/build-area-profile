@@ -38,7 +38,7 @@ public:
         centralwidget = new QWidget(MainWindow);
         centralwidget->setObjectName(QStringLiteral("centralwidget"));
         centralwidget->setEnabled(true);
-        centralwidget->setMinimumSize(QSize(0, 0));
+        centralwidget->setMinimumSize(QSize(1554, 0));
         centralwidget->setMaximumSize(QSize(16777215, 16777215));
         verticalLayout = new QVBoxLayout(centralwidget);
         verticalLayout->setObjectName(QStringLiteral("verticalLayout"));

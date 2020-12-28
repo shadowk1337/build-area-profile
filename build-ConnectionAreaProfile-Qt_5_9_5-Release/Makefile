@@ -425,33 +425,25 @@ compiler_clean: compiler_moc_predefs_clean compiler_moc_header_clean compiler_ui
 
 ####### Compile
 
-calcformules.o: ../data/formules/calcformules.cpp ../source/headings.h \
-		../Qcustomplot/qcustomplot.h \
+calcformules.o: ../data/formules/calcformules.cpp ../data/formules/calcformules.h \
 		../data/constants.h \
-		../data/formules/calcformules.h
+		../data/datastruct.h \
+		../source/headings.h \
+		../Qcustomplot/qcustomplot.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o calcformules.o ../data/formules/calcformules.cpp
 
-closed.o: ../intervals/types/closed.cpp ../data/constants.h \
+closed.o: ../intervals/types/closed.cpp ../data/formules/calcformules.h \
+		../data/constants.h \
 		../data/datastruct.h \
 		../source/headings.h \
 		../Qcustomplot/qcustomplot.h \
 		../intervals/intervals.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o closed.o ../intervals/types/closed.cpp
 
-halfopened.o: ../intervals/types/halfopened.cpp ../data/formules/calcformules.h \
-		../data/constants.h \
-		../data/datastruct.h \
-		../source/headings.h \
-		../Qcustomplot/qcustomplot.h \
-		../intervals/intervals.h
+halfopened.o: ../intervals/types/halfopened.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o halfopened.o ../intervals/types/halfopened.cpp
 
-opened.o: ../intervals/types/opened.cpp ../data/constants.h \
-		../data/datastruct.h \
-		../source/headings.h \
-		../Qcustomplot/qcustomplot.h \
-		../intervals/intervals.h \
-		../data/formules/calcformules.h
+opened.o: ../intervals/types/opened.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o opened.o ../intervals/types/opened.cpp
 
 intervals.o: ../intervals/intervals.cpp ../intervals/intervals.h \

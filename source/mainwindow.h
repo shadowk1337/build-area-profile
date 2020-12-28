@@ -23,6 +23,8 @@ class MainWindow : public QMainWindow {
   void setupArc(QCustomPlot *);
   void setupAxis(QCustomPlot *);
   void setupCurve(QCustomPlot *);
+  void dataInit(void) const;
+  void fresnelZone(QCustomPlot *);
   void intervalType(QCustomPlot *);
 
  private:
