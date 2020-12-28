@@ -1,7 +1,9 @@
-#include "calcformules.h"
+/*#include "calcformules.h"
 #include "constants.h"
 #include "datastruct.h"
-#include "intervals.h"
+//#include "intervals.h"
+
+using namespace Opened;
 
 extern struct Data *s_data;
 extern struct SenRecCoords *s_tower_coords;
@@ -59,8 +61,8 @@ void OpenedInterval::openedIntervalSphereApproximation(qint32 int_start,
       *std::max_element(h.begin() + int_start, h.begin() + int_end);
   auto delta_y = qAbs(max_height - min_height);
   if (max_height == min_height) return;
-//  qDebug() << obstacleSphereRadius(
-//      (int_end - int_start) * s_data->intervals_difference, delta_y);
+  //  qDebug() << obstacleSphereRadius(
+  //      (int_end - int_start) * s_data->intervals_difference, delta_y);
 }
 
 void OpenedInterval::rayleighAndGroundCriteria(qint32 int_start,
@@ -115,4 +117,4 @@ qreal lNull_mid(qint32 int_start, qint32 int_end) {
   return lNull(s_data->h_null.at(pivot),
                k(pivot * s_data->intervals_difference));
   return 0;
-}
+}*/

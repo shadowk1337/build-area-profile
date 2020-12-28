@@ -3,10 +3,10 @@
 #include "headings.h"
 
 struct Data {
-  qint32 counter;
   qreal intervals_difference;
-  std::map<qreal, qreal> map;
+  QVector<qreal> indexes;
   QVector<qreal> heights, HNull_hNull_div, h_null, H_null, H;
+  QVector<qreal> los_heights;  // los - line of sight
 };
 
 struct SenRecCoords {

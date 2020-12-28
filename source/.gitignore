@@ -22,3 +22,6 @@
 .Trashes
 ehthumbs.db
 Thumbs.db
+.qmake.stash
+moc_mainwindow.cpp
+ui_mainwindow.h

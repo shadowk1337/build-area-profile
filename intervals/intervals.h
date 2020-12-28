@@ -5,16 +5,15 @@
 class Interval {
  public:
   Interval();
-  Interval(const QVector<qint32> &);
-  Interval &operator=(const Interval &);
-  const QVector<qint32> &getIntType(void) const;
-  virtual void IntervalType(QCustomPlot *, const QVector<qint32> &) = 0;
+  //  Interval(const QVector<qint32> &);
+  //  const QVector<qint32> &getIntType(void) const;
+  //  virtual void IntervalType(QCustomPlot *, const QVector<qint32> &) = 0;
 
- protected:
-  QVector<qint32> m_interval_type;
+  // protected:
+  //  QVector<qint32> m_interval_type;
 };
 
-class OpenedInterval : public Interval {
+/*class OpenedInterval : public Interval {
  public:
   OpenedInterval();
   OpenedInterval(const QVector<qint32> &);
@@ -24,9 +23,9 @@ class OpenedInterval : public Interval {
   void openedIntervalPlaneApproximation(qint32, qint32);
   void openedIntervalSphereApproximation(qint32, qint32);
   void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end);
-};
+};*/
 
-class HalfOpenedInterval : public Interval {
+/*class HalfOpenedInterval : public Interval {
  public:
   HalfOpenedInterval();
   HalfOpenedInterval(const QVector<qint32> &);
@@ -37,22 +36,22 @@ class HalfOpenedInterval : public Interval {
   std::pair<qreal, qreal> halfopenedIntervalSphereApproximation(qint32, qreal);
   qreal halfopenedIntervalWedgeApproximation(qint32);
   bool uniteObstacles(QVector<qint32> &);
-};
+};*/
 
-class ClosedInterval : public Interval {
+class ClosedInterval {
  public:
   ClosedInterval();
-  ClosedInterval(const QVector<qint32> &);
-  void IntervalType(QCustomPlot *, const QVector<qint32> &) override;
+  //  ClosedInterval(const QVector<qint32> &);
+  ClosedInterval(QCustomPlot *);
 
  private:
+  qint32 countPeaks(void);
   std::pair<qint32, qreal> findMinHeight(qreal, qreal, qint32, qint32);
   qint32 findLongestInterval() const;
-  void reliefTangentStraightLines(qint32, qint32);
-//  void lineInfo(QCustomPlot *, qint32, qint32, qreal, qreal, qint32);
+  void reliefTangentStraightLines(QCustomPlot *, qint32, qint32);
   inline std::pair<qreal, qreal> strLineEquation(qreal, qreal, qreal,
                                                  qreal) const;
-  inline bool checkTangentLine(qint32, qint32, qreal, qreal) const;
+  inline bool isTangent(qint32, qint32, qreal, qreal) const;
 };
 
 #endif  // INTERVALS_H
