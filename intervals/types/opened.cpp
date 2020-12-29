@@ -1,7 +1,7 @@
-/*#include "calcformules.h"
+#include "calcformules.h"
 #include "constants.h"
 #include "datastruct.h"
-//#include "intervals.h"
+#include "intervals.h"
 
 using namespace Opened;
 
@@ -10,40 +10,27 @@ extern struct SenRecCoords *s_tower_coords;
 
 OpenedInterval::OpenedInterval() : Interval() {}
 
-OpenedInterval::OpenedInterval(const QVector<qint32> &v) : Interval(v) {}
+OpenedInterval::OpenedInterval(QCustomPlot *cp) {
+  findPointOfIntersection(cp, *s_data->indexes.begin(),
+                          *(s_data->indexes.end() - 1));
+}
+
+void OpenedInterval::exec() {
+  //  findPointOfIntersection
+}
 
 std::pair<qint32, qint32> lineOfSightCoords(qint32, qint32);
 qreal lNull_mid(qint32, qint32);
 
-void OpenedInterval::IntervalType(QCustomPlot *cp,
-                                  const QVector<qint32> &interval_type) {
-  qint32 idx_interval_start, idx_interval_end, prev, lNull_length;
-  idx_interval_start = prev = interval_type[0];
-
-  for (auto it : interval_type) {
-    if (abs(it - prev) > 1 || it == *(interval_type.end() - 1)) {
-      idx_interval_end = prev;
-      for (auto j = 0, k = 1; j < 2; ++j, --k) {
-        qint32 start, end;
-        auto half_diff = (idx_interval_end - idx_interval_start) / 2;
-        auto res = lNull_mid(
-            start = idx_interval_start + j * half_diff,
-            end = idx_interval_end / (2 - j) + k * idx_interval_start / 2);
-        auto mid = (start + end) / 2;
-        if ((res) <= 0.25 * constants::AREA_LENGTH) {
-          openedIntervalPlaneApproximation(
-              std::max(static_cast<qint32>(mid - res), start),
-              std::min(static_cast<qint32>(mid + res), end));
-        } else {
-          openedIntervalSphereApproximation(
-              std::max(static_cast<qint32>(mid - res), start),
-              std::min(static_cast<qint32>(mid + res), end));
-        }
-      }
-      idx_interval_start = it;
-    }
-    prev = it;
-  }
+void OpenedInterval::findPointOfIntersection(QCustomPlot *cp, qint32 int_start,
+                                             qint32 int_end) {
+  qreal opposite_y_coord =
+      2 * s_data->heights.at(int_start) - s_tower_coords->y_sender;
+  auto [a, b] = strLineEquation(int_start, opposite_y_coord, int_end,
+                                s_tower_coords->y_reciever);
+  QCPItemLine *line = new QCPItemLine(cp);
+      line->start->setCoords(int_start, opposite_y_coord);
+      line->end->setCoords(int_end, s_tower_coords->y_reciever);
 }
 
 // Открытые интервалы
@@ -117,4 +104,4 @@ qreal lNull_mid(qint32 int_start, qint32 int_end) {
   return lNull(s_data->h_null.at(pivot),
                k(pivot * s_data->intervals_difference));
   return 0;
-}*/
+}

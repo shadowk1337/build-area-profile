@@ -5,25 +5,24 @@
 class Interval {
  public:
   Interval();
-  //  Interval(const QVector<qint32> &);
-  //  const QVector<qint32> &getIntType(void) const;
-  //  virtual void IntervalType(QCustomPlot *, const QVector<qint32> &) = 0;
+  virtual void exec() = 0;
 
-  // protected:
-  //  QVector<qint32> m_interval_type;
+ protected:
+  inline std::pair<qreal, qreal> strLineEquation(qreal, qreal, qreal, qreal) const;
 };
 
-/*class OpenedInterval : public Interval {
+class OpenedInterval : public Interval {
  public:
   OpenedInterval();
-  OpenedInterval(const QVector<qint32> &);
-  void IntervalType(QCustomPlot *, const QVector<qint32> &) override;
+  OpenedInterval(QCustomPlot *);
+  void exec() override;
 
  private:
+  void findPointOfIntersection(QCustomPlot *, qint32, qint32);
   void openedIntervalPlaneApproximation(qint32, qint32);
   void openedIntervalSphereApproximation(qint32, qint32);
   void rayleighAndGroundCriteria(qint32 line_start, qint32 line_end);
-};*/
+};
 
 /*class HalfOpenedInterval : public Interval {
  public:
@@ -38,19 +37,17 @@ class Interval {
   bool uniteObstacles(QVector<qint32> &);
 };*/
 
-class ClosedInterval {
+class ClosedInterval : public Interval {
  public:
   ClosedInterval();
-  //  ClosedInterval(const QVector<qint32> &);
-  ClosedInterval(QCustomPlot *);
+  void exec() override;
 
  private:
+  friend Interval;
   qint32 countPeaks(void);
   std::pair<qint32, qreal> findMinHeight(qreal, qreal, qint32, qint32);
   qint32 findLongestInterval() const;
-  void reliefTangentStraightLines(QCustomPlot *, qint32, qint32);
-  inline std::pair<qreal, qreal> strLineEquation(qreal, qreal, qreal,
-                                                 qreal) const;
+  void reliefTangentStraightLines(qint32, qint32);
   inline bool isTangent(qint32, qint32, qreal, qreal) const;
 };
 

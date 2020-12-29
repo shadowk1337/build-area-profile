@@ -113,6 +113,8 @@ void MainWindow::setupArc(QCustomPlot *arcPlot) {
   bool first = true;
   qreal move_graph_up_value;
   qreal equivalent_radius = equivalentRadius(constants::G_STANDARD);
+  QPen pen(QColor("#014506"));
+  pen.setWidth(2);
 
   for (qreal i = -constants::R_EVALUATED, iterator = 0;
        i < constants::R_EVALUATED; i += s_data->intervals_difference,
@@ -127,7 +129,7 @@ void MainWindow::setupArc(QCustomPlot *arcPlot) {
   }
   arcPlot->addGraph();
   arcPlot->graph(0)->setData(x, y, true);
-  arcPlot->graph(0)->setPen(QPen(QColor("#014506")));
+  arcPlot->graph(0)->setPen(pen);
   QCPItemTracer *tracer = new QCPItemTracer(arcPlot);
   tracer->setGraph(arcPlot->graph(0));
   tracer->updatePosition();
@@ -141,6 +143,8 @@ void MainWindow::setupCurve(QCustomPlot *curvPlot) {
   QVector<qreal> heights = s_data->heights;
   QVector<qreal> x, y;
   qreal i = 0;
+  QPen pen(QColor("#137ea8"));
+  pen.setWidth(2);
 
   for (auto h : s_data->heights) {
     x.push_back(i);
@@ -151,33 +155,33 @@ void MainWindow::setupCurve(QCustomPlot *curvPlot) {
   assert(x.size() == y.size());
   curvPlot->addGraph();
   curvPlot->graph(1)->setData(x, y);
-  curvPlot->graph(1)->setPen(QPen(QColor("#137ea8")));
+  curvPlot->graph(1)->setPen(pen);
   lineOfSight(curvPlot);
   s_data->heights = heights;  // H + h
 }
 
 // Линия прямой видимости
 void lineOfSight(QCustomPlot *linePlot) {
-  QVector<qreal> x, y;
-  auto count = s_data->indexes.size();
+  QVector<qreal> y;
   s_tower_coords->x_sender = 0;
   s_tower_coords->y_sender = 117.49;
   s_tower_coords->x_reciever = 33700;
   s_tower_coords->y_reciever = 52.7;
-  s_tower_coords->x_diff =
-      (s_tower_coords->x_reciever - s_tower_coords->x_sender) / count;
   s_tower_coords->y_diff =
-      (s_tower_coords->y_reciever - s_tower_coords->y_sender) / count;
+      (s_tower_coords->y_reciever - s_tower_coords->y_sender) /
+      s_data->indexes.size();
+  QPen pen(QColor("#d6ba06"));
+  pen.setWidth(2);
 
   for (auto ind : s_data->indexes) {
-    x.push_back(s_tower_coords->x_sender + ind * s_tower_coords->x_diff);
-    y.push_back(s_tower_coords->y_sender + ind * s_tower_coords->y_diff);
-    s_data->los_heights.push_back(y[ind]);
+    s_data->los_heights.push_back(s_tower_coords->y_sender +
+                                  ind * s_tower_coords->y_diff);
   }
 
-  linePlot->addGraph();
-  linePlot->graph(2)->setData(x, y);
-  linePlot->graph(2)->setPen(QPen(QColor("#d6ba06")));
+  QCPItemLine *line = new QCPItemLine(linePlot);
+  line->setPen(pen);
+  line->start->setCoords(s_tower_coords->x_sender, s_tower_coords->y_sender);
+  line->end->setCoords(s_tower_coords->x_reciever, s_tower_coords->y_reciever);
 }
 
 void MainWindow::dataInit(void) const {
@@ -188,23 +192,32 @@ void MainWindow::dataInit(void) const {
     s_data->HNull_hNull_div.push_back(s_data->H_null.at(i) /
                                       s_data->h_null.at(i));
   }
+  s_data->H_null[s_data->indexes.size() - 1] = 0;
 }
 
+// Зона Френеля
 void MainWindow::fresnelZone(QCustomPlot *zonePlot) {
   QVector<qreal> it_x_vector, it_y_vector;
+  QPen pen(Qt::red);
+  pen.setWidth(2);
+
   for (qint32 i = 0; i + 1 <= s_data->heights.size(); ++i) {
     it_x_vector.push_back(i * s_data->intervals_difference);
     it_y_vector.push_back(-s_data->H_null.at(i) + s_data->los_heights.at(i));
   }
+  it_y_vector[s_data->heights.size() - 1] = s_tower_coords->y_reciever;
   zonePlot->addGraph();
-  zonePlot->graph(3)->setData(it_x_vector, it_y_vector);
-  std::for_each(it_y_vector.begin(), it_y_vector.end(), [&](qreal &x) {
+  zonePlot->graph(2)->setPen(pen);
+  zonePlot->graph(2)->setData(it_x_vector, it_y_vector);
+  std::for_each(it_y_vector.begin(), it_y_vector.end() - 1, [&](qreal &x) {
     static qint32 i = 0;
     x += 2 * s_data->H_null.at(i);
     i++;
   });
+  it_y_vector[s_data->heights.size() - 1] = s_tower_coords->y_reciever;
   zonePlot->addGraph();
-  zonePlot->graph(4)->setData(it_x_vector, it_y_vector);
+  zonePlot->graph(3)->setPen(pen);
+  zonePlot->graph(3)->setData(it_x_vector, it_y_vector);
 }
 
 void intervalTypeCalc(QCustomPlot *, qint32);
@@ -233,17 +246,17 @@ void MainWindow::intervalType(QCustomPlot *customPlot) {
 
 // Определение типа интервала по расстоянию от начала отсчета
 void intervalTypeCalc(QCustomPlot *customPlot, qint32 type) {
-  //  Interval *i = nullptr;
+  Interval *i = nullptr;
+  type = 1;
   if (type == 1) {
-    //    i = new OpenedInterval();
-    //    i->IntervalType(customPlot);
+    i = new OpenedInterval(customPlot);
   }
   if (type == 2) {
     //    i = new HalfOpenedInterval();
     //    i->IntervalType(customPlot);
   }
   if (type == 3) {
-    //    i = new ClosedInterval();
-    //    ClosedInterval i(customPlot);
+    i = new ClosedInterval;
   }
+  i->exec();
 }

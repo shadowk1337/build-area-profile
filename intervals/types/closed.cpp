@@ -9,18 +9,16 @@ using namespace Closed;
 extern struct Data *s_data;
 extern struct SenRecCoords *s_tower_coords;
 
-// ClosedInterval::ClosedInterval() {
-//  reliefTangentStraightLines(*s_data->indexes.begin(),
-//  *s_data->indexes.end());
-//}
+ClosedInterval::ClosedInterval() : Interval() {}
 
-ClosedInterval::ClosedInterval(QCustomPlot *cp) {
-  reliefTangentStraightLines(cp, *s_data->indexes.begin(),
-                             *s_data->indexes.end());
+void ClosedInterval::exec() {
+  reliefTangentStraightLines(*s_data->indexes.begin(),
+                             *(s_data->indexes.end() - 1));
 }
 
 qreal findlNull(qint32, qint32, std::pair<qint32, qreal>);
 
+// Подсчет препятствий
 qint32 ClosedInterval::countPeaks(void) {
   qint32 i = 0, count = 0;
   bool inside = 0;
@@ -39,20 +37,21 @@ qint32 ClosedInterval::countPeaks(void) {
   return count;
 }
 
-void ClosedInterval::reliefTangentStraightLines(QCustomPlot *cp,
-                                                qint32 int_start,
+void ClosedInterval::reliefTangentStraightLines(qint32 int_start,
                                                 qint32 int_end) {
   qreal dist = s_data->intervals_difference;
   std::pair<qint32, qreal> min_height_send, min_height_rec;
   qreal ind_send, ind_rec;  // индексы точек касания
 
   for (auto i = int_start; i <= int_end; ++i) {
-    auto [a_sender, b_sender] =
-        strLineEquation(0, 117.49, i * dist, s_data->heights.at(i));
-    auto [a_reciever, b_reciever] = strLineEquation(
-        constants::AREA_LENGTH, 52.7, i * dist, s_data->heights.at(i));
+    if (i == int_start || i == int_end) continue;
+    auto [a_sender, b_sender] =  // y = a_sender * x + b_sender
+        Interval::strLineEquation(s_tower_coords->x_sender, s_tower_coords->y_sender,
+                        i * dist, s_data->heights.at(i));
+    auto [a_reciever, b_reciever] =  // y = a_reciever * x + b_reciever
+        this->strLineEquation(s_tower_coords->x_reciever, s_tower_coords->y_reciever,
+                        i * dist, s_data->heights.at(i));
     if (isTangent(int_start, int_end, a_sender, b_sender)) {
-
       ind_send = i;
       min_height_send = findMinHeight(a_sender, b_sender, int_start, int_end);
     }
@@ -62,10 +61,6 @@ void ClosedInterval::reliefTangentStraightLines(QCustomPlot *cp,
           findMinHeight(a_reciever, b_reciever, int_start, int_end);
     }
   }
-//  qDebug() << ind_send << s_data->heights.at(ind_send);
-//  QCPItemLine *line = new QCPItemLine(cp);
-//  line->start->setCoords(0, 117.49);
-//  line->end->setCoords(ind_send, s_data->heights.at(ind_send));
 
   auto [x, p] = (min_height_send.second < min_height_rec.second)
                     ? std::make_pair(ind_send, min_height_send)
@@ -75,24 +70,16 @@ void ClosedInterval::reliefTangentStraightLines(QCustomPlot *cp,
   qreal a =
       obstacleSphereRadius(findlNull(int_start, int_end, p) * dist, delta_y);
   qreal s = distanceSquare(a);
-  //  qDebug() << s;
-  //  qDebug() << relativeDistances(s, min_height_send.first * dist);
-  //  qDebug() << relativeDistances(
-  //      s, qAbs(s_data->heights.size() - min_height_rec.first - 1));
+//    qDebug() << s;
+//    qDebug() << relativeDistances(s, min_height_send.first * dist);
+//    qDebug() << relativeDistances(
+//        s, qAbs(s_data->heights.size() - min_height_rec.first - 1));
 }
 
-// y = ax + b
-std::pair<qreal, qreal> ClosedInterval::strLineEquation(qreal x, qreal y,
-                                                        qreal x_relief,
-                                                        qreal y_relief) const {
-  qreal c = (y_relief - y);
-  qreal d = (x_relief - x);
-  return {c / d, y - (x * c / d)};
-}
-
+// Является ли прямая касательной
 bool ClosedInterval::isTangent(qint32 int_start, qint32 int_end, qreal a,
                                qreal b) const {
-  for (auto j = int_start; j <= int_end; ++j) {
+  for (qint32 j = int_start; j <= int_end; ++j) {
     if (a * j * s_data->intervals_difference + b < s_data->heights.at(j))
       return false;
   }
@@ -117,9 +104,6 @@ std::pair<qint32, qreal> ClosedInterval::findMinHeight(qreal a, qreal b,
       height_index = i;
     }
   }
-  //  if (!height_index) {
-
-  //  }
   return {height_index, *min_height};
 }
 

@@ -1,9 +1,12 @@
 #include "intervals.h"
 
-//Interval::Interval() : m_interval_type(0) {}
+Interval::Interval() {}
 
-//Interval::Interval(const QVector<qint32> &v) : m_interval_type(v) {}
-
-//const QVector<qint32> &Interval::getIntType(void) const {
-//  return m_interval_type;
-//}
+// Составление уравнения прямой
+std::pair<qreal, qreal> Interval::strLineEquation(qreal x, qreal y,
+                                                  qreal x_relief,
+                                                  qreal y_relief) const {
+  qreal c = (y_relief - y);
+  qreal d = (x_relief - x);
+  return {c / d, y - (x * c / d)};
+}
