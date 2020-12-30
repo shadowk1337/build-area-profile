@@ -10,27 +10,47 @@ extern struct SenRecCoords *s_tower_coords;
 
 OpenedInterval::OpenedInterval() : Interval() {}
 
-OpenedInterval::OpenedInterval(QCustomPlot *cp) {
-  findPointOfIntersection(cp, *s_data->indexes.begin(),
-                          *(s_data->indexes.end() - 1));
-}
-
 void OpenedInterval::exec() {
-  //  findPointOfIntersection
+  findPointOfIntersection(*s_data->indexes.begin(),
+                          *(s_data->indexes.end() - 1));
 }
 
 std::pair<qint32, qint32> lineOfSightCoords(qint32, qint32);
 qreal lNull_mid(qint32, qint32);
 
-void OpenedInterval::findPointOfIntersection(QCustomPlot *cp, qint32 int_start,
-                                             qint32 int_end) {
+// Нахождение точки пересечения прямой А'Б с кривой поверхности
+void OpenedInterval::findPointOfIntersection(qint32 int_start, qint32 int_end) {
   qreal opposite_y_coord =
       2 * s_data->heights.at(int_start) - s_tower_coords->y_sender;
-  auto [a, b] = strLineEquation(int_start, opposite_y_coord, int_end,
+  auto [a, b] = strLineEquation(int_start, opposite_y_coord,
+                                int_end * s_data->intervals_difference,
                                 s_tower_coords->y_reciever);
-  QCPItemLine *line = new QCPItemLine(cp);
-      line->start->setCoords(int_start, opposite_y_coord);
-      line->end->setCoords(int_end, s_tower_coords->y_reciever);
+  qreal intersection_index = -1;
+  qreal max_height = 0;
+  for (auto it = int_start; it < int_end;
+       ++it) { // поиск точки пересечения, если их несколько, то берется
+               // наивысшая точка
+    auto y_coord = a * it * s_data->intervals_difference + b;
+    if ((y_coord >= s_data->heights.at(it) &&
+         y_coord <= s_data->heights.at(it + 1)) ||
+        (y_coord <= s_data->heights.at(it) &&
+         y_coord >= s_data->heights.at(it + 1))) {
+      if (y_coord > max_height) {
+        max_height = y_coord;
+        intersection_index = it;
+      }
+    }
+  }
+  if (intersection_index == -1) {
+    qDebug() << "Bad opened interval. Terminating.";
+    exit(EXIT_FAILURE);
+  }
+  if (lNull(s_data->h_null.at(intersection_index),
+            k(intersection_index * s_data->intervals_difference)) <=
+      0.25 * constants::AREA_LENGTH)
+    openedIntervalPlaneApproximation(int_start, int_end);
+  else
+    openedIntervalSphereApproximation(int_start, int_end);
 }
 
 // Открытые интервалы
@@ -47,7 +67,8 @@ void OpenedInterval::openedIntervalSphereApproximation(qint32 int_start,
   auto max_height =
       *std::max_element(h.begin() + int_start, h.begin() + int_end);
   auto delta_y = qAbs(max_height - min_height);
-  if (max_height == min_height) return;
+  if (max_height == min_height)
+    return;
   //  qDebug() << obstacleSphereRadius(
   //      (int_end - int_start) * s_data->intervals_difference, delta_y);
 }
@@ -82,7 +103,7 @@ qreal findEl(qint32 piv, qint32 limit) {
     qint32 ind;
     if (limit > piv)
       ind = i + piv;
-    else if (limit < piv)
+    else
       ind = piv - i;
     if (h.at(ind - 1) <= h.at(ind) && h.at(ind + 1) <= h.at(ind)) {
       return ind;

@@ -1,0 +1,10 @@
+debug/calcformules.o
+debug/closed.o
+debug/halfopened.o
+debug/opened.o
+debug/intervals.o
+debug/main.o
+debug/mainwindow.o
+debug/qcustomplot.o
+debug/moc_qcustomplot.o
+debug/moc_mainwindow.o

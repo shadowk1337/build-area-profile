@@ -1,4 +1,4 @@
-/*#include "calcformules.h"
+#include "calcformules.h"
 #include "constants.h"
 #include "datastruct.h"
 //#include "intervals.h"
@@ -121,4 +121,4 @@ bool HalfOpenedInterval::uniteObstacles(QVector<qint32> &v) {
     prev = it;
   }
   return true;
-}*/
+}

@@ -1,0 +1,10 @@
+release/calcformules.o
+release/closed.o
+release/halfopened.o
+release/opened.o
+release/intervals.o
+release/main.o
+release/mainwindow.o
+release/qcustomplot.o
+release/moc_qcustomplot.o
+release/moc_mainwindow.o
