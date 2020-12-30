@@ -244,7 +244,6 @@ void MainWindow::intervalType(QCustomPlot *customPlot) {
   intervalTypeCalc(customPlot, interval_type);
 }
 
-// Определение типа интервала по расстоянию от начала отсчета
 void intervalTypeCalc(QCustomPlot *customPlot, qint32 type) {
   Interval *i = nullptr;
   if (type == 1) {

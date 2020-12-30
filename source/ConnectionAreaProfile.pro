@@ -13,6 +13,7 @@ CONFIG += c++1z
 
 SOURCES += \
     ../data/formules/calcformules.cpp \
+    ../data/formules/calculationParametres.cpp \
     ../intervals/types/closed.cpp \
     ../intervals/types/halfopened.cpp \
     ../intervals/types/opened.cpp \
@@ -22,6 +23,7 @@ SOURCES += \
     ../Qcustomplot/qcustomplot.cpp
 
 HEADERS += \
+    ../data/calculationParametres.h \
     ../data/formules/calcformules.h \
     ../data/datastruct.h \
     ../data/constants.h \
