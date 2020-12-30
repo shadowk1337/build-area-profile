@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "calcformules.h"
 #include "constants.h"
 #include "datastruct.h"
@@ -27,9 +28,10 @@ void OpenedInterval::findPointOfIntersection(qint32 int_start, qint32 int_end) {
                                 s_tower_coords->y_reciever);
   qreal intersection_index = -1;
   qreal max_height = 0;
+  qreal l_null_length;
   for (auto it = int_start; it < int_end;
-       ++it) { // поиск точки пересечения, если их несколько, то берется
-               // наивысшая точка
+       ++it) {  // поиск точки пересечения, если их несколько, то берется
+                // наивысшая точка
     auto y_coord = a * it * s_data->intervals_difference + b;
     if ((y_coord >= s_data->heights.at(it) &&
          y_coord <= s_data->heights.at(it + 1)) ||
@@ -45,12 +47,23 @@ void OpenedInterval::findPointOfIntersection(qint32 int_start, qint32 int_end) {
     qDebug() << "Bad opened interval. Terminating.";
     exit(EXIT_FAILURE);
   }
-  if (lNull(s_data->h_null.at(intersection_index),
-            k(intersection_index * s_data->intervals_difference)) <=
-      0.25 * constants::AREA_LENGTH)
-    openedIntervalPlaneApproximation(int_start, int_end);
+  if ((l_null_length =
+          lNull(s_data->h_null.at(intersection_index),
+                k(intersection_index * s_data->intervals_difference))) <=
+          0.25 * constants::AREA_LENGTH)
+    openedIntervalPlaneApproximation(
+        std::max(int_start, static_cast<qint32>(
+                                intersection_index -
+                                l_null_length / s_data->intervals_difference)),
+        std::min(int_end, static_cast<qint32>(
+                              intersection_index +
+                              l_null_length / s_data->intervals_difference)));
   else
-    openedIntervalSphereApproximation(int_start, int_end);
+    openedIntervalSphereApproximation(
+        (intersection_index - l_null_length / s_data->intervals_difference),
+        std::min(int_end, static_cast<qint32>(
+                              intersection_index +
+                              l_null_length / s_data->intervals_difference)));
 }
 
 // Открытые интервалы
@@ -67,8 +80,7 @@ void OpenedInterval::openedIntervalSphereApproximation(qint32 int_start,
   auto max_height =
       *std::max_element(h.begin() + int_start, h.begin() + int_end);
   auto delta_y = qAbs(max_height - min_height);
-  if (max_height == min_height)
-    return;
+  if (max_height == min_height) return;
   //  qDebug() << obstacleSphereRadius(
   //      (int_end - int_start) * s_data->intervals_difference, delta_y);
 }

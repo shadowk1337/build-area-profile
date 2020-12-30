@@ -1,12 +1,12 @@
 #include "mainwindow.h"
+#include <algorithm>
+#include <cassert>
+#include <new>
 #include "calcformules.h"
 #include "constants.h"
 #include "datastruct.h"
 #include "intervals.h"
 #include "ui_mainwindow.h"
-#include <algorithm>
-#include <cassert>
-#include <new>
 
 using namespace EarthApprox;
 
@@ -157,7 +157,7 @@ void MainWindow::setupCurve(QCustomPlot *curvPlot) {
   curvPlot->graph(1)->setData(x, y);
   curvPlot->graph(1)->setPen(pen);
   lineOfSight(curvPlot);
-  s_data->heights = heights; // H + h
+  s_data->heights = heights;  // H + h
 }
 
 // Линия прямой видимости
@@ -224,7 +224,7 @@ void intervalTypeCalc(QCustomPlot *, qint32);
 
 // Определение типа интервала
 qint32 typeDefinition(void) {
-  qint32 interval_type = 0; // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
+  qint32 interval_type = 0;  // 1 - Открытый, 2 - Полуоткрытый, 3 - Закрытый
   for (qint32 i = 0; i < s_data->H.size(); ++i) {
     if (s_data->H.at(i) >= s_data->H_null.at(i) && s_data->h_null.at(i) >= 0)
       interval_type = std::max(interval_type, 1);
@@ -247,12 +247,11 @@ void MainWindow::intervalType(QCustomPlot *customPlot) {
 // Определение типа интервала по расстоянию от начала отсчета
 void intervalTypeCalc(QCustomPlot *customPlot, qint32 type) {
   Interval *i = nullptr;
-  type = 1;
   if (type == 1) {
     i = new OpenedInterval;
   }
   if (type == 2) {
-    i = new HalfOpenedInterval();
+    i = new HalfOpenedInterval;
   }
   if (type == 3) {
     i = new ClosedInterval;

@@ -34,6 +34,7 @@ FORMS += \
     mainwindow.ui
 
 INCLUDEPATH += \
+    ../heights \
     ../Qcustomplot \
     ../data \
     ../data/formules \

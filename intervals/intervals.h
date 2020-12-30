@@ -3,20 +3,20 @@
 #include "headings.h"
 
 class Interval {
-public:
+ public:
   Interval();
-  virtual void exec() = 0;
+  virtual void exec(void) = 0;
 
-protected:
+ protected:
   std::pair<qreal, qreal> strLineEquation(qreal, qreal, qreal, qreal) const;
 };
 
 class OpenedInterval : public Interval {
-public:
+ public:
   OpenedInterval();
-  void exec() override;
+  void exec(void) override;
 
-private:
+ private:
   void findPointOfIntersection(qint32, qint32);
   void openedIntervalPlaneApproximation(qint32, qint32);
   void openedIntervalSphereApproximation(qint32, qint32);
@@ -26,21 +26,23 @@ private:
 class HalfOpenedInterval : public Interval {
  public:
   HalfOpenedInterval();
-  HalfOpenedInterval(const QVector<qint32> &);
+  void exec() override;
 
  private:
+  void approx(qint32, qint32);
   qreal deltaY(qint32, qint32);
   std::pair<qreal, qreal> halfopenedIntervalSphereApproximation(qint32, qreal);
   qreal halfopenedIntervalWedgeApproximation(qint32);
-  bool uniteObstacles(QVector<qint32> &);
+  std::pair<qint32, qreal> shadingObstacle(void) const;
+//  bool uniteObstacles(qint32, qint32);
 };
 
 class ClosedInterval : public Interval {
-public:
+ public:
   ClosedInterval();
-  void exec() override;
+  void exec(void) override;
 
-private:
+ private:
   qint32 countPeaks(void);
   std::pair<qint32, qreal> findMinHeight(qreal, qreal, qint32, qint32);
   qint32 findLongestInterval() const;
@@ -48,4 +50,4 @@ private:
   inline bool isTangent(qint32, qint32, qreal, qreal) const;
 };
 
-#endif // INTERVALS_H
+#endif  // INTERVALS_H

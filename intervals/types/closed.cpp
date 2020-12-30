@@ -1,8 +1,8 @@
+#include <algorithm>
 #include "calcformules.h"
 #include "constants.h"
 #include "datastruct.h"
 #include "intervals.h"
-#include <algorithm>
 
 using namespace Closed;
 
@@ -41,15 +41,14 @@ void ClosedInterval::reliefTangentStraightLines(qint32 int_start,
                                                 qint32 int_end) {
   qreal dist = s_data->intervals_difference;
   std::pair<qint32, qreal> min_height_send, min_height_rec;
-  qreal ind_send, ind_rec; // индексы точек касания
+  qreal ind_send, ind_rec;  // индексы точек касания
 
   for (auto i = int_start; i <= int_end; ++i) {
-    if (i == int_start || i == int_end)
-      continue;
-    auto [a_sender, b_sender] = // y = a_sender * x + b_sender
+    if (i == int_start || i == int_end) continue;
+    auto [a_sender, b_sender] =  // y = a_sender * x + b_sender
         strLineEquation(s_tower_coords->x_sender, s_tower_coords->y_sender,
                         i * dist, s_data->heights.at(i));
-    auto [a_reciever, b_reciever] = // y = a_reciever * x + b_reciever
+    auto [a_reciever, b_reciever] =  // y = a_reciever * x + b_reciever
         strLineEquation(s_tower_coords->x_reciever, s_tower_coords->y_reciever,
                         i * dist, s_data->heights.at(i));
     if (isTangent(int_start, int_end, a_sender, b_sender)) {
@@ -87,8 +86,9 @@ bool ClosedInterval::isTangent(qint32 int_start, qint32 int_end, qreal a,
   return true;
 }
 
-std::pair<qint32, qreal>
-ClosedInterval::findMinHeight(qreal a, qreal b, qint32 start, qint32 end) {
+std::pair<qint32, qreal> ClosedInterval::findMinHeight(qreal a, qreal b,
+                                                       qint32 start,
+                                                       qint32 end) {
   auto min_height =
       std::max_element(s_data->heights.begin(), s_data->heights.end());
   qint32 height_index = 0;
@@ -108,7 +108,7 @@ ClosedInterval::findMinHeight(qreal a, qreal b, qint32 start, qint32 end) {
 }
 
 qreal findlNull(qint32 start, qint32 end,
-                std::pair<qint32, qreal> p) { // TODO: нужен больший обзор
+                std::pair<qint32, qreal> p) {  // TODO: нужен больший обзор
   auto it = std::find_if(
       s_data->heights.begin() + start, s_data->heights.begin() + end,
       [=](auto val) { return (val + 1 > p.second) && (val - 1 < p.second); });
