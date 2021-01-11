@@ -54,11 +54,12 @@ bool MainWindow::setupFile(void) {
   QRegExp rx("[ ;]");
   size_t count = 0;
 
+  if (!file.exists()) return false;
+  system("sed -i '/^\s*$/d' heights.csv");
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    qDebug() << "Could't open the s_data file";
+    qDebug() << "Could't open heights file";
     return false;
   }
-
   bool first = true;
 
   while (!in.atEnd()) {

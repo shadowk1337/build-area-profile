@@ -34,7 +34,7 @@ class HalfOpenedInterval : public Interval {
   std::pair<qreal, qreal> halfopenedIntervalSphereApproximation(qint32, qreal);
   qreal halfopenedIntervalWedgeApproximation(qint32);
   std::pair<qint32, qreal> shadingObstacle(void) const;
-//  bool uniteObstacles(qint32, qint32);
+  //  bool uniteObstacles(qint32, qint32);
 };
 
 class ClosedInterval : public Interval {
@@ -47,7 +47,7 @@ class ClosedInterval : public Interval {
   std::pair<qint32, qreal> findMinHeight(qreal, qreal, qint32, qint32);
   qint32 findLongestInterval() const;
   void reliefTangentStraightLines(qint32, qint32);
-  inline bool isTangent(qint32, qint32, qreal, qreal) const;
+  inline bool isTangent(qreal, qreal, qint32, qint32) const;
 };
 
 #endif  // INTERVALS_H

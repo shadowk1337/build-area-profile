@@ -1,12 +1,17 @@
 #include "calculationParametres.h"
 #include <QDebug>
+#include <cmath>
 #include "constants.h"
 #include "datastruct.h"
 #include "headings.h"
 
 extern struct Data *s_data;
 
-qreal attentuationInAtmosphere(qreal temperature) {
+qreal intervalAttentuation() {  // TODO: затухания для каждого интервала
+  return .0;
+}
+
+qreal attentuationAtmosphere(qreal temperature) {
   qreal freq = 1.5;
   qreal ro = 7.5;
   qreal gamma_oxygen = (6.09 / (freq * freq + 0.227) + 7.19e-3 +
@@ -23,8 +28,34 @@ qreal attentuationInAtmosphere(qreal temperature) {
   return attentuationInAtmosphere;
 }
 
-qreal attentuationInFeeders(qreal gamma, qreal hA, qreal Lr) {
+qreal attentuationFeeders(qreal gamma, qreal hA, qreal Lr) {
   return (hA + Lr) * gamma;
 }
 
-qreal signalMidLevel()
+inline qreal attentuationFreeSpace() {
+  return 122 + 20 * log10(constants::AREA_LENGTH / constants::LAMBDA);
+}
+
+qreal signalMidLevel() {
+  qreal power_level_send, attentuation_send, attentuation_rec, upg_coef_send,
+      upg_coef_rec;
+  qreal temperature;
+  qreal attentuation_sum = intervalAttentuation() +
+                           attentuationAtmosphere(temperature) +
+                           attentuationFreeSpace();
+  qreal powerLevel = power_level_send - attentuation_send + upg_coef_send -
+                     attentuation_sum + upg_coef_rec - attentuation_rec;
+  return powerLevel;
+}
+
+/*qreal h_req(qint32 M) {
+  return 1.8 + 10 * log10(Rk * (-0.73 - log10(p)) * (M - 1) * sqrt(log2(M)));
+}
+
+qreal limitSignalRec(void) {
+  qreal lim_sens_two =
+      h_req + n_n - 204 + 10 * log10(B) - nu_code + tech_losses;
+  qreal lim_sens =
+}*/
+
+//qreal

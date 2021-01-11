@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <functional>
 #include "calcformules.h"
 #include "constants.h"
 #include "datastruct.h"
@@ -12,6 +13,7 @@ extern struct SenRecCoords *s_tower_coords;
 ClosedInterval::ClosedInterval() : Interval() {}
 
 void ClosedInterval::exec() {
+  countPeaks();
   reliefTangentStraightLines(*s_data->indexes.begin(),
                              *(s_data->indexes.end() - 1));
 }
@@ -23,18 +25,27 @@ qint32 ClosedInterval::countPeaks(void) {
   qint32 i = 0, count = 0;
   bool inside = 0;
   for (auto it : s_data->los_heights) {
-    if (it >= s_data->heights.at(i) && it <= s_data->heights.at(i + 1) &&
+    auto next = std::min(i + 1, s_data->heights.size() - 1);
+    if (it >= s_data->heights.at(i) && it <= s_data->heights.at(next) &&
         inside == 0) {
       inside = 1;
-    }
-    if (it >= s_data->heights.at(i + 1) && it <= s_data->heights.at(i) &&
-        inside == 1) {
+    } else if (it >= s_data->heights.at(next) && it <= s_data->heights.at(i) &&
+               inside == 1) {
       inside = 0;
       count++;
     }
     i++;
   }
   return count;
+}
+
+void minTangentHeight(bool func_res, qreal &ind, qreal i,
+                      std::pair<qint32, qreal> *f(qreal, qreal, qint32,
+                                                  qint32)) {
+  if (func_res) {
+    ind = i;
+    f;
+  }
 }
 
 void ClosedInterval::reliefTangentStraightLines(qint32 int_start,
@@ -51,15 +62,16 @@ void ClosedInterval::reliefTangentStraightLines(qint32 int_start,
     auto [a_reciever, b_reciever] =  // y = a_reciever * x + b_reciever
         strLineEquation(s_tower_coords->x_reciever, s_tower_coords->y_reciever,
                         i * dist, s_data->heights.at(i));
-    if (isTangent(int_start, int_end, a_sender, b_sender)) {
-      ind_send = i;
-      min_height_send = findMinHeight(a_sender, b_sender, int_start, int_end);
-    }
-    if (isTangent(int_start, int_end, a_reciever, b_reciever)) {
-      ind_rec = i;
-      min_height_rec =
-          findMinHeight(a_reciever, b_reciever, int_start, int_end);
-    }
+    /*    if (isTangent(a_sender, b_sender, int_start, int_end)) {
+          ind_send = i;
+          min_height_send = findMinHeight(a_sender, b_sender, int_start,
+       int_end);
+        }
+        if (isTangent(a_reciever, b_reciever, int_start, int_end)) {
+          ind_rec = i;
+          min_height_rec =
+              findMinHeight(a_reciever, b_reciever, int_start, int_end);
+        }*/
   }
 
   auto [x, p] = (min_height_send.second < min_height_rec.second)
@@ -70,15 +82,15 @@ void ClosedInterval::reliefTangentStraightLines(qint32 int_start,
   qreal a =
       obstacleSphereRadius(findlNull(int_start, int_end, p) * dist, delta_y);
   qreal s = distanceSquare(a);
-  //    qDebug() << s;
-  //    qDebug() << relativeDistances(s, min_height_send.first * dist);
-  //    qDebug() << relativeDistances(
-  //        s, qAbs(s_data->heights.size() - min_height_rec.first - 1));
+  qDebug() << s;
+  qDebug() << relativeDistances(s, min_height_send.first * dist);
+  qDebug() << relativeDistances(
+      s, qAbs(s_data->heights.size() - min_height_rec.first - 1));
 }
 
 // Является ли прямая касательной
-bool ClosedInterval::isTangent(qint32 int_start, qint32 int_end, qreal a,
-                               qreal b) const {
+bool ClosedInterval::isTangent(qreal a, qreal b, qint32 int_start,
+                               qint32 int_end) const {
   for (qint32 j = int_start; j <= int_end; ++j) {
     if (a * j * s_data->intervals_difference + b < s_data->heights.at(j))
       return false;
