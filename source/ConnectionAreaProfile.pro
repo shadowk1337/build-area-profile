@@ -12,6 +12,7 @@ CONFIG += c++1z
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    ../../../rrls/src/nrrlsset.cpp \
     ../data/formules/calcformules.cpp \
     ../data/formules/calculationParametres.cpp \
     ../intervals/types/closed.cpp \
@@ -23,7 +24,8 @@ SOURCES += \
     ../Qcustomplot/qcustomplot.cpp
 
 HEADERS += \
-    ../data/calculationParametres.h \
+    ../../../rrls/src/nrrlsset.h \
+    ../data/calcparametres.h \
     ../data/formules/calcformules.h \
     ../data/datastruct.h \
     ../data/constants.h \

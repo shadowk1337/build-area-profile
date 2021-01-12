@@ -24,7 +24,7 @@ class MainWindow : public QMainWindow {
   void setupCurve(QCustomPlot *);
   void dataInit(void) const;
   void fresnelZone(QCustomPlot *);
-  void intervalType(QCustomPlot *);
+  void intervalType(void);
 
  private:
   Ui::MainWindow *ui;

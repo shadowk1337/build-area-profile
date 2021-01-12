@@ -22,8 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
   setupCurve(ui->customPlot);
   dataInit();
   fresnelZone(ui->customPlot);
-  intervalType(ui->customPlot);
-
+  intervalType();
   textItem = new QCPItemText(ui->customPlot);
   connect(ui->customPlot, &QCustomPlot::mouseMove, this,
           &MainWindow::onMouseMove);
@@ -53,7 +52,6 @@ bool MainWindow::setupFile(void) {
   QTextStream in(&file);
   QRegExp rx("[ ;]");
   size_t count = 0;
-
   if (!file.exists()) return false;
   system("sed -i '/^\s*$/d' heights.csv");
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -72,10 +70,8 @@ bool MainWindow::setupFile(void) {
     s_data->indexes.push_back(count++);
     s_data->heights.push_back(line.section(";", 3, 3).toDouble());
   }
-
   assert(s_data->heights.size() <= s_data->indexes.size());
   file.close();
-
   if (!count) {
     qDebug() << "File is empty";
     return false;
@@ -89,17 +85,18 @@ void MainWindow::setupAxis(QCustomPlot *axis) {
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   QString str;
   QFont pfont("Arial", 8);
-
   axis->rescaleAxes();
   axis->yAxis->scaleRange(2);
   axis->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom |
                         QCP::iSelectPlottables);
-
   for (qreal i = 0; i < constants::AREA_LENGTH + 500; i += 500) {
     str = QString::number(static_cast<qint32>(i) / 1000);
     textTicker->addTick(i, str);
   }
-
+  qreal h_max =
+      *std::max_element(s_data->heights.begin(), s_data->heights.end()) + 35;
+  qDebug() << h_max;
+  axis->yAxis->setRange(0, h_max, Qt::AlignLeft);
   axis->xAxis->setTicker(textTicker);
   axis->xAxis->setTickLabelFont(pfont);
   axis->xAxis->setTickLabelRotation(-45);
@@ -116,7 +113,6 @@ void MainWindow::setupArc(QCustomPlot *arcPlot) {
   qreal equivalent_radius = equivalentRadius(constants::G_STANDARD);
   QPen pen(QColor("#014506"));
   pen.setWidth(2);
-
   for (qreal i = -constants::R_EVALUATED, iterator = 0;
        i < constants::R_EVALUATED; i += s_data->intervals_difference,
              iterator += s_data->intervals_difference) {
@@ -146,13 +142,11 @@ void MainWindow::setupCurve(QCustomPlot *curvPlot) {
   qreal i = 0;
   QPen pen(QColor("#137ea8"));
   pen.setWidth(2);
-
   for (auto h : s_data->heights) {
     x.push_back(i);
     y.push_back(h);
     i += s_data->intervals_difference;
   }
-
   assert(x.size() == y.size());
   curvPlot->addGraph();
   curvPlot->graph(1)->setData(x, y);
@@ -173,12 +167,10 @@ void lineOfSight(QCustomPlot *linePlot) {
       s_data->indexes.size();
   QPen pen(QColor("#d6ba06"));
   pen.setWidth(2);
-
   for (auto ind : s_data->indexes) {
     s_data->los_heights.push_back(s_tower_coords->y_sender +
                                   ind * s_tower_coords->y_diff);
   }
-
   QCPItemLine *line = new QCPItemLine(linePlot);
   line->setPen(pen);
   line->start->setCoords(s_tower_coords->x_sender, s_tower_coords->y_sender);
@@ -201,7 +193,6 @@ void MainWindow::fresnelZone(QCustomPlot *zonePlot) {
   QVector<qreal> it_x_vector, it_y_vector;
   QPen pen(Qt::red);
   pen.setWidth(2);
-
   for (qint32 i = 0; i + 1 <= s_data->heights.size(); ++i) {
     it_x_vector.push_back(i * s_data->intervals_difference);
     it_y_vector.push_back(-s_data->H_null.at(i) + s_data->los_heights.at(i));
@@ -221,7 +212,7 @@ void MainWindow::fresnelZone(QCustomPlot *zonePlot) {
   zonePlot->graph(3)->setData(it_x_vector, it_y_vector);
 }
 
-void intervalTypeCalc(QCustomPlot *, qint32);
+void intervalTypeCalc(qint32);
 
 // Определение типа интервала
 qint32 typeDefinition(void) {
@@ -238,23 +229,22 @@ qint32 typeDefinition(void) {
   return interval_type;
 }
 
-void MainWindow::intervalType(QCustomPlot *customPlot) {
+void MainWindow::intervalType(void) {
   auto interval_type = typeDefinition();
-
   assert(s_data->H_null.size() == s_data->h_null.size());
-  intervalTypeCalc(customPlot, interval_type);
+  intervalTypeCalc(interval_type);
 }
 
-void intervalTypeCalc(QCustomPlot *customPlot, qint32 type) {
+void intervalTypeCalc(qint32 type) {
   Interval *i = nullptr;
   if (type == 1) {
-    i = new OpenedInterval;
+    i = new OpenedInterval();
   }
   if (type == 2) {
-    i = new HalfOpenedInterval;
+    i = new HalfOpenedInterval();
   }
   if (type == 3) {
-    i = new ClosedInterval;
+    i = new ClosedInterval();
   }
   i->exec();
 }
