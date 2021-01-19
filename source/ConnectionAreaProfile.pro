@@ -3,7 +3,7 @@ QT       += \
     widgets \
     core
 
-greaterThan(QT_MAJOR_VERSION, 5): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++1z
 
@@ -43,7 +43,6 @@ INCLUDEPATH += \
     ../data \
     ../data/formules \
     ../intervals
-    ../intervals/types \
 
 
 # Default rules for deployment.

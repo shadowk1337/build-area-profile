@@ -29,7 +29,7 @@ extern qreal t(qreal, qreal);
 namespace Closed {
 extern qreal distanceSquare(qreal);
 extern qreal relativeDistances(qreal, qreal);
-extern qreal relativePoint(qreal a, qint32 i);
+extern qreal relativePoint(qreal, qint32);
 }  // namespace Closed
 
 #endif  // CALCFORMULES_H
