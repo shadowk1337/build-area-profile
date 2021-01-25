@@ -213,11 +213,22 @@ bool Item::exec() {
 
 }  // namespace Main
 
+void setGraph(QCustomPlot *cp, const QVector<double> &x,
+              const QVector<double> &y, QPen pen = QPen{}) {
+  static int it = 0;
+  cp->addGraph();
+  cp->graph(it)->setData(x, y, true);
+  cp->graph(it++)->setPen(pen);
+}
+
+qreal k(qreal R) { return R / (2 * 16.9e+03); }
+
 bool Fill::Item::exec() {
   QFile file("heights.csv");
   QTextStream in(&file);
   QRegExp rx("[ ;]");
   bool first = true;
+  auto data_c = _data.toStrongRef()->constr;
   auto &heights = _data.toStrongRef()->constr.heights;
   auto &diff = _data.toStrongRef()->constr.diff;
   size_t &count = _data.toStrongRef()->constr.count;
@@ -243,17 +254,39 @@ bool Fill::Item::exec() {
     std::cerr << "File is empty";
     return false;
   }
-  diff = (_data.toStrongRef()->cons.r_evaluated * 2) / count;
+  diff = (_data.toStrongRef()->constants.r_evaluated * 2) / count;
+
+  data_c.sender_coords.first = 0;
+  data_c.reciever_coords.first = 33700;
+  auto y1 = data_c.sender_coords.second = 117.49;
+  auto y2 = data_c.reciever_coords.second = 52.7;
+  auto y_diff = (y2 - y1) / data_c.heights.size();
+  std::cout << data_c.heights.size() << endl;
+  for (size_t i = 0; i + 1 <= count; ++i) {
+    //    data_c.los_heights.push_back(y1 + i * y_diff);
+    //    data_c.H.push_back(data_c.los_heights.at(i) - data_c.heights.at(i));
+    //    data_c.H_null.push_back(sqrt(_data.toStrongRef()->constants.r_evaluated
+    //    *
+    //                                 2 * _data.toStrongRef()->constants.lambda
+    //                                 * k(i * data_c.diff) *
+    //                                 ((1 - k(i * data_c.diff)) / 3)));
+    //    data_c.h_null.push_back(data_c.H.at(i) / data_c.H_null.at(i));
+    //    data_c.HNull_hNull_div.push_back(data_c.H_null.at(i) /
+    //    data_c.h_null.at(i));
+  }
+  std::cout << count << data_c.H_null.size();
+  //  data_c.H_null[data_c.count - 1] = 0;
+
   if (_data.isNull()) return false;
   return true;
-}  // namespace Calc
+}
 
 bool Profile::Item::exec() {
   return (Axes::Ptr::create(_data, _cp)->exec() &&
           Earth::Ptr::create(_data, _cp)->exec() &&
-          Curve::Ptr::create(_data, _cp)->exec() &&
-          Fresnel::Ptr::create(_data, _cp)->exec() &&
-          Los::Ptr::create(_data, _cp)->exec());
+          Curve::Ptr::create(_data, _cp)->exec());
+  //          Fresnel::Ptr::create(_data, _cp)->exec() &&
+  //          Los::Ptr::create(_data, _cp)->exec());
 }
 
 bool Profile::Axes::exec() {
@@ -264,7 +297,7 @@ bool Profile::Axes::exec() {
   _cp->rescaleAxes();
   _cp->yAxis->scaleRange(2);
   _cp->setInteractions(QCP::iSelectPlottables);
-  for (qreal i = 0; i < data->cons.r_evaluated * 2 + 500; i += 500) {
+  for (qreal i = 0; i < data->constants.r_evaluated * 2 + 500; i += 500) {
     str = QString::number(static_cast<qint32>(i) / 1000);
     textTicker->addTick(i, str);
   }
@@ -277,37 +310,33 @@ bool Profile::Axes::exec() {
   _cp->xAxis->setTickLabelRotation(-45);
   _cp->xAxis->setTickLength(0);
   _cp->yAxis->setSubTickLength(0);
-  _cp->xAxis->setRange(0, data->cons.r_evaluated * 2);
+  _cp->xAxis->setRange(0, data->constants.r_evaluated * 2);
   if (_data.isNull()) return false;
   return true;
 }
-
-qreal equivalentRadius(qreal g) { return 6.37e+06 / (1 + g * 6.37e+06 / 2); }
-
-qreal deltaY(qreal r, qreal eq_radius) { return (r * r) / (2 * eq_radius); }
 
 bool Profile::Earth::exec() {
   auto data = _data.toStrongRef();
   QVector<qreal> x, y;
   bool first = true;
   qreal move_graph_up_value;
-  qreal equivalent_radius = equivalentRadius(data->cons.g_standard);
+  qreal equivalent_radius =
+      data->constants.radius /
+      (1 + data->constants.g_standard * data->constants.radius / 2);
   QPen pen(QColor("#014506"));
   pen.setWidth(2);
-  for (qreal i = -data->cons.r_evaluated, iterator = 0;
-       i < data->cons.r_evaluated;
+  for (qreal i = -data->constants.r_evaluated, iterator = 0;
+       i < data->constants.r_evaluated;
        i += data->constr.diff, iterator += data->constr.diff) {
-    x.push_back(i + data->cons.r_evaluated);
+    x.push_back(i + data->constants.r_evaluated);
     if (first) {
-      move_graph_up_value = qAbs(deltaY(i, equivalent_radius));
+      move_graph_up_value = qAbs(i * i / (2 * equivalent_radius));
       y.push_back(0);
       first = false;
     } else
-      y.push_back(-deltaY(i, equivalent_radius) + move_graph_up_value);
+      y.push_back(-(i * i / (2 * equivalent_radius)) + move_graph_up_value);
   }
-  _cp->addGraph();
-  _cp->graph(0)->setData(x, y, true);
-  _cp->graph(0)->setPen(pen);
+  setGraph(_cp, x, y, pen);
   QCPItemTracer *tracer = new QCPItemTracer(_cp);
   tracer->setGraph(_cp->graph(0));
   tracer->updatePosition();
@@ -327,9 +356,7 @@ bool Profile::Curve::exec() {
     i += _data.toStrongRef()->constr.diff;
   }
   assert(x.size() == y.size());
-  _cp->addGraph();
-  _cp->graph(1)->setData(x, y);
-  _cp->graph(1)->setPen(pen);
+  setGraph(_cp, x, y, pen);
   //    lineOfSight(plot);
   //    s_data->heights = heights;
   if (!_data) return false;
@@ -346,38 +373,29 @@ bool Profile::Fresnel::exec() {
     y.push_back(-data_c.H_null.at(i) + data_c.los_heights.at(i));
   }
   y[data_c.count - 1] = data_c.reciever_coords.second;
-  _cp->addGraph();
-  _cp->graph(2)->setPen(pen);
-  _cp->graph(2)->setData(x, y);
+  setGraph(_cp, x, y, pen);
   std::for_each(y.begin(), y.end() - 1, [&](qreal &x) {
     static qint32 i = 0;
     x += 2 * data_c.H_null.at(i);
     i++;
   });
   y[data_c.count - 1] = data_c.reciever_coords.second;
-  _cp->addGraph();
-  _cp->graph(3)->setPen(pen);
-  _cp->graph(3)->setData(x, y);
+  setGraph(_cp, x, y, pen);
   if (!_data) return false;
   return true;
 }
 
 bool Profile::Los::exec() {
-  auto data = _data.toStrongRef();
+  auto data_c = _data.toStrongRef()->constr;
   QVector<qreal> y;
-  auto x1 = data->constr.sender_coords.first = 0;
-  auto y1 = data->constr.sender_coords.second = 117.49;
-  auto x2 = data->constr.reciever_coords.first = 33700;
-  auto y2 = data->constr.reciever_coords.second = 52.7;
-  auto y_diff = (y2 - y1) / data->constr.heights.size();
   QPen pen(QColor("#d6ba06"));
   pen.setWidth(2);
-  for (size_t i = 0; i + 1 <= data->constr.count; ++i)
-    data->constr.los_heights.push_back(y1 + i * y_diff);
   QCPItemLine *line = new QCPItemLine(_cp);
   line->setPen(pen);
-  line->start->setCoords(x1, y1);
-  line->end->setCoords(x2, y2);
+  line->start->setCoords(data_c.sender_coords.first,
+                         data_c.sender_coords.second);
+  line->end->setCoords(data_c.reciever_coords.first,
+                       data_c.reciever_coords.second);
   if (!_data) return false;
   return true;
 }

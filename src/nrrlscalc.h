@@ -72,7 +72,7 @@ struct Data {
   typedef QSharedPointer<Data> Ptr;
   typedef QWeakPointer<Data> WeakPtr;
 
-  Const::Data cons;      ///< Константы
+  Const::Data constants;      ///< Константы
   Spec::Data spec;       ///< Параметры РРЛ
   Profile::Data constr;  ///< Параметры высотного профиля
 
