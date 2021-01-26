@@ -44,6 +44,18 @@ struct Data {
 
 }  // namespace Spec
 
+namespace Towers {
+
+/**
+ * Параметры антенн
+ */
+struct Data {
+  QPair<double, double> sender;  ///< Координаты передатчика
+  QPair<double, double> reciever;  ///< Координаты приемника
+};
+
+}  // namespace Towers
+
 namespace Profile {
 
 /**
@@ -57,8 +69,6 @@ struct Data {
   QVector<double> h_null;  ///< Относительные просветы
   QVector<double> H_null;  ///< Критические просветы
   QVector<double> H;  ///< Расстояние между ЛПВ и линией профиля местности
-  QPair<double, double> sender_coords;  ///< Координаты передатчика
-  QPair<double, double> reciever_coords;  ///< Координаты приемника
   int diff;  ///< Расстояние между соседними индексами
   size_t count;  ///< Количество точек разбиения
 };
@@ -72,9 +82,10 @@ struct Data {
   typedef QSharedPointer<Data> Ptr;
   typedef QWeakPointer<Data> WeakPtr;
 
-  Const::Data constants;      ///< Константы
+  Const::Data constant;  ///< Константы
   Spec::Data spec;       ///< Параметры РРЛ
-  Profile::Data constr;  ///< Параметры высотного профиля
+  Profile::Data param;  ///< Параметры высотного профиля
+  Towers::Data tower;
 
   double wp = 0;  ///< Затухания в рельефе
   double ws = 0;  ///< Затухания в свободном пространстве
@@ -101,6 +112,12 @@ class Item {
   virtual bool exec() = 0;
 
  protected:
+  double k(double R);                          ///<
+  double lNull(double h0, double k);            ///<
+  double HNull(int i);                     ///<
+  double obstacleSphereRadius(double l0, double delta_y);  ///<
+
+ protected:
   Data::WeakPtr _data;
   QCustomPlot *_cp;
 };
@@ -113,7 +130,6 @@ namespace Master {
 class Item : public Calc::Item {
  public:
   QSHDEF(Item);
-  //  Item(const Data::WeakPtr &data) : Calc::Item(data) {}
   Item(const Data::WeakPtr &data, QCustomPlot *cp) : Calc::Item(data, cp) {}
 
  protected:
@@ -130,7 +146,6 @@ namespace Main {
 class Item : public Master::Item {
  public:
   QSHDEF(Item);
-  //  Item(const Data::WeakPtr &data);
   Item(const Data::WeakPtr &data, QCustomPlot *cp);
 
   // NRrls::Calc::Item interface
