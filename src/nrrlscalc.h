@@ -27,6 +27,8 @@ struct Data {
                                ///< Приземной части тропосферы
   double r_evaluated =
       16.9e+03;  ///< Предельное удаление края дуги от центра (в метрах)
+  double area_length =
+      2 * r_evaluated;  ///< Длина рассматриваемого участка (в метрах)
   double lambda = 0.2;  ///< Длина волны
 };
 
@@ -87,7 +89,8 @@ struct Data {
   Profile::Data param;  ///< Параметры высотного профиля
   Towers::Data tower;
 
-  double wp = 0;  ///< Затухания в рельефе
+  int interval_type = 0;  ///< Тип интервала: 1-Открытый, 2-Полуоткрытый, 3-Закрытый
+  double wp = 0;      ///< Затухания в рельефе
   double ws = 0;  ///< Затухания в свободном пространстве
   double wa = 0;  ///< Затухания в газах атмосферы
   double p = 0;  ///< Медианное значение сигнала на входе приёмника
@@ -112,9 +115,9 @@ class Item {
   virtual bool exec() = 0;
 
  protected:
-  double k(double R);                          ///<
-  double lNull(double h0, double k);            ///<
-  double HNull(int i);                     ///<
+  double k(double R);                                      ///<
+  double lNull(double h0, double k);                       ///<
+  double HNull(int i);                                     ///<
   double obstacleSphereRadius(double l0, double delta_y);  ///<
 
  protected:
