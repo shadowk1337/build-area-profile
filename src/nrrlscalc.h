@@ -87,10 +87,11 @@ struct Data {
   Const::Data constant;  ///< Константы
   Spec::Data spec;       ///< Параметры РРЛ
   Profile::Data param;  ///< Параметры высотного профиля
-  Towers::Data tower;
+  Towers::Data tower;   ///< Параметры антенн
 
-  int interval_type = 0;  ///< Тип интервала: 1-Открытый, 2-Полуоткрытый, 3-Закрытый
-  double wp = 0;      ///< Затухания в рельефе
+  int interval_type =
+      0;  ///< Тип интервала: 1-Открытый, 2-Полуоткрытый, 3-Закрытый
+  double wp = 0;  ///< Затухания в рельефе
   double ws = 0;  ///< Затухания в свободном пространстве
   double wa = 0;  ///< Затухания в газах атмосферы
   double p = 0;  ///< Медианное значение сигнала на входе приёмника
@@ -115,10 +116,36 @@ class Item {
   virtual bool exec() = 0;
 
  protected:
-  double k(double R);                                      ///<
-  double lNull(double h0, double k);                       ///<
-  double HNull(int i);                                     ///<
-  double obstacleSphereRadius(double l0, double delta_y);  ///<
+  /**
+   * Функция вычисления относительной координаты
+   * @param R - расстояние от начала интервала до рассматриваемой точки
+   * @return Величина относительной координаты
+   */
+  double k(double R);
+
+  /**
+   * Функция вычисления протяженности участка отражения
+   * @param h0 - относительный просвет в точке
+   * @param k - относительная координата
+   * @return Длина участка отражения
+   */
+  double lNull(double h0, double k);
+
+  /**
+   * Функция вычисления критического просвета
+   * @param i - индекс точки, в которой считается критический просвет
+   * @return Значение критического просвета в точке
+   */
+  double HNull(int i);
+
+  /**
+   * Функция нахождения радиуса сферы препятствия
+   * @param l0 - длина участка отражения
+   * @param delta_y - высота хорды между параболой(аппроксимацией препятствия) и
+   * горизонталью
+   * @return Радиус сферы препятствия
+   */
+  double obstacleSphereRadius(double l0, double delta_y);
 
  protected:
   Data::WeakPtr _data;
