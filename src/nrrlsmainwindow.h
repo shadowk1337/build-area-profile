@@ -26,6 +26,9 @@ class NRrlsMainWindow : public QMainWindow {
  private:
   struct Private;
   Private *const _d;
+
+ private slots:
+  void onMouseMove(QMouseEvent *event);
 };
 
 #endif  // NRRLSMMAINWINDOW_H
