@@ -339,13 +339,27 @@ class Closed : public Land::Item {
   void approx(std::vector<std::pair<int, int>> &v);
 
   /**
-   * @brief reliefTangentStraightLines
+   * Функция нахождения прямых, касательных высотному профилю на отрезке [start,
+   * end]
+   * @param start - индекс начальной точки
+   * @param end - индекс конечной точки
    */
   void reliefTangentStraightLines(int start, int end);
 
   /**
-   * @brief findMinHeight
-   * @return
+   * Функция ...
+   * @param p -
+   * @param start
+   * @param end
+   * @param type
+   */
+  void checkTangent(std::tuple<int, std::pair<int, double>> *p, int start,
+                    int end, std::string type);
+
+  /**
+   * Функция нахождения координат точки пересечения прямой, касательной к
+   * высотному профилю и выходящей из передатчика/приемника
+   * @return Координаты точки пересечения
    */
   std::pair<int, double> findMinHeight(double, double, int, int);
 
@@ -966,44 +980,61 @@ void Atten::Land::Closed::approx(Coords &v) {
   }
 }
 
-void Atten::Land::Closed::reliefTangentStraightLines(int start, int end) {
-  std::pair<int, double> min_height_send, min_height_rec;
-  double ind_send, ind_rec;  ///< Индексы точек касания
+void Atten::Land::Closed::checkTangent(
+    std::tuple<int, std::pair<int, double>> *p, int start, int end,
+    std::string type) {
+  std::pair<double, double> pa;
 
   for (auto i = start; i <= end; ++i) {
     if (i == start || i == end) continue;
-    auto [a_sender, b_sender] =  ///< Уравнение прямой для передатчика
-        strLineEquation(data->tower.sender.first, data->tower.sender.second,
-                        i * data->param.diff, data->param.heights.at(i));
-    auto [a_reciever, b_reciever] =  ///< Уравнение прямой для приемника
-        strLineEquation(data->tower.reciever.first, data->tower.reciever.second,
-                        i * data->param.diff, data->param.heights.at(i));
-    if (isTangent(a_sender, b_sender, start, end)) {
-      ind_send = i;
-      min_height_send = findMinHeight(a_sender, b_sender, int_start, int_end);
-      QCPItemLine *line = new QCPItemLine(_cp);
-      line->start->setCoords(data->tower.sender.first,
-                             data->tower.sender.second);
-      line->end->setCoords(i * data->param.diff,
-                           a_sender * i * data->param.diff + b_sender);
-    }
-    if (isTangent(a_reciever, b_reciever, start, end)) {
-      ind_rec = i;
-      min_height_rec =
-          findMinHeight(a_reciever, b_reciever, start, end);
-      QCPItemLine *line = new QCPItemLine(_cp);
-      line->start->setCoords(data->tower.reciever.first,
-                             data->tower.reciever.second);
-      line->end->setCoords(i * data->param.diff,
-                           a_sender * i * data->param.diff + b_sender);
+    if (type == "sender")
+      pa =  ///< Уравнение прямой
+          strLineEquation(data->tower.sender.first, data->tower.sender.second,
+                          i * data->param.diff, data->param.heights.at(i));
+    else if (type == "reciever")
+      pa =  ///< Уравнение прямой
+          strLineEquation(data->tower.reciever.first,
+                          data->tower.reciever.second, i * data->param.diff,
+                          data->param.heights.at(i));
+    else
+      return;
+    if (isTangent(pa.first, pa.second, start, end)) {
+      if (type == "sender") {
+        QCPItemLine *line = new QCPItemLine(_cp);
+        line->start->setCoords(data->tower.sender.first,
+                               data->tower.sender.second);
+        line->end->setCoords(i * data->param.diff,
+                             pa.first * i * data->param.diff + pa.second);
+      } else {
+        QCPItemLine *line = new QCPItemLine(_cp);
+        line->start->setCoords(data->tower.reciever.first,
+                               data->tower.reciever.second);
+        line->end->setCoords(i * data->param.diff,
+                             pa.first * i * data->param.diff + pa.second);
+      }
+      //   Если прямая является касаетельной к высотному профилю на [start, end]
+      //      ostream << findMinHeight(pa.first, pa.second, start, end).first <<
+      //      " "
+      //              << findMinHeight(pa.first, pa.second, start, end).second
+      //              << '\n';
+      *p = std::make_tuple(i, findMinHeight(pa.first, pa.second, start, end));
+      return;
     }
   }
-  auto [x, p] = (min_height_send.second < min_height_rec.second)
-                    ? std::make_pair(ind_send, min_height_send)
-                    : std::make_pair(ind_rec, min_height_rec);
+}
+
+void Atten::Land::Closed::reliefTangentStraightLines(int start, int end) {
+  std::tuple<int, std::pair<int, double>> sender = {}, reciever = {};
+  checkTangent(&sender, start, end, "sender");
+  //  ostream << std::get<1>(sender).first << " ";
+  checkTangent(&reciever, start, end, "reciever");
+  /*auto [x, p] =
+      (std::get<1>(sender).second < std::get<1>(reciever).second)
+          ? std::make_pair(std::get<0>(sender), std::get<1>(sender))
+          : std::make_pair(std::get<0>(reciever), std::get<1>(reciever));
   double delta_y = qAbs(data->param.heights.at(x) - p.second);
   double a = obstacleSphereRadius(findlNull(p) * data->param.diff, delta_y);
-  double s = distanceSquare(a);
+  double s = distanceSquare(a);*/
   //  ostream << s;
   //  ostream << relativeDistances(s, min_height_send.first *
   //  data->param.diff); ostream << relativeDistances(
@@ -1021,25 +1052,26 @@ bool Atten::Land::Closed::isTangent(double a, double b, int int_start,
 std::pair<int, double> Atten::Land::Closed::findMinHeight(double a, double b,
                                                           int start, int end) {
   auto min_height =
-      std::max_element(data->param.heights.begin(), data->param.heights.end());
+      *std::max_element(data->param.heights.begin(), data->param.heights.end());
   int height_index = 0;
   QVector<double> x, y;
   for (int i = start, k = 0; i <= end; ++i, ++k) {
     x.push_back(i * data->param.diff);
     y.push_back(a * i * data->param.diff + b - qAbs(data->param.H_null.at(i)));
-    ostream << x.at(k) << " " << y.at(k) << '\n';
 
-    if (y.at(k) < data->param.heights.at(i) + 1 &&
-        y.at(k) > data->param.heights.at(i) - 1) {
-      *min_height = std::min(*min_height, data->param.heights.at(i));
+    ostream << data->param.heights.at(i) << " ";
+//    ostream << y.at(k) << " " << data->param.heights.at(i) << '\n';
+    //  y.at(k) == data->param.heights.at(i)
+    if (qAbs(y.at(k) - data->param.heights.at(i)) < 0.5) {
+      min_height = std::min(min_height, data->param.heights.at(i));
       height_index = i;
     }
   }
-  return {height_index, *min_height};
+  ostream << '\n';
+  return {height_index, min_height};
 }
 
-double Atten::Land::Closed::findlNull(
-    std::pair<int, double> p) {  // TODO: нужен больший обзор
+double Atten::Land::Closed::findlNull(std::pair<int, double> p) {
   auto it = std::find_if(data->param.heights.begin() + int_start,
                          data->param.heights.begin() + int_end, [=](int val) {
                            return (val + 1 > p.second) && (val - 1 < p.second);
@@ -1072,3 +1104,11 @@ bool Core::exec() { return _main->exec(); }
 }  // namespace Calc
 
 }  // namespace NRrls
+
+/*
+  QCPItemLine *line = new QCPItemLine(_cp);
+      line->start->setCoords(data->tower.sender.first,
+                             data->tower.sender.second);
+      line->end->setCoords(i * data->param.diff,
+                           a_sender * i * data->param.diff + b_sender);
+*/
