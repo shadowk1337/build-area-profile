@@ -150,10 +150,10 @@ class Item : public Calc::Item {
 
   /**
    * Функция построения уравнения прямой y = $a * x + $b
-   * @param x - абсцисса первой точки
-   * @param y - ордината первой точки
-   * @param xx - абсцисса второй точки
-   * @param yy - ордината второй точки
+   * @param x       - абсцисса первой точки
+   * @param y       - ордината первой точки
+   * @param xx      - абсцисса второй точки
+   * @param yy      - ордината второй точки
    * @return Пара{$a, $b}
    */
   std::pair<double, double> strLineEquation(double x, double y, double xx,
@@ -184,22 +184,22 @@ class Opened : public Land::Item {
 
   /**
    * Функция аппроксимации плоскостью
-   * @param start - Индекс начальной точки участка отражения
-   * @param end - Индекс конечной точки участка отражения
+   * @param start   - Индекс начальной точки участка отражения
+   * @param end     - Индекс конечной точки участка отражения
    */
   void planeApproximation(int start, int end);
 
   /**
    * Функция аппроксимации сферой
-   * @param start - Индекс начальной точки участка отражения
-   * @param end - Индекс конечной точки участка отражения
+   * @param start   - Индекс начальной точки участка отражения
+   * @param end     - Индекс конечной точки участка отражения
    */
   void sphereApproximation(int start, int end);
 
   /**
    * Функция сравнения с критерием Рэлея
-   * @param start - Индекс начальной точки участка отражения
-   * @param end - Индекс конечной точки участка отражения
+   * @param start   - Индекс начальной точки участка отражения
+   * @param end     - Индекс конечной точки участка отражения
    */
   void rayleighAndGroundCriteria(int start, int end);
 
@@ -213,8 +213,8 @@ class Opened : public Land::Item {
 
   /**
    * @brief
-   * @param start - Индекс начальной точки участка отражения
-   * @param end - Индекс конечной точки участка отражения
+   * @param start   - Индекс начальной точки участка отражения
+   * @param end     - Индекс конечной точки участка отражения
    * @return
    */
   std::pair<int, int> lineOfSightCoords(int start, int end);
@@ -237,29 +237,32 @@ class SemiOpened : public Land::Item {
  private:
   /**
    * Функция аппроксимации сферой
-   * @param idx - индекс рассматриваемой точки
-   * @param obst_sph_radius - радиус препятствия
+   * @param idx     - индекс рассматриваемой точки
+   * @param obst_sph_radius
+   *                - радиус препятствия
    * @return Затухание на интервале
    */
   double sphereApproximation(int idx, double obst_sph_radius);
 
   /**
    * Функция аппроксимации клином
-   * @param idx - индекс рассматриваемой точки
+   * @param idx     - индекс рассматриваемой точки
    * @return Затухание на интервале
    */
   double wedgeApproximation(int idx);
 
   /**
    * Функция нахождения высоты хорды
-   * @param sh_height - высота затеняющего препятствия
+   * @param sh_height
+   *                - высота затеняющего препятствия
    * @return Величина высоты хорды
    */
   double deltaY(int sh_ind);
 
   /**
    * Функция нахождения затеняющего препятствия
-   * @return Пара .first - индекс препятствия .second - величина минимального
+   * @return Пара .first
+   *                - индекс препятствия .second - величина минимального
    * просвета
    */
   std::pair<int, double> shadingObstacle(void) const;
@@ -267,9 +270,10 @@ class SemiOpened : public Land::Item {
  private:
   /**
    * Функция нахождения параметра рельефа местности
-   * @param k - относительная координата
-   * @param H0 - критический просвет
-   * @param obstacleShereRadius - радиус сферы препятствия
+   * @param k       - относительная координата
+   * @param H0      - критический просвет
+   * @param obstacleShereRadius
+   *                - радиус сферы препятствия
    * @return Величина параметра рельефа местности
    */
   inline double areaReliefParameter(double k, double H0,
@@ -277,37 +281,37 @@ class SemiOpened : public Land::Item {
 
   /**
    * Функция нахождения функции параметра рельефа
-   * @param mu - параметр рельефа местности
+   * @param mu      - параметр рельефа местности
    * @return Величина функции параметра рельефа
    */
   inline double reliefParFuncSph(double mu);
 
   /**
    * Функция нахождения затухания
-   * @param mu - параметр рельефа местности
+   * @param mu      - параметр рельефа местности
    * @return Величина затухания
    */
   inline double attentuationPSph(double mu);
 
   /**
    * Функция нахождения параметра клиновидного препятствия
-   * @param H - реальный просвет
-   * @param k - относительная координата
+   * @param H       - реальный просвет
+   * @param k       - относительная координата
    * @return Величина параметра клиновидного препятствия
    */
   inline double nuWedg(double H, double k);
 
   /**
    * Функция нахождения затухания
-   * @param nu - параметр клиновидного препятствия
+   * @param nu      - параметр клиновидного препятствия
    * @return Величина затухания
    */
   inline double attentuationPWedg(double nu);
 
   /**
    * Функция нахождения относительной протяженности вершины препятствия
-   * @param l - реальная протяеженность вершины
-   * @param s - масштаб расстояний
+   * @param l       - действительная протяженность вершины
+   * @param s       - масштаб расстояний
    * @return Величина относительной протяженности вершины препятствия
    */
   inline double t(double l, double s);
@@ -334,40 +338,36 @@ class Closed : public Land::Item {
 
   /**
    * Функция аппроксимации одним эквивалентом
-   * @param v - индексы затеняющих препятствий
+   * @param v       - индексы затеняющих препятствий
    */
   void approx(std::vector<std::pair<int, int>> &v);
 
   /**
    * Функция нахождения прямых, касательных высотному профилю на отрезке [start,
    * end]
-   * @param start - индекс начальной точки
-   * @param end - индекс конечной точки
+   * @param start   - индекс начальной точки
+   * @param end     - индекс конечной точки
    */
   void reliefTangentStraightLines(int start, int end);
 
   /**
-   * Функция ...
-   * @param p -
-   * @param start
-   * @param end
-   * @param type
+   * Функция построения уравнений прямых и проверки касательности их к высотному
+   * профилю
+   * @param p       - кортеж, в который будут передаваться данные
+   * @param start   - начальный индекс вхождения ЛПВ в препятствие
+   * @param end     - конечный индекс вхождения ЛПВ в препятствие
+   * @param type    - передатчик/приемник
    */
   void checkTangent(std::tuple<int, std::pair<int, double>> *p, int start,
                     int end, std::string type);
 
   /**
    * Функция нахождения координат точки пересечения прямой, касательной к
-   * высотному профилю и выходящей из передатчика/приемника
+   * высотному профилю и выходящей из передатчика/приемника, и
    * @return Координаты точки пересечения
    */
-  std::pair<int, double> findMinHeight(double, double, int, int);
-
-  /**
-   * @brief findLongestInterval
-   * @return
-   */
-  int findLongestInterval(void) const;
+  std::pair<int, double> findMinHeight(double a, double b, int start, int end,
+                                       std::string type);
 
   /**
    * @brief findlNull
@@ -999,25 +999,9 @@ void Atten::Land::Closed::checkTangent(
     else
       return;
     if (isTangent(pa.first, pa.second, start, end)) {
-      if (type == "sender") {
-        QCPItemLine *line = new QCPItemLine(_cp);
-        line->start->setCoords(data->tower.sender.first,
-                               data->tower.sender.second);
-        line->end->setCoords(i * data->param.diff,
-                             pa.first * i * data->param.diff + pa.second);
-      } else {
-        QCPItemLine *line = new QCPItemLine(_cp);
-        line->start->setCoords(data->tower.reciever.first,
-                               data->tower.reciever.second);
-        line->end->setCoords(i * data->param.diff,
-                             pa.first * i * data->param.diff + pa.second);
-      }
-      //   Если прямая является касаетельной к высотному профилю на [start, end]
-      //      ostream << findMinHeight(pa.first, pa.second, start, end).first <<
-      //      " "
-      //              << findMinHeight(pa.first, pa.second, start, end).second
-      //              << '\n';
-      *p = std::make_tuple(i, findMinHeight(pa.first, pa.second, start, end));
+      // Если прямая является касательной к высотному профилю на [start, end]
+      *p = std::make_tuple(
+          i, findMinHeight(pa.first, pa.second, start, end, type));
       return;
     }
   }
@@ -1026,19 +1010,14 @@ void Atten::Land::Closed::checkTangent(
 void Atten::Land::Closed::reliefTangentStraightLines(int start, int end) {
   std::tuple<int, std::pair<int, double>> sender = {}, reciever = {};
   checkTangent(&sender, start, end, "sender");
-  //  ostream << std::get<1>(sender).first << " ";
   checkTangent(&reciever, start, end, "reciever");
-  /*auto [x, p] =
+  auto [x, p] =
       (std::get<1>(sender).second < std::get<1>(reciever).second)
           ? std::make_pair(std::get<0>(sender), std::get<1>(sender))
           : std::make_pair(std::get<0>(reciever), std::get<1>(reciever));
   double delta_y = qAbs(data->param.heights.at(x) - p.second);
   double a = obstacleSphereRadius(findlNull(p) * data->param.diff, delta_y);
-  double s = distanceSquare(a);*/
-  //  ostream << s;
-  //  ostream << relativeDistances(s, min_height_send.first *
-  //  data->param.diff); ostream << relativeDistances(
-  //      s, qAbs(data->param.heights.size() - min_height_rec.first - 1));
+  double s = distanceSquare(a);
 }
 
 bool Atten::Land::Closed::isTangent(double a, double b, int int_start,
@@ -1050,26 +1029,26 @@ bool Atten::Land::Closed::isTangent(double a, double b, int int_start,
 }
 
 std::pair<int, double> Atten::Land::Closed::findMinHeight(double a, double b,
-                                                          int start, int end) {
+                                                          int start, int end,
+                                                          std::string type) {
   auto min_height =
       *std::max_element(data->param.heights.begin(), data->param.heights.end());
-  int height_index = 0;
-  QVector<double> x, y;
-  for (int i = start, k = 0; i <= end; ++i, ++k) {
-    x.push_back(i * data->param.diff);
-    y.push_back(a * i * data->param.diff + b - qAbs(data->param.H_null.at(i)));
-
-    ostream << data->param.heights.at(i) << " ";
-//    ostream << y.at(k) << " " << data->param.heights.at(i) << '\n';
-    //  y.at(k) == data->param.heights.at(i)
-    if (qAbs(y.at(k) - data->param.heights.at(i)) < 0.5) {
-      min_height = std::min(min_height, data->param.heights.at(i));
-      height_index = i;
+  int lim, height_index = 0;
+  if (type == "sender")
+    lim = -int_start;
+  else
+    lim = int_end;
+  for (int i = (type == "sender") ? -start : end, k = 0; i <= lim; ++k, ++i) {
+    int it = qAbs(i);
+    if (a * it * data->param.diff + b - qAbs(data->param.H_null.at(it)) >=
+        data->param.heights.at(it)) {
+      min_height = std::min(min_height, data->param.heights.at(it));
+      height_index = it;
+      break;
     }
   }
-  ostream << '\n';
   return {height_index, min_height};
-}
+}  // namespace Calc
 
 double Atten::Land::Closed::findlNull(std::pair<int, double> p) {
   auto it = std::find_if(data->param.heights.begin() + int_start,
