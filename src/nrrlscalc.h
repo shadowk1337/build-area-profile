@@ -25,11 +25,8 @@ struct Data {
   double radius = 6.37e+06;  ///< Действительный радиус Земли (в метрах)
   double g_standard = -8e-08;  ///< Вертикальный градиент индекса преломления в
                                ///< Приземной части тропосферы
-  double r_evaluated =
-      16.9e+03;  ///< Предельное удаление края дуги от центра (в метрах)
-  double area_length =
-      2 * r_evaluated;  ///< Длина рассматриваемого участка (в метрах)
   double lambda = 0.2;  ///< Длина волны
+  double area_length;  ///< Длина рассматриваемого участка (в метрах)
 };
 
 }  // namespace Const
@@ -64,15 +61,15 @@ namespace Profile {
  * Параметры высотного профиля
  */
 struct Data {
-  QVector<double> heights;  ///< Высоты
+  typedef std::pair<double, double> Coords;
+  QVector<Coords> coords;  ///< Координаты
   QVector<double> los_heights;  ///< Линия Прямой Видимости (ЛПВ)
   QVector<double>
       HNull_hNull_div;  ///< Отношения критических и относительных просветов
   QVector<double> h_null;  ///< Относительные просветы
   QVector<double> H_null;  ///< Критические просветы
   QVector<double> H;  ///< Расстояние между ЛПВ и линией профиля местности
-  int diff;  ///< Расстояние между соседними индексами
-  size_t count;  ///< Количество точек разбиения
+  size_t count;       ///< Количество точек разбиения
 };
 
 }  // namespace Profile
