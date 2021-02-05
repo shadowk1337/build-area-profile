@@ -63,12 +63,12 @@ namespace Profile {
 struct Data {
   typedef std::pair<double, double> Coords;
   QVector<Coords> coords;  ///< Координаты
-  QVector<double> los_heights;  ///< Линия Прямой Видимости (ЛПВ)
-  QVector<double>
+  QPair<double, double> los;  ///< Уравнение линии прямой видимости (ЛПВ)
+  QMap<double, double>
       HNull_hNull_div;  ///< Отношения критических и относительных просветов
-  QVector<double> h_null;  ///< Относительные просветы
-  QVector<double> H_null;  ///< Критические просветы
-  QVector<double> H;  ///< Расстояние между ЛПВ и линией профиля местности
+  QMap<double, double> h_null;  ///< Относительные просветы
+  QMap<double, double> H_null;  ///< Критические просветы
+  QMap<double, double> H;  ///< Расстояние между ЛПВ и линией профиля местности
   size_t count;       ///< Количество точек разбиения
 };
 
@@ -144,6 +144,17 @@ class Item {
    */
   double obstacleSphereRadius(double l0, double delta_y);
 
+  /**
+   * Функция построения уравнения прямой y = $a * x + $b
+   * @param x       - абсцисса первой точки
+   * @param y       - ордината первой точки
+   * @param xx      - абсцисса второй точки
+   * @param yy      - ордината второй точки
+   * @return Пара{$a, $b}
+   */
+  QPair<double, double> strLineEquation(double x, double y, double xx,
+                                            double yy) const;
+
  protected:
   Data::WeakPtr _data;
   QCustomPlot *_cp;
@@ -160,7 +171,7 @@ class Item : public Calc::Item {
   Item(const Data::WeakPtr &data, QCustomPlot *cp) : Calc::Item(data, cp) {}
 
  protected:
-  QList<Calc::Item::Ptr> _items;
+  QList<QPair<Calc::Item::Ptr, QString>> _items;
 };
 
 }  // namespace Master

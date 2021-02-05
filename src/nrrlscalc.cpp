@@ -19,6 +19,7 @@ class Item : public Calc::Item {
 
  public:
   bool exec() override;
+  void paramFill(void);
 
  private:
   QSharedPointer<NRrls::Calc::Data> data = _data.toStrongRef();
@@ -147,17 +148,6 @@ class Item : public Calc::Item {
 
  protected:
   QSharedPointer<NRrls::Calc::Data> data = _data.toStrongRef();
-
-  /**
-   * Функция построения уравнения прямой y = $a * x + $b
-   * @param x       - абсцисса первой точки
-   * @param y       - ордината первой точки
-   * @param xx      - абсцисса второй точки
-   * @param yy      - ордината второй точки
-   * @return Пара{$a, $b}
-   */
-  std::pair<double, double> strLineEquation(double x, double y, double xx,
-                                            double yy) const;
   QVector<NRrls::Calc::Profile::Data::Coords> coords = data->param.coords;
   NRrls::Calc::Profile::Data::Coords
       calc_start =  ///< Координата начальной точки интервала
@@ -444,8 +434,8 @@ namespace Main {
 Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
     : Master::Item(data, cp) {
   _items = {
-      Fill::Item::Ptr::create(_data, _cp),
-      Profile::Item::Ptr::create(_data, _cp),
+      qMakePair(Fill::Item::Ptr::create(_data, _cp), QString("Fill")),
+      qMakePair(Profile::Item::Ptr::create(_data, _cp), QString("Profile")),
       //      Interval::Item::Ptr::create(_data),
       //      Atten::Land::Item::Ptr::create(_data),
       /*Atten::Free::Item::Ptr::create(_data),
@@ -455,8 +445,10 @@ Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
 }
 
 bool Item::exec() {
-  for (Calc::Item::Ptr item : _items) {
-    if (!item->exec()) {
+  for (auto item : _items) {
+    if (!item.first->exec()) {
+      ostream << "Error in " << QString("%1 %2").arg(__FILE__).arg(item.second)
+              << " function\n";
       return false;
     }
   }
@@ -468,9 +460,9 @@ bool Item::exec() {
 bool Profile::Item::exec() {
   return (Axes::Ptr::create(_data, _cp)->exec() &&
           Earth::Ptr::create(_data, _cp)->exec() &&
-          Curve::Ptr::create(_data, _cp)->exec());
-//          Fresnel::Ptr::create(_data, _cp)->exec() &&
-//          Los::Ptr::create(_data, _cp)->exec());
+          Curve::Ptr::create(_data, _cp)->exec() &&
+          Fresnel::Ptr::create(_data, _cp)->exec() &&
+          Los::Ptr::create(_data, _cp)->exec());
 }
 /*
 bool Atten::Land::Item::exec() {
@@ -490,6 +482,8 @@ bool Atten::Land::Item::exec() {
   return true;
 }*/
 
+namespace Etc {
+
 void setGraph(QCustomPlot *cp, const QVector<double> &x,
               const QVector<double> &y, QPen pen = QPen{}) {
   static int it = 0;
@@ -498,27 +492,39 @@ void setGraph(QCustomPlot *cp, const QVector<double> &x,
   cp->graph(it++)->setPen(pen);
 }
 
-double Calc::Item::k(double R) {
+}  // namespace Etc
+
+double Item::k(double R) {
   return R / (_data.toStrongRef()->constant.area_length);
 }
 
-double Calc::Item::lNull(double h0, double k) {
+double Item::lNull(double h0, double k) {
   return ((_data.toStrongRef()->constant.area_length) * qSqrt(1 + h0 * h0)) /
          (1 + (h0 * h0) / (4 * k * (1 - k)));
 }
 
-double Calc::Item::HNull(int i) {
+double Item::HNull(int i) {
   auto data = _data.toStrongRef();
   return sqrt(data->constant.area_length * data->constant.lambda * k(i) *
               ((1 - k(i)) / 3));
 }
 
-double Calc::Item::obstacleSphereRadius(double l0, double delta_y) {
+double Item::obstacleSphereRadius(double l0, double delta_y) {
   return ((l0 * l0) / (8 * delta_y)) * 0.001;
 }
 
-bool Fill::Item::exec() {
-  QFile file("heights2.csv");
+QPair<double, double> Calc::Item::strLineEquation(double x, double y, double xx,
+                                                  double yy) const {
+  double a = (yy - y);
+  double b = (xx - x);
+  return {a / b, y - (x * a / b)};
+}
+
+namespace Fill {
+
+bool Item::exec() {
+  QString filename = "heights2.csv";
+  QFile file(filename);
   QTextStream in(&file);
   QRegExp rx("[ ;]");
   bool first = true;
@@ -528,51 +534,74 @@ bool Fill::Item::exec() {
 
   system("sed -i '/^\s*$/d' heights2.csv");
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    estream << "Couldn't open heights file\n";
+    estream << QString("Couldn't open file %1\n").arg(filename);
     return false;
   }
+  int l = -1, h = -1;
   while (!in.atEnd()) {
     QString line = in.readLine();
     if (first) {
       first = false;
+      int i = 0;
+      while (!line.section(";", i, i).isNull()) {
+        if (line.section(";", i, i).contains("Расстояние"))
+          l = i;
+        else if (line.section(";", i, i).contains("Высота"))
+          h = i;
+        i++;
+      }
       continue;
+    }
+    if (l == -1 || h == -1) {
+      estream << QString("File %1 doesn't consist table names\n").arg(filename);
+      return false;
     }
     count++;
     line.replace(",", ".");
-    coords.push_back(std::make_pair(line.section(";", 0, 0).toDouble(),
-                                    line.section(";", 2, 2).toDouble()));
+    coords.push_back(std::make_pair(line.section(";", l, l).toDouble(),
+                                    line.section(";", h, h).toDouble()));
   }
   file.close();
   if (!count) {
-    estream << "File is empty";
+    estream << QString("File %1 is empty\n").arg(filename);
     return false;
   }
-
-  data->tower.sender.first = coords.begin()->first;
-  data->tower.reciever.first = prev(coords.end())->first;
-  data->constant.area_length =
-      prev(coords.begin())->first - coords.begin()->first;
-  auto y1 = data->tower.sender.second = coords.begin()->second + 20;
-  auto y2 = data->tower.reciever.second = prev(coords.end())->second + 20;
-  auto y_diff = (y2 - y1) / count;
-
-  for (size_t i = 0; i + 1 <= count; ++i) {
-    data->param.los_heights.push_back(y1 + i * y_diff);
-    data->param.H.push_back(data->param.los_heights.at(i) -
-                            data->param.coords.at(i).second);
-    data->param.H_null.push_back(HNull(i));
-    data->param.h_null.push_back(data->param.H.at(i) /
-                                 data->param.H_null.at(i));
-    data->param.HNull_hNull_div.push_back(data->param.H_null.at(i) /
-                                          data->param.h_null.at(i));
-  }
-  data->param.H_null[data->param.count - 1] = 0;
+  paramFill();
 
   if (_data.isNull()) return false;
   return true;
 }
 
-bool Profile::Axes::exec() {
+void Item::paramFill(void) {
+  auto &coords = data->param.coords;
+  data->tower.sender.first = coords.begin()->first;
+  data->tower.reciever.first = prev(coords.end())->first;
+  data->constant.area_length =
+      prev(coords.end())->first - coords.begin()->first;
+  auto y1 = data->tower.sender.second = coords.begin()->second + 20;
+  auto y2 = data->tower.reciever.second = prev(coords.end())->second + 20;
+  data->param.los = strLineEquation(data->tower.sender.first, y1,
+                                    data->tower.reciever.first, y2);
+
+  for (QVector<NRrls::Calc::Profile::Data::Coords>::const_iterator it =
+           coords.begin();
+       it != coords.end(); it = next(it)) {
+    auto i = it->first;
+    data->param.H[i] =
+        data->param.los.first * i + data->param.los.second - it->second;
+    data->param.H_null[i] = HNull(i);
+    data->param.h_null[i] = (data->param.H[i] / data->param.H_null[i]);
+    data->param.HNull_hNull_div[i] =
+        (data->param.H_null[i] / data->param.h_null[i]);
+  }
+  data->param.H_null[data->param.count - 1] = 0;
+}
+
+}  // namespace Fill
+
+namespace Profile {
+
+bool Axes::exec() {
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   QString str;
   QFont pfont("Arial", 8);
@@ -605,7 +634,7 @@ bool Profile::Axes::exec() {
   return true;
 }
 
-bool Profile::Earth::exec() {
+bool Earth::exec() {
   auto coords = data->param.coords;
   QVector<double> x, y;
   x.reserve(data->param.count);
@@ -618,7 +647,8 @@ bool Profile::Earth::exec() {
   QPen pen(QColor("#014506"));
   pen.setWidth(2);
 
-  double half = data->constant.area_length / 2;
+  double half =  ///< Половина длины рассматриваемого участка
+      data->constant.area_length / 2;
   QVector<NRrls::Calc::Profile::Data::Coords>::iterator it = coords.begin();
   for (double i = -half; i < half; i += std::next(it)->first) {
     x.push_back(i + half);
@@ -629,7 +659,7 @@ bool Profile::Earth::exec() {
     } else
       y.push_back(-(i * i / (2 * equivalent_radius)) + move_graph_up_value);
   }
-  setGraph(_cp, x, y, pen);
+  Etc::setGraph(_cp, x, y, pen);
   QCPItemTracer *tracer = new QCPItemTracer(_cp);
   tracer->setGraph(_cp->graph(0));
   tracer->updatePosition();
@@ -639,7 +669,7 @@ bool Profile::Earth::exec() {
   return true;
 }
 
-bool Profile::Curve::exec() {
+bool Curve::exec() {
   auto coords = data->param.coords;
   QVector<double> x, y;
   x.reserve(data->param.count);
@@ -652,14 +682,14 @@ bool Profile::Curve::exec() {
   std::transform(
       coords.begin(), coords.end(), std::back_inserter(y),
       [](const NRrls::Calc::Profile::Data::Coords &p) { return p.second; });
-  setGraph(_cp, x, y, pen);
+  Etc::setGraph(_cp, x, y, pen);
   //    lineOfSight(plot);
   //    data->heights = heights;
   if (!_data) return false;
   return true;
 }
 
-bool Profile::Fresnel::exec() {
+bool Fresnel::exec() {
   auto coords = data->param.coords;
   QVector<double> x, y;
   x.reserve(data->param.count);
@@ -667,24 +697,24 @@ bool Profile::Fresnel::exec() {
   QPen pen(Qt::red);
   pen.setWidth(2);
 
-  for (size_t i = 0; i + 1 <= data->param.count; ++i) {
-    x.push_back(coords.at(i).first);
-    y.push_back(-data->param.H_null.at(i) + data->param.los_heights.at(i));
+  QVector<NRrls::Calc::Profile::Data::Coords>::const_iterator it;
+  for (it = coords.begin(); it != coords.end(); it = next(it)) {
+    x.push_back(it->first);
+    y.push_back(-data->param.H_null[it->first] +
+                data->param.los.first * it->first + data->param.los.second);
   }
-  y[data->param.count - 1] = data->tower.reciever.second;
-  setGraph(_cp, x, y, pen);
+  Etc::setGraph(_cp, x, y, pen);
+  it = coords.begin();
   std::for_each(y.begin(), y.end(), [&](double &x) {
-    static int itr = 0;
-    x += 2 * data->param.H_null.at(itr);
-    itr++;
+    x += 2 * data->param.H_null[it->first];
+    it = next(it);
   });
-  y[data->param.count - 1] = data->tower.reciever.second;
-  setGraph(_cp, x, y, pen);
+  Etc::setGraph(_cp, x, y, pen);
   if (!_data) return false;
   return true;
 }
 
-bool Profile::Los::exec() {
+bool Los::exec() {
   QVector<double> y;
   QPen pen(QColor("#d6ba06"));
   pen.setWidth(2);
@@ -695,6 +725,8 @@ bool Profile::Los::exec() {
   if (!_data) return false;
   return true;
 }
+
+}  // namespace Profile
 
 bool Interval::Item::exec() {
   for (size_t i = 0; i + 1 <= data->param.count; ++i) {
@@ -711,14 +743,6 @@ bool Interval::Item::exec() {
   }
   if (!_data) return false;
   return true;
-}
-/*
-std::pair<double, double> Atten::Land::Item::strLineEquation(double x, double y,
-                                                             double xx,
-                                                             double yy) const {
-  double a = (yy - y);
-  double b = (xx - x);
-  return {a / b, y - (x * a / b)};
 }
 
 // Составляющая расчета. Реализация расчета затухания на открытом интервале
