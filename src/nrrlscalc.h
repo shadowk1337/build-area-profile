@@ -1,6 +1,7 @@
 #ifndef NRRLSCALC_H
 #define NRRLSCALC_H
 
+#include <stdio.h>
 #include <QDebug>
 #include <QFile>
 #include <QIODevice>
@@ -11,6 +12,19 @@
 #include "qcustomplot.h"
 
 #define QSHDEF(x) typedef QSharedPointer<x> Ptr
+
+//#define GET_NEW_VAR_NAME(var1, var2) (int)var1##var2
+
+#define LOOP_START(container)                             \
+  decltype(container)::const_iterator GET_NEW_VAR_NAME(); \
+  for (iter = container.begin(); iter != container.end(); iter = next(iter)) {
+#define LOOP_END \
+  ;              \
+  }
+
+#define RESERVE(x, y, size) \
+  x.reserve(size);          \
+  y.reserve(size);
 
 namespace NRrls {
 
@@ -69,7 +83,7 @@ struct Data {
   QMap<double, double> h_null;  ///< Относительные просветы
   QMap<double, double> H_null;  ///< Критические просветы
   QMap<double, double> H;  ///< Расстояние между ЛПВ и линией профиля местности
-  size_t count;       ///< Количество точек разбиения
+  size_t count;  ///< Количество точек разбиения
 };
 
 }  // namespace Profile
@@ -153,7 +167,7 @@ class Item {
    * @return Пара{$a, $b}
    */
   QPair<double, double> strLineEquation(double x, double y, double xx,
-                                            double yy) const;
+                                        double yy) const;
 
  protected:
   Data::WeakPtr _data;
