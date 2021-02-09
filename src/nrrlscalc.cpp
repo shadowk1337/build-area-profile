@@ -1,5 +1,4 @@
 #include "nrrlscalc.h"
-#include <typeinfo>
 
 QTextStream ostream(stdout);
 QTextStream estream(stderr);
@@ -150,11 +149,9 @@ class Item : public Calc::Item {
  protected:
   QSharedPointer<NRrls::Calc::Data> data = _data.toStrongRef();
   QVector<NRrls::Calc::Profile::Data::Coords> coords = data->param.coords;
-  NRrls::Calc::Profile::Data::Coords
-      calc_start =  ///< Координата начальной точки интервала
+  Profile::Data::Coords calc_start =  ///< Координата начальной точки интервала
       *coords.begin();
-  NRrls::Calc::Profile::Data::Coords
-      calc_end =  ///< Координата конечной точки интервала
+  Profile::Data::Coords calc_end =  ///< Координата конечной точки интервала
       *prev(coords.end());
 };
 
@@ -176,31 +173,31 @@ class Opened : public Land::Item {
    * высотного профиля
    * @return Координаты наивысшей точки пересечения
    */
-  std::pair<double, double> _findPointOfIntersection(void);
+  std::pair<double, double> findPointOfIntersection(void);
 
   /**
    * Функция аппроксимации плоскостью
    * @param start   - Индекс начальной точки участка отражения
    * @param end     - Индекс конечной точки участка отражения
    */
-  void _planeApproximation(int start, int end);
+  void planeApproximation(int start, int end);
 
   /**
    * Функция аппроксимации сферой
    * @param start   - Индекс начальной точки участка отражения
    * @param end     - Индекс конечной точки участка отражения
    */
-  void _sphereApproximation(int start, int end);
+  void sphereApproximation(int start, int end);
 
   /**
    * Функция сравнения с критерием Рэлея
    * @param start   - Индекс начальной точки участка отражения
    * @param end     - Индекс конечной точки участка отражения
    */
-  void _rayleighAndGroundCriteria(int mid, double length);
+  void rayleighAndGroundCriteria(int mid, double length);
 
  private:
-  double _attentuationPlane(double);
+  double attentuationPlane(double);
 };
 
 /**
@@ -222,14 +219,14 @@ class SemiOpened : public Land::Item {
    *                - радиус препятствия
    * @return Затухание на интервале
    */
-  double _sphereApproximation(int idx, double obst_sph_radius);
+  double sphereApproximation(int idx, double obst_sph_radius);
 
   /**
    * Функция аппроксимации клином
    * @param idx     - индекс рассматриваемой точки
    * @return Затухание на интервале
    */
-  double _wedgeApproximation(int idx);
+  double wedgeApproximation(int idx);
 
   /**
    * Функция нахождения высоты хорды
@@ -237,7 +234,7 @@ class SemiOpened : public Land::Item {
    *                - высота затеняющего препятствия
    * @return Величина высоты хорды
    */
-  double _deltaY(int sh_ind);
+  double deltaY(int sh_ind);
 
   /**
    * Функция нахождения затеняющего препятствия
@@ -245,7 +242,7 @@ class SemiOpened : public Land::Item {
    *                - индекс препятствия .second - величина минимального
    * просвета
    */
-  std::pair<int, double> _shadingObstacle(void) const;
+  std::pair<int, double> shadingObstacle(void) const;
 
  private:
   /**
@@ -256,22 +253,22 @@ class SemiOpened : public Land::Item {
    *                - радиус сферы препятствия
    * @return Величина параметра рельефа местности
    */
-  inline double _areaReliefParameter(double k, double H0,
-                                     double obstacleShereRadius);
+  inline double areaReliefParameter(double k, double H0,
+                                    double obstacleShereRadius);
 
   /**
    * Функция нахождения функции параметра рельефа
    * @param mu      - параметр рельефа местности
    * @return Величина функции параметра рельефа
    */
-  inline double _reliefParFuncSph(double mu);
+  inline double reliefParFuncSph(double mu);
 
   /**
    * Функция нахождения затухания
    * @param mu      - параметр рельефа местности
    * @return Величина затухания
    */
-  inline double _attentuationPSph(double mu);
+  inline double attentuationPSph(double mu);
 
   /**
    * Функция нахождения параметра клиновидного препятствия
@@ -279,14 +276,14 @@ class SemiOpened : public Land::Item {
    * @param k       - относительная координата
    * @return Величина параметра клиновидного препятствия
    */
-  inline double _nuWedg(double H, double k);
+  inline double nuWedg(double H, double k);
 
   /**
    * Функция нахождения затухания
    * @param nu      - параметр клиновидного препятствия
    * @return Величина затухания
    */
-  inline double _attentuationPWedg(double nu);
+  inline double attentuationPWedg(double nu);
 
   /**
    * Функция нахождения относительной протяженности вершины препятствия
@@ -303,7 +300,7 @@ class SemiOpened : public Land::Item {
 class Closed : public Land::Item {
  public:
   QSHDEF(Closed);
-  typedef QVector<std::pair<int, int>> Coords;
+  typedef QVector<std::pair<int, double>> Coords;
   Closed(const Data::WeakPtr &data) : Land::Item(data) {}
 
  public:
@@ -314,7 +311,7 @@ class Closed : public Land::Item {
    * Функция подсчета препятствий
    * @return Отрезки, содержащие препятствия
    */
-  auto _countPeaks(void) -> Coords;
+  auto countPeaks(void) -> Coords;
 
   /**
    * Функция аппроксимации одним эквивалентом
@@ -328,7 +325,7 @@ class Closed : public Land::Item {
    * @param start   - индекс начальной точки
    * @param end     - индекс конечной точки
    */
-  void _reliefTangentStraightLines(int start, int end);
+  void reliefTangentStraightLines(int start, int end);
 
   /**
    * Функция построения уравнений прямых и проверки касательности их к высотному
@@ -338,15 +335,15 @@ class Closed : public Land::Item {
    * @param end     - индекс выхода ЛПВ из препятствия
    * @param type    - передатчик/приемник
    */
-  void _checkTangent(std::tuple<int, std::pair<int, double>> *p, int start,
-                     int end, std::string type);
+  void checkTangent(std::tuple<int, std::pair<int, double>> *p, int start,
+                    int end, std::string type);
 
   /**
-   * @brief _findlNull
+   * @brief findlNull
    * @param p
    * @return
    */
-  double _findlNull(std::pair<int, double> p);
+  double findlNull(std::pair<int, double> p);
 
  private:
   /**
@@ -357,19 +354,19 @@ class Closed : public Land::Item {
    * @param end     - конечный индекс рассматриваемого интервала
    * @return Будет ли прямая касательной
    */
-  inline bool _isTangent(double a, double b, int int_start, int int_end) const;
+  inline bool isTangent(double a, double b, int int_start, int int_end) const;
 
   /**
-   * @brief _distanceSquare
+   * @brief distanceSquare
    * @return
    */
-  inline double _distanceSquare(double);
+  inline double distanceSquare(double);
 
   /**
-   * @brief _relativeDistances
+   * @brief relativeDistances
    * @return
    */
-  inline double _relativeDistances(double, double);
+  inline double relativeDistances(double, double);
 
   /**
    * @brief relativePoint
@@ -524,7 +521,7 @@ QPair<double, double> Calc::Item::strLineEquation(double x, double y, double xx,
 namespace Fill {
 
 bool Item::exec() {
-  QString filename = "heights2.csv";
+  QString filename = "heights3.csv";
   QFile file(filename);
   QTextStream in(&file);
   QRegExp rx("[ ;]");
@@ -533,7 +530,7 @@ bool Item::exec() {
   size_t &count = data->param.count;
   count = 0;
 
-  system("sed -i '/^\s*$/d' heights2.csv");
+  system("sed -i '/^\s*$/d' heights3.csv");
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     estream << QString("Couldn't open file %1\n").arg(filename);
     return false;
@@ -604,13 +601,14 @@ namespace Profile {
 
 bool Axes::exec() {
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-  QFont xfont("Arial", 8);
+  QString str;
+  QFont pfont("Arial", 8);
   _cp->rescaleAxes();
   _cp->yAxis->scaleRange(2);
   _cp->setInteractions(QCP::iSelectPlottables);
 
   for (double i = 0; i < data->constant.area_length + 500; i += 500) {
-    QString str = QString::number(static_cast<int>(i) / 1000);
+    str = QString::number(static_cast<int>(i) / 1000);
     textTicker->addTick(i, str);
   }
 
@@ -623,11 +621,12 @@ bool Axes::exec() {
           ->second +
       35;
   _cp->yAxis->setRange(0, h_max, Qt::AlignLeft);
-  _cp->xAxis->setRange(0, data->constant.area_length);
   _cp->xAxis->setTicker(textTicker);
-  _cp->xAxis->setTickLabelFont(xfont);
+  _cp->xAxis->setTickLabelFont(pfont);
   _cp->xAxis->setTickLabelRotation(-45);
   _cp->xAxis->setTickLength(0);
+  _cp->yAxis->setSubTickLength(0);
+  _cp->xAxis->setRange(0, data->constant.area_length);
 
   if (_data.isNull()) return false;
   return true;
@@ -636,29 +635,31 @@ bool Axes::exec() {
 bool Earth::exec() {
   auto coords = data->param.coords;
   QVector<double> x, y;
-  RESERVE(x, y, data->param.count);
+  x.reserve(data->param.count);
+  y.reserve(data->param.count);
+  bool first = true;
+  double move_graph_up_value;
   double equivalent_radius =
       data->constant.radius /
       (1 + data->constant.g_standard * data->constant.radius / 2);
-  QPen pen(QColor("#014506"), 2);
+  QPen pen(QColor("#014506"));
+  pen.setWidth(2);
+
   double half =  ///< Половина длины рассматриваемого участка
       data->constant.area_length / 2;
-  QVector<NRrls::Calc::Profile::Data::Coords>::iterator it = coords.begin();
-  double move_graph_up_value = qAbs(half * half / (2 * equivalent_radius));
-  bool first = true;
-
-  for (double i = -half; i < half; i += std::next(it)->first) {
-    x.push_back(i + half);
+  QVector<Profile::Data::Coords>::iterator it = coords.begin();
+  for (double i = -half; it != coords.end();
+       it = std::next(it), i = -half + it->first) {
+    x.push_back(it->first);
     if (first) {
+      move_graph_up_value = i * i / (2 * equivalent_radius);
       y.push_back(0);
       first = false;
-    } else
+    } else {
       y.push_back(-(i * i / (2 * equivalent_radius)) + move_graph_up_value);
+    }
   }
   Etc::setGraph(_cp, x, y, pen);
-  QCPItemTracer *tracer = new QCPItemTracer(_cp);
-  tracer->setGraph(_cp->graph(0));
-  tracer->updatePosition();
   assert(x.size() == y.size());
 
   if (!_data) return false;
@@ -668,8 +669,10 @@ bool Earth::exec() {
 bool Curve::exec() {
   auto coords = data->param.coords;
   QVector<double> x, y;
-  RESERVE(x, y, data->param.count);
-  QPen pen(QColor("#137ea8"), 2);
+  x.reserve(data->param.count);
+  y.reserve(data->param.count);
+  QPen pen(QColor("#137ea8"));
+  pen.setWidth(2);
   std::transform(
       coords.begin(), coords.end(), std::back_inserter(x),
       [](const NRrls::Calc::Profile::Data::Coords &p) { return p.first; });
@@ -677,6 +680,8 @@ bool Curve::exec() {
       coords.begin(), coords.end(), std::back_inserter(y),
       [](const NRrls::Calc::Profile::Data::Coords &p) { return p.second; });
   Etc::setGraph(_cp, x, y, pen);
+  //    lineOfSight(plot);
+  //    data->heights = heights;
   if (!_data) return false;
   return true;
 }
@@ -684,31 +689,32 @@ bool Curve::exec() {
 bool Fresnel::exec() {
   auto coords = data->param.coords;
   QVector<double> x, y;
-  QPen pen(Qt::red, 2);
-  RESERVE(x, y, data->param.count);
+  x.reserve(data->param.count);
+  y.reserve(data->param.count);
+  QPen pen(Qt::red);
+  pen.setWidth(2);
 
-  //  std::cout << GET_NEW_VAR_NAME(__LINE__, 1);
-  //  LOOP_START(coords);
-  /*x.push_back(iter->first);
-  y.push_back(-data->param.H_null[iter->first] +
-              data->param.los.first * iter->first + data->param.los.second);
-  LOOP_END;
+  QVector<NRrls::Calc::Profile::Data::Coords>::const_iterator it;
+  for (it = coords.begin(); it != coords.end(); it = next(it)) {
+    x.push_back(it->first);
+    y.push_back(-data->param.H_null[it->first] +
+                data->param.los.first * it->first + data->param.los.second);
+  }
   Etc::setGraph(_cp, x, y, pen);
-//  it = coords.begin();
+  it = coords.begin();
   std::for_each(y.begin(), y.end(), [&](double &x) {
     x += 2 * data->param.H_null[it->first];
     it = next(it);
   });
-  LOOP_START(y);
-
-  Etc::setGraph(_cp, x, y, pen);*/
+  Etc::setGraph(_cp, x, y, pen);
   if (!_data) return false;
   return true;
 }
 
 bool Los::exec() {
   QVector<double> y;
-  QPen pen(QColor("#d6ba06"), 2);
+  QPen pen(QColor("#d6ba06"));
+  pen.setWidth(2);
   QCPItemLine *line = new QCPItemLine(_cp);
   line->setPen(pen);
   line->start->setCoords(data->tower.sender.first, data->tower.sender.second);
@@ -720,29 +726,30 @@ bool Los::exec() {
 }  // namespace Profile
 
 bool Interval::Item::exec() {
-  LOOP_START {
-    i = iter->first;
-    if (data->param.H.at(i) >= data->param.H_null.at(i) &&
-        data->param.h_null.at(i) >= 0)
+  for (size_t i = 0; i + 1 <= data->param.count; ++i) {
+    if (data->param.H[i] >= data->param.H_null[i] && data->param.h_null[i] >= 0)
       data->interval_type = std::max(data->interval_type, 1);
-    else if (data->param.H_null.at(i) > data->param.H.at(i) &&
-             data->param.H.at(i) > 0.1 && data->param.h_null.at(i) < 0.1 &&
-             data->param.h_null.at(i) > 0)
+    else if (data->param.H_null[i] > data->param.H[i] &&
+             data->param.H[i] > 0.1 && data->param.h_null[i] < 0.1 &&
+             data->param.h_null[i] > 0)
       data->interval_type = std::max(data->interval_type, 2);
-    else if (data->param.H_null.at(i) > data->param.H.at(i) &&
-             data->param.h_null.at(i) < 0)
+    else if (data->param.H_null[i] > data->param.H[i] &&
+             data->param.h_null[i] < 0)
       data->interval_type = 3;
-  LOOP_END;
+  }
+  if (!data->interval_type) {
+  }
+  // Сферический интервал
   if (!_data) return false;
   return true;
 }
 
 // Составляющая расчета. Реализация расчета затухания на открытом интервале
+/*
 bool Atten::Land::Opened::exec() {
-  const auto coords = _findPointOfIntersection();
+  const auto coords = findPointOfIntersection();
   double l_null_length =  ///< Длина участка отражения
-      lNull(data->param.h_null.at(coords.first),
-            k(coords.first * data->param.diff));
+      lNull(data->param.h_null[coords.first], k(coords.first));
   int start =  ///< Индекс начальной точки участка отражения
       std::max(int_start, static_cast<int>(coords.first -
                                            l_null_length / data->param.diff));
@@ -751,29 +758,28 @@ bool Atten::Land::Opened::exec() {
                                          l_null_length / data->param.diff));
   // Если длина участка отражения меньше 1/4 длины всего интервала
   if (l_null_length <= 0.25 * data->constant.area_length)
-    _planeApproximation(start, end);
+    planeApproximation(start, end);
   else
-    _sphereApproximation(start, end);
+    sphereApproximation(start, end);
   if (!_data) return false;
   return true;
 }
 
-std::pair<double, double> Atten::Land::Opened::_findPointOfIntersection(void) {
+std::pair<double, double> Atten::Land::Opened::findPointOfIntersection(void) {
   double opposite_y_coord =  ///< Ордината точки, зеркальной к передатчику
                              ///< относительно высотного профиля
-      2 * h.at(int_start) - data->tower.sender.second;
-  auto [a, b] =
-      strLineEquation(int_start, opposite_y_coord, int_end * data->param.diff,
-                      data->tower.reciever.second);
+      2 * data->param.coords.begin()->first - data->tower.sender.second;
+  auto [a, b] = strLineEquation(calc_start.second, opposite_y_coord,
+                                calc_end.first, data->tower.reciever.second);
   double intersection_index =
       -1;  ///< Индекс наивысшей точки пересечения высотного профиля и прямой,
            ///< проведенной из точки приемника к точке, зеркальной передатчику
   double height = 0;  ///< Ордината наивысшей точки пересечения
   // Поиск точки пересечения, если их несколько, то берется
   // наивысшая точка
-  for (auto it = int_start + 1; it < int_end; ++it) {
-    auto y_coord = a * it * data->param.diff + b;
-    if ((y_coord >= h.at(it - 1) && y_coord <= h.at(it + 1)) ||
+  for (auto it = calc_start.first + 1; it < calc_end.first; ++it) {
+    auto y_coord = a * it + b;
+    if ((y_coord >= h[it - 1] && y_coord <= h[it + 1] ||
         (y_coord <= h.at(it - 1) && y_coord >= h.at(it + 1))) {
       if (y_coord > height) {
         height = y_coord;
@@ -789,11 +795,11 @@ std::pair<double, double> Atten::Land::Opened::_findPointOfIntersection(void) {
   return {intersection_index, height};
 }
 
-void Atten::Land::Opened::_planeApproximation(int start, int end) {
-  //  _rayleighAndGroundCriteria(start, end);
+void Atten::Land::Opened::planeApproximation(int start, int end) {
+  //  rayleighAndGroundCriteria(start, end);
 }
 
-void Atten::Land::Opened::_sphereApproximation(int start, int end) {
+void Atten::Land::Opened::sphereApproximation(int start, int end) {
   auto min_height =  ///< Значение минимальной высоты на интервале
       *std::min_element(h.begin() + start, h.begin() + end);
   auto max_height =  ///< Значение максимальной высоты на интервале
@@ -805,7 +811,7 @@ void Atten::Land::Opened::_sphereApproximation(int start, int end) {
   //      (int_end - int_start) * data->intervals_difference, delta_y);
 }
 
-void Atten::Land::Opened::_rayleighAndGroundCriteria(int mid, double length) {
+void Atten::Land::Opened::rayleighAndGroundCriteria(int mid, double length) {
   int start;  ///< Начальный индекс интервала отражения
   int end;  ///< Конечный индекс интервала отражения
   double start_height  ///< Высота рельефа в начальной точке интервала отражения
@@ -827,50 +833,50 @@ void Atten::Land::Opened::_rayleighAndGroundCriteria(int mid, double length) {
   //        ostream << delta_h << 0.75 * max_H0_h0;
   //    if (delta_h < 0.75 * max_H0_h0) {
   //      ostream << i << ": Гладкая";
-  //      ostream << _attentuationPlane(delta_h);
+  //      ostream << attentuationPlane(delta_h);
   //    } else
   //      ostream << '-';
 }  // namespace Calc
 
-double Atten::Land::Opened::_attentuationPlane(double delta_h) {
+double Atten::Land::Opened::attentuationPlane(double delta_h) {
   return -10 * log10(2 - 2 * qCos(M_PI / 3 * delta_h * delta_h));
 }  // Конец реализации расчета затухания на открытом интервале
 
 // Составляющая расчета. Реализация расчета затухания на полуоткрытом интервале
 
 bool Atten::Land::SemiOpened::exec() {
-  auto shad = _shadingObstacle();  ///< Координаты затеняющего препятствия
+  auto shad = shadingObstacle();  ///< Координаты затеняющего препятствия
   double l_null_length =  ///< Длина участка отражения
       lNull(data->param.h_null.at(shad.first),
             k(shad.first * data->param.diff));
-  double a = obstacleSphereRadius(l_null_length, _deltaY(shad.first));
+  double a = obstacleSphereRadius(l_null_length, deltaY(shad.first));
   int_end = a;
   if (a >= qSqrt(data->constant.area_length * data->constant.lambda * 0.5 *
                  (0.5 / 3))) {
-    _sphereApproximation(shad.first, a);
+    sphereApproximation(shad.first, a);
   } else {
-    _wedgeApproximation(shad.first);
+    wedgeApproximation(shad.first);
   }
   if (!_data) return false;
   return true;
 }
 
-double Atten::Land::SemiOpened::_sphereApproximation(int idx,
+double Atten::Land::SemiOpened::sphereApproximation(int idx,
                                                     double obst_sph_radius) {
   double kk = k(idx * data->param.diff);  ///< Относительная координата точки
   double mu =  ///< Параметр рельефа местности
-      _areaReliefParameter(kk, data->param.H_null.at(idx), obst_sph_radius);
-  return _attentuationPSph(mu);
+      areaReliefParameter(kk, data->param.H_null.at(idx), obst_sph_radius);
+  return attentuationPSph(mu);
 }
 
-double Atten::Land::SemiOpened::_wedgeApproximation(int idx) {
+double Atten::Land::SemiOpened::wedgeApproximation(int idx) {
   double kk = k(idx * data->param.diff);  ///< Относительная координата точки
   double nu =  ///<  Параметр клиновидного препятствия
-      _nuWedg(data->param.H.at(idx), kk);
-  return _attentuationPWedg(nu);
+      nuWedg(data->param.H.at(idx), kk);
+  return attentuationPWedg(nu);
 }
 
-double Atten::Land::SemiOpened::_deltaY(int sh_ind) {
+double Atten::Land::SemiOpened::deltaY(int sh_ind) {
   QVector<int>
       intersect;  ///< Индексы точек пересчения высотного профиля и зоны Френеля
   for (size_t ind = 0; ind + 1 <= data->param.count; ++ind) {
@@ -897,20 +903,20 @@ double Atten::Land::SemiOpened::_deltaY(int sh_ind) {
   return abs(h.at(sh_ind) - c * sh_ind * data->param.diff - d);
 }
 
-std::pair<int, double> Atten::Land::SemiOpened::_shadingObstacle(void) const {
+std::pair<int, double> Atten::Land::SemiOpened::shadingObstacle(void) const {
   auto it = std::min_element(data->param.H.begin(), data->param.H.end());
   double dist = std::distance(data->param.H.begin(), it);
   return {dist, *it};
 }
 
-double Atten::Land::SemiOpened::_areaReliefParameter(
+double Atten::Land::SemiOpened::areaReliefParameter(
     double k, double H0, double obstacleShereRadius) {
   return pow(qPow(data->constant.area_length, 2) * k * k * ((1 - k) * (1 - k)) /
                  (obstacleShereRadius * H0),
              1.0 / 3);
 }
 
-double Atten::Land::SemiOpened::_reliefParFuncSph(double mu) {
+double Atten::Land::SemiOpened::reliefParFuncSph(double mu) {
   return 4 + 10 / (mu - 0.1);
 }
 
@@ -918,12 +924,12 @@ double Atten::Land::SemiOpened::attentuationPSph(double mu) {
   return 6 + 16.4 / (mu * (1 + 0.8 * mu));
 }
 
-double Atten::Land::SemiOpened::_nuWedg(double H, double k) {
+double Atten::Land::SemiOpened::nuWedg(double H, double k) {
   return -H * qSqrt(2 / (data->constant.lambda * data->constant.r_evaluated *
                          2 * k * (1 - k)));
 }
 
-double Atten::Land::SemiOpened::_attentuationPWedg(double nu) {
+double Atten::Land::SemiOpened::attentuationPWedg(double nu) {
   return 6.9 + 20 * log10(qSqrt(pow(nu - 0.1, 2) + 1) + nu - 0.1);
 }
 
@@ -934,13 +940,13 @@ double Atten::Land::SemiOpened::t(double l, double s) {
 // Составляющая расчета. Реализация расчета затухания на закрытом интервале
 
 bool Atten::Land::Closed::exec() {
-  Coords v = _countPeaks();
-  for (auto it : v) _reliefTangentStraightLines(it.first, it.second);
+  Coords v = countPeaks();
+  for (auto it : v) reliefTangentStraightLines(it.first, it.second);
   if (!_data) return false;
   return true;
 }
 
-auto Atten::Land::Closed::_countPeaks(void) -> Coords {
+auto Atten::Land::Closed::countPeaks(void) -> Coords {
   Coords v;
   int p;
   int i = 0;
@@ -977,13 +983,13 @@ void Atten::Land::Closed::approx(Coords &v) {
   }
 }
 
-void Atten::Land::Closed::_reliefTangentStraightLines(int start, int end) {
+void Atten::Land::Closed::reliefTangentStraightLines(int start, int end) {
   std::tuple<int, std::pair<int, double>> sender = {}, reciever = {};
-  _checkTangent(&sender, start, end, "sender");
-  _checkTangent(&reciever, start, end, "reciever");
+  checkTangent(&sender, start, end, "sender");
+  checkTangent(&reciever, start, end, "reciever");
 }
 
-void Atten::Land::Closed::_checkTangent(
+void Atten::Land::Closed::checkTangent(
     std::tuple<int, std::pair<int, double>> *p, int start, int end,
     std::string type) {
   std::pair<double, double> pa;
@@ -1001,7 +1007,7 @@ void Atten::Land::Closed::_checkTangent(
                           h.at(i));
     else
       return;
-    if (_isTangent(pa.first, pa.second, start, end)) {
+    if (isTangent(pa.first, pa.second, start, end)) {
       // Если прямая является касательной к высотному профилю на [start, end]
       //      *p = std::make_tuple(i, );
       return;
@@ -1009,7 +1015,7 @@ void Atten::Land::Closed::_checkTangent(
   }
 }
 
-bool Atten::Land::Closed::_isTangent(double a, double b, int start,
+bool Atten::Land::Closed::isTangent(double a, double b, int start,
                                     int end) const {
   for (int j = start; j <= end; ++j) {
     if (a * j * data->param.diff + b < h.at(j)) return false;
@@ -1017,19 +1023,19 @@ bool Atten::Land::Closed::_isTangent(double a, double b, int start,
   return true;
 }
 
-double Atten::Land::Closed::_findlNull(std::pair<int, double> p) {
+double Atten::Land::Closed::findlNull(std::pair<int, double> p) {
   auto it = std::find_if(
       h.begin() + int_start, h.begin() + int_end,
       [=](int val) { return (val + 1 > p.second) && (val - 1 < p.second); });
   return qAbs(std::distance(it, h.begin() + p.first));
 }
 
-double Atten::Land::Closed::_distanceSquare(double obstSphRadius) {
+double Atten::Land::Closed::distanceSquare(double obstSphRadius) {
   return qPow((obstSphRadius * obstSphRadius * data->constant.lambda) / M_PI,
               0.33333);
 }
 
-double Atten::Land::Closed::_relativeDistances(double s, double r) {
+double Atten::Land::Closed::relativeDistances(double s, double r) {
   return s / r;
 }
 
@@ -1039,7 +1045,6 @@ double Atten::Land::Closed::relativePoint(double a, int i) {
 }  // Конец реализации расчета затухания на закрытом интервале
 
 */
-
 Core::Core(QCustomPlot *cp) {
   _data = QSharedPointer<Data>::create();
   _cp = cp;
@@ -1051,6 +1056,7 @@ bool Core::exec() { return _main->exec(); }
 }  // namespace Calc
 
 }  // namespace NRrls
+
 /*
   QCPItemLine *line = new QCPItemLine(_cp);
       line->start->setCoords(data->tower.sender.first,
