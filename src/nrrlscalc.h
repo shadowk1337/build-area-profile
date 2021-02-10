@@ -1,7 +1,7 @@
 #ifndef NRRLSCALC_H
 #define NRRLSCALC_H
 
-#include <stdio.h>
+#include "qcustomplot.h"
 #include <QDebug>
 #include <QFile>
 #include <QIODevice>
@@ -9,22 +9,38 @@
 #include <QVector>
 #include <cassert>
 #include <iostream>
-#include "qcustomplot.h"
 
 #define QSHDEF(x) typedef QSharedPointer<x> Ptr
 
-//#define GET_NEW_VAR_NAME(var1, var2) (int)var1##var2
+#define LOOP_START(container, begin, end, it)                                  \
+  loop(container, begin, end, [&](decltype(container)::iterator it) {
 
-#define LOOP_START(container)                             \
-  decltype(container)::const_iterator GET_NEW_VAR_NAME(); \
-  for (iter = container.begin(); iter != container.end(); iter = next(iter)) {
-#define LOOP_END \
-  ;              \
+#define LOOP_END                                                               \
+  ;                                                                            \
+  })
+
+#define RESERVE(x, y, size)                                                    \
+  x.reserve(size);                                                             \
+  y.reserve(size)
+
+#define TO_VECTOR(vp, v, part)                                                 \
+  vectpair_to_vect(vp, v, [](const decltype(vp) &p) { return p.part; })
+
+// template <typename Vpair, typename Vect, typename Func>
+// void vectpair_to_vect(Vpair &vp, Vect &v, Func f) {
+//  std::transform(vp.begin(), vp.end(), std::back_inserter(v), f(const
+//  decltype(vp) &));
+//                 [](const decltype(vp) &p) { return p.first; });
+//}
+
+template <typename Container, typename Func>
+void loop(Container &c, typename Container::iterator begin,
+          typename Container::iterator end, Func f) {
+  typename Container::iterator _it;
+  for (_it = begin; _it != end; _it = std::next(_it)) {
+    f(_it);
   }
-
-#define RESERVE(x, y, size) \
-  x.reserve(size);          \
-  y.reserve(size);
+}
 
 namespace NRrls {
 
@@ -36,14 +52,15 @@ namespace Const {
  * Константы для расчета
  */
 struct Data {
-  double radius = 6.37e+06;  ///< Действительный радиус Земли (в метрах)
-  double g_standard = -8e-08;  ///< Вертикальный градиент индекса преломления в
-                               ///< Приземной части тропосферы
-  double lambda = 0.2;  ///< Длина волны
-  double area_length;  ///< Длина рассматриваемого участка (в метрах)
+  double radius = 6.37e+06; ///< Действительный радиус Земли (в метрах)
+  double g_standard = -8e-08; ///< Вертикальный градиент индекса преломления в
+                              ///< Приземной части тропосферы
+  double lambda = 0.2; ///< Длина волны
+//  QMap reflection_coef<>
+  double area_length; ///< Длина рассматриваемого участка (в метрах)
 };
 
-}  // namespace Const
+} // namespace Const
 
 namespace Spec {
 
@@ -51,11 +68,11 @@ namespace Spec {
  * Параметры РРЛС
  */
 struct Data {
-  double f = 0;  ///< Частота
-  double p = 0;  ///< Пороговое значение сигнала на входе приёмника
+  double f = 0; ///< Частота
+  double p = 0; ///< Пороговое значение сигнала на входе приёмника
 };
 
-}  // namespace Spec
+} // namespace Spec
 
 namespace Towers {
 
@@ -63,11 +80,11 @@ namespace Towers {
  * Параметры антенн
  */
 struct Data {
-  QPair<double, double> sender;  ///< Координаты передатчика
-  QPair<double, double> reciever;  ///< Координаты приемника
+  QPair<double, double> sender; ///< Координаты передатчика
+  QPair<double, double> reciever; ///< Координаты приемника
 };
 
-}  // namespace Towers
+} // namespace Towers
 
 namespace Profile {
 
@@ -76,17 +93,17 @@ namespace Profile {
  */
 struct Data {
   typedef std::pair<double, double> Coords;
-  QVector<Coords> coords;  ///< Координаты
-  QPair<double, double> los;  ///< Уравнение линии прямой видимости (ЛПВ)
+  QVector<Coords> coords; ///< Координаты
+  QPair<double, double> los; ///< Уравнение линии прямой видимости (ЛПВ)
   QMap<double, double>
-      HNull_hNull_div;  ///< Отношения критических и относительных просветов
-  QMap<double, double> h_null;  ///< Относительные просветы
-  QMap<double, double> H_null;  ///< Критические просветы
-  QMap<double, double> H;  ///< Расстояние между ЛПВ и линией профиля местности
-  size_t count;  ///< Количество точек разбиения
+      HNull_hNull_div; ///< Отношения критических и относительных просветов
+  QMap<double, double> h_null; ///< Относительные просветы
+  QMap<double, double> H_null; ///< Критические просветы
+  QMap<double, double> H; ///< Расстояние между ЛПВ и линией профиля местности
+  size_t count; ///< Количество точек разбиения
 };
 
-}  // namespace Profile
+} // namespace Profile
 
 /**
  * Данные для расчета
@@ -95,38 +112,38 @@ struct Data {
   typedef QSharedPointer<Data> Ptr;
   typedef QWeakPointer<Data> WeakPtr;
 
-  Const::Data constant;  ///< Константы
-  Spec::Data spec;       ///< Параметры РРЛ
-  Profile::Data param;  ///< Параметры высотного профиля
-  Towers::Data tower;   ///< Параметры антенн
+  Const::Data constant; ///< Константы
+  Spec::Data spec;      ///< Параметры РРЛ
+  Profile::Data param; ///< Параметры высотного профиля
+  Towers::Data tower;  ///< Параметры антенн
 
   int interval_type =
-      0;  ///< Тип интервала: 1-Открытый, 2-Полуоткрытый, 3-Закрытый
-  double wp = 0;  ///< Затухания в рельефе
-  double ws = 0;  ///< Затухания в свободном пространстве
-  double wa = 0;  ///< Затухания в газах атмосферы
-  double p = 0;  ///< Медианное значение сигнала на входе приёмника
+      0; ///< Тип интервала: 1-Открытый, 2-Полуоткрытый, 3-Закрытый
+  double wp = 0; ///< Затухания в рельефе
+  double ws = 0; ///< Затухания в свободном пространстве
+  double wa = 0; ///< Затухания в газах атмосферы
+  double p = 0; ///< Медианное значение сигнала на входе приёмника
 };
 
 /**
  * Составляющая расчета. Базовый класс
  */
 class Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data) : _data(data) {}
   Item(const Data::WeakPtr &data, QCustomPlot *cp) : _data(data), _cp(cp) {}
 
   virtual ~Item() {}
 
- public:
+public:
   /**
    * Запуск расчета
    * @return Признак завершения расчета
    */
   virtual bool exec() = 0;
 
- protected:
+protected:
   /**
    * Функция вычисления относительной координаты
    * @param R - расстояние от начала интервала до рассматриваемой точки
@@ -169,7 +186,7 @@ class Item {
   QPair<double, double> strLineEquation(double x, double y, double xx,
                                         double yy) const;
 
- protected:
+protected:
   Data::WeakPtr _data;
   QCustomPlot *_cp;
 };
@@ -180,15 +197,15 @@ namespace Master {
  * Составляющая расчета, с вложениями
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data, QCustomPlot *cp) : Calc::Item(data, cp) {}
 
- protected:
+protected:
   QList<QPair<Calc::Item::Ptr, QString>> _items;
 };
 
-}  // namespace Master
+} // namespace Master
 
 namespace Main {
 
@@ -196,35 +213,35 @@ namespace Main {
  * Составляющая расчета. Головной расчет
  */
 class Item : public Master::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data, QCustomPlot *cp);
 
   // NRrls::Calc::Item interface
- public:
+public:
   virtual bool exec();
 };
 
-}  // namespace Main
+} // namespace Main
 
 /**
  * Расчет радиовидимости для РРЛС
  */
 class Core {
- public:
+public:
   Core(QCustomPlot *cp);
 
- public:
+public:
   virtual bool exec();
 
- private:
+private:
   Data::Ptr _data;
   QCustomPlot *_cp;
   Main::Item::Ptr _main;
 };
 
-}  // namespace Calc
+} // namespace Calc
 
-}  // namespace NRrls
+} // namespace NRrls
 
-#endif  // NRRLSCALC_H
+#endif // NRRLSCALC_H
