@@ -1,5 +1,5 @@
-#include <QtCore>
 #include <QApplication>
+#include <QtCore>
 
 #include "nrrlsmainwindow.h"
 
@@ -7,9 +7,7 @@ namespace NRrls {
 
 class Options {
  public:
-  Options() {
-    _data["config"] = qApp->applicationDirPath() + "/conf/rrls.ini";
-  }
+  Options() { _data["config"] = qApp->applicationDirPath() + "/conf/rrls.ini"; }
 
   QVariantMap data() { return _data; }
 
@@ -70,12 +68,16 @@ int main(int argc, char *argv[]) {
   NRrls::Options options;
   if (!options.init(app.arguments())) {
     return options.error();
+  } else {
+    auto data = options.data();
+
   }
 
   NRrlsMainWindow w(options.data());
   w.restoreSettings();
   w.show();
   w.init();
+
   int res = app.exec();
   w.saveSettings();
 

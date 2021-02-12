@@ -148,8 +148,8 @@ class Item : public Calc::Item {
   virtual bool exec() override;
 
  protected:
-  QSharedPointer<NRrls::Calc::Data> data = _data.toStrongRef();
-  QVector<NRrls::Calc::Profile::Data::Coords> coords = data->param.coords;
+  QSharedPointer<Calc::Data> data = _data.toStrongRef();
+  QVector<Profile::Data::Coords> coords = data->param.coords;
   Profile::Data::Coords calc_start =  ///< Координата начальной точки интервала
       *coords.begin();
   Profile::Data::Coords calc_end =  ///< Координата конечной точки интервала
@@ -169,9 +169,9 @@ class Opened : public Land::Item {
 
  private:
   /**
-   * Функция нахождения наивысшей точки пересечения высотного профиля и отрезка,
-   * соединяющего приемник и точку, зеркальную передатчику относительно
-   * высотного профиля
+   * Функция нахождения наивысшей точки пересечения высотного профиля и
+   * отрезка, соединяющего приемник и точку, зеркальную передатчику
+   * относительно высотного профиля
    * @return Координаты наивысшей точки пересечения
    */
   std::pair<double, double> _findPointOfIntersection(void);
@@ -306,6 +306,9 @@ class Closed : public Land::Item {
 
  public:
   bool exec() override;
+
+ private:
+  //  QVector<double> h;
 
  private:
   /**
@@ -533,11 +536,13 @@ bool Item::exec() {
   size_t &count = data->param.count;
   count = 0;
 
-  system("sed -i '/^\s*$/d' heights3.csv");
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
     estream << QString("Couldn't open file %1\n").arg(filename);
     return false;
   }
+#ifndef Q_OS_WINDOWS
+  system("sed -i '/^*$/d' heights3.csv");
+#endif
   int l = -1, h = -1;
   while (!in.atEnd()) {
     QString line = in.readLine();
@@ -545,9 +550,10 @@ bool Item::exec() {
       first = false;
       int i = 0;
       while (!line.section(";", i, i).isNull()) {
-        if (line.section(";", i, i).contains("Расстояние"))
+        line = line.toLower();
+        if (line.section(";", i, i).contains("расстояние"))
           l = i;
-        else if (line.section(";", i, i).contains("Высота"))
+        else if (line.section(";", i, i).contains("высота"))
           h = i;
         i++;
       }
@@ -636,8 +642,7 @@ bool Axes::exec() {
 bool Earth::exec() {
   auto coords = data->param.coords;
   QVector<double> x, y;
-  x.reserve(data->param.count);
-  y.reserve(data->param.count);
+  RESERVE(x, y, data->param.count);
   bool first = true;
   double move_graph_up_value;
   double equivalent_radius =
@@ -669,8 +674,7 @@ bool Earth::exec() {
 
 bool Curve::exec() {
   QVector<double> x, y;
-  x.reserve(data->param.count);
-  y.reserve(data->param.count);
+  RESERVE(x, y, data->param.count);
   QPen pen(QColor("#137ea8"));
   pen.setWidth(2);
   std::transform(
@@ -701,7 +705,7 @@ bool Fresnel::exec() {
   decltype(x)::const_iterator it = x.begin();
   LOOP_START(y, y.begin(), y.end(), i);
   *i += 2 * data->param.H_null[*it];
-  it = (it != x.end()) ? std::next(it) : x.end();
+  it = (it != x.end()) ? std::next(it) : std::prev(x.end());
   LOOP_END;
   Etc::setGraph(_cp, x, y, pen);
   if (!_data) return false;
@@ -971,7 +975,7 @@ bool Atten::Land::Closed::exec() {
   return true;
 }
 
-auto Atten::Land::Closed::_countPeaks(void) -> Coords {
+auto Atten::Land::Closed::_countPeaks() -> Coords {
   Coords v;
   double p;
   bool inside = 0;
@@ -989,8 +993,9 @@ auto Atten::Land::Closed::_countPeaks(void) -> Coords {
   }
   LOOP_END;
   for (auto it : v) ostream << it.first << ' ' << it.second << '\n';
-  ostream << v.size();
-  _approx(v);
+  //  _approx(v);
+  ostream << "======\n";
+  for (auto it : v) ostream << it.first << ' ' << it.second << '\n';
   return v;
 }  // namespace Calc
 
@@ -999,23 +1004,30 @@ void Atten::Land::Closed::_approx(Coords &v) {
   std::transform(
       coords.begin(), coords.end(), std::back_inserter(h),
       [](const NRrls::Calc::Profile::Data::Coords &p) { return p.second; });
+
   for (auto i = v.begin(); i != v.end() - 1; ++i) {
     auto r1 =  ///< Расстояние до вершины первого препятствия
-        std::distance(h.begin(), std::max_element(h.begin() + i->first,
-                                                  h.begin(), i->second));
-    auto r2 =  ///< Расстояние до вершины второго препятствия
-        std::distance(h.begin(), std::max_element(h.begin() + next(i)->first,
-                                                  h.begin() + next(i)->second));
-    // Условие аппроксимации
-    if (log10(M_PI - qAsin(qSqrt(data->constant.area_length * (r2 - r1) /
-                                 (r2 * (data->constant.area_length - r1))))) >
-        0.408) {
-      next(i)->first = i->first;
-      v.erase(i);
-    }
+        std::distance(h.begin(),
+                      std::max_element(std::next(h.begin(), i->first),
+                                       std::next(h.begin(), i->second)));
+    //    auto r2 =  ///< Расстояние до вершины второго препятствия
+    //        std::distance(h.begin(),
+    //                      std::max_element(std::next(h.begin(),
+    //                      next(i)->first),
+    //                                       std::next(h.begin(),
+    //                                       next(i)->second)));
+    //    // Условие аппроксимации
+    //    if (log10(M_PI - qAsin(qSqrt(data->constant.area_length * (r2 -
+    //    r1) /
+    //                                 (r2 * (data->constant.area_length -
+    //                                 r1))))) >
+    //        0.408) {
+    //      next(i)->first = i->first;
+    //      v.erase(i);
+    //    }
   }
 }
-
+/*
 void Atten::Land::Closed::_reliefTangentStraightLines(int start, int end) {
   std::tuple<int, std::pair<int, double>> sender = {}, reciever = {};
   _checkTangent(&sender, start, end, "sender");
@@ -1026,10 +1038,6 @@ void Atten::Land::Closed::_checkTangent(
     std::tuple<int, std::pair<int, double>> *p, int start, int end,
     std::string type) {
   std::pair<double, double> pa;
-  QVector<double> h;
-  std::transform(
-      coords.begin(), coords.end(), std::back_inserter(h),
-      [](const NRrls::Calc::Profile::Data::Coords &p) { return p.second; });
 
   for (auto i = start; i <= end; ++i) {
     if (i == start || i == end) continue;
@@ -1080,6 +1088,8 @@ double Atten::Land::Closed::_relativePoint(double a, int i) {
   auto z = k(i);
   return (a * data->param.H[i]) / (data->constant.area_length * z * (1 - z));
 }  // Конец реализации расчета затухания на закрытом интервале
+*/
+
 Core::Core(QCustomPlot *cp) {
   _data = QSharedPointer<Data>::create();
   _cp = cp;
