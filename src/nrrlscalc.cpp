@@ -43,7 +43,7 @@ class Item : public Calc::Item {
 
  protected:
   QSharedPointer<NRrls::Calc::Data> data = _data.toStrongRef();
-  QVector<Data::Coords> coords = data->param.coords;
+  //  QVector<Data::Coords> coords = data->param.coords;
 };
 
 /**
@@ -149,11 +149,12 @@ class Item : public Calc::Item {
 
  protected:
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
-  QVector<Profile::Data::Coords> coords = data->param.coords;
-  Profile::Data::Coords calc_start =  ///< Координата начальной точки интервала
-      *coords.begin();
-  Profile::Data::Coords calc_end =  ///< Координата конечной точки интервала
-      *prev(coords.end());
+  //  QVector<Profile::Data::Coords> coords = data->param.coords;
+  //  Profile::Data::Coords calc_start =  ///< Координата начальной точки
+  //  интервала
+  //      *coords.begin();
+  //  Profile::Data::Coords calc_end =  ///< Координата конечной точки интервала
+  //      *prev(coords.end());
 };
 
 /**
@@ -437,10 +438,11 @@ Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
     : Master::Item(data, cp) {
   _items = {
       qMakePair(Fill::Item::Ptr::create(_data, _cp), QString("Fill")),
-      qMakePair(Profile::Item::Ptr::create(_data, _cp), QString("Profile")),
-      qMakePair(Interval::Item::Ptr::create(_data), QString("Interval")),
-      qMakePair(Atten::Land::Item::Ptr::create(_data),
-                QString("Land Attentuation")),
+      //      qMakePair(Profile::Item::Ptr::create(_data, _cp),
+      //      QString("Profile")), qMakePair(Interval::Item::Ptr::create(_data),
+      //      QString("Interval")),
+      //      qMakePair(Atten::Land::Item::Ptr::create(_data),
+      //                QString("Land Attentuation")),
       /*Atten::Free::Item::Ptr::create(_data),
       Atten::Air::Item::Ptr::create(_data),
       Median::Item::Ptr::create(_data)*/
@@ -460,31 +462,31 @@ bool Item::exec() {
 
 }  // namespace Main
 
-bool Profile::Item::exec() {
-  return (Axes::Ptr::create(_data, _cp)->exec() &&
-          Earth::Ptr::create(_data, _cp)->exec() &&
-          Curve::Ptr::create(_data, _cp)->exec() &&
-          Fresnel::Ptr::create(_data, _cp)->exec() &&
-          Los::Ptr::create(_data, _cp)->exec());
-}
+// bool Profile::Item::exec() {
+//  return (Axes::Ptr::create(_data, _cp)->exec() &&
+//          Earth::Ptr::create(_data, _cp)->exec() &&
+//          Curve::Ptr::create(_data, _cp)->exec() &&
+//          Fresnel::Ptr::create(_data, _cp)->exec() &&
+//          Los::Ptr::create(_data, _cp)->exec());
+//}
 
-bool Atten::Land::Item::exec() {
-  switch (data->interval_type) {  // 1-Открытый, 2-Полуоткрытый, 3-Закрытый
-    case 1:
-      ostream << "hello";
-      Opened::Ptr::create(_data)->exec();
-      break;
-    case 2:
-      //    SemiOpened::Ptr::create(_data)->exec();
-      break;
-    case 3:
-      Closed::Ptr::create(_data)->exec();
-      break;
-    default:
-      return false;
-  }
-  return true;
-}
+// bool Atten::Land::Item::exec() {
+//  switch (data->interval_type) {  // 1-Открытый, 2-Полуоткрытый, 3-Закрытый
+//    case 1:
+//      ostream << "hello";
+//      Opened::Ptr::create(_data)->exec();
+//      break;
+//    case 2:
+//      //    SemiOpened::Ptr::create(_data)->exec();
+//      break;
+//    case 3:
+//      Closed::Ptr::create(_data)->exec();
+//      break;
+//    default:
+//      return false;
+//  }
+//  return true;
+//}
 
 namespace Etc {
 
@@ -565,8 +567,8 @@ bool Item::exec() {
     }
     count++;
     line.replace(",", ".");
-    coords.push_back(std::make_pair(line.section(";", l, l).toDouble(),
-                                    line.section(";", h, h).toDouble()));
+    coords[line.section(";", l, l).toDouble()] =
+        line.section(";", h, h).toDouble();
   }
   file.close();
   if (!count) {
@@ -581,25 +583,22 @@ bool Item::exec() {
 
 void Item::paramFill(void) {
   auto &coords = data->param.coords;
-  data->tower.sender.first = coords.begin()->first;
-  data->tower.reciever.first = prev(coords.end())->first;
-  data->constant.area_length =
-      prev(coords.end())->first - coords.begin()->first;
-  auto y1 = data->tower.sender.second = coords.begin()->second + 20;
-  auto y2 = data->tower.reciever.second = prev(coords.end())->second + 20;
+  data->tower.sender.first = coords.b_x();
+  data->tower.reciever.first = coords.e_x();
+  data->constant.area_length = coords.e_x() - coords.b_x();
+  auto y1 = data->tower.sender.second = coords.b_y() + 20;
+  auto y2 = data->tower.reciever.second = coords.e_y() + 20;
   data->param.los = strLineEquation(data->tower.sender.first, y1,
                                     data->tower.reciever.first, y2);
-
-  for (QVector<Profile::Data::Coords>::const_iterator it = coords.begin();
-       it != coords.end(); it = next(it)) {
-    auto i = it->first;
-    data->param.H[i] =
-        data->param.los.first * i + data->param.los.second - it->second;
-    data->param.H_null[i] = HNull(i);
-    data->param.h_null[i] = (data->param.H[i] / data->param.H_null[i]);
-    data->param.HNull_hNull_div[i] =
-        (data->param.H_null[i] / data->param.h_null[i]);
-  }
+  LOOP_START(coords.begin(), coords.end(), it);
+  data->param.H[it.key()] =
+      data->param.los.first * it.value() + data->param.los.second - it.value();
+  data->param.H_null[it.key()] = HNull(it.value());
+  data->param.h_null[it.key()] =
+      (data->param.H[it.key()] / data->param.H_null[it.key()]);
+  data->param.HNull_hNull_div[it.key()] =
+      (data->param.H_null[it.key()] / data->param.h_null[it.key()]);
+  LOOP_END;
   data->param.H_null[data->param.count - 1] = 0;
 }
 
@@ -638,7 +637,7 @@ bool Axes::exec() {
   if (_data.isNull()) return false;
   return true;
 }
-
+/*
 bool Earth::exec() {
   auto coords = data->param.coords;
   QVector<double> x, y;
@@ -837,22 +836,22 @@ void Atten::Land::Opened::_rayleighAndGroundCriteria(double mid,
       *std::max_element(data->param.HNull_hNull_div.begin() + start,
                         data->param.HNull_hNull_div.begin() + end);
   int cond = 1;  ///< Условие неровности рельефа (1 - гладкая,
-  /*LOOP_START(h,
-             std::lower_bound(coords.begin(), coords.end(), start,
-                              [&](const QPair<double, double> &p) {
-                                return p.first >= start;
-                              }),
-             std::lower_bound(coords.begin(), coords.end(), end,
-                              [&](const QPair<double, double> &p) {
-                                return p.first >= end;
-                              }),
-             it);
-  double delta_h = pair.first * it + pair.second - h.at(it);*
-  ostream << delta_h << '\n';
-  LOOP_END;
-  QCPItemLine *line = new QCPItemLine(_cp);
-  line->start->setCoords(start, start_height);
-  line->end->setCoords(end, end_height);*/
+//  LOOP_START(h,
+//             std::lower_bound(coords.begin(), coords.end(), start,
+//                              [&](const QPair<double, double> &p) {
+//                                return p.first >= start;
+//                              }),
+//             std::lower_bound(coords.begin(), coords.end(), end,
+//                              [&](const QPair<double, double> &p) {
+//                                return p.first >= end;
+//                              }),
+//             it);
+//  double delta_h = pair.first * it + pair.second - h.at(it);*
+//  ostream << delta_h << '\n';
+//  LOOP_END;
+//  QCPItemLine *line = new QCPItemLine(_cp);
+//  line->start->setCoords(start, start_height);
+//  line->end->setCoords(end, end_height);
   //        ostream << delta_h << 0.75 * max_H0_h0;
   //    if (delta_h < 0.75 * max_H0_h0) {
   //      ostream << attentuationPlane(delta_h);
@@ -863,7 +862,7 @@ void Atten::Land::Opened::_rayleighAndGroundCriteria(double mid,
 double Atten::Land::Opened::_attentuationPlane(double delta_h) {
   return -10 * log10(2 - 2 * qCos(M_PI / 3 * delta_h * delta_h));
 }  // Конец реализации расчета затухания на открытом интервале
-/*
+
 // Составляющая расчета. Реализация расчета затухания на полуоткрытом
 интервале
 
@@ -965,7 +964,7 @@ double Atten::Land::SemiOpened::t(double l, double s) {
   return l / s;
 } // Конец реализации расчета затухания на полуоткрытом интервале
 
-*/
+
 // Составляющая расчета. Реализация расчета затухания на закрытом интервале
 
 bool Atten::Land::Closed::exec() {
@@ -1027,7 +1026,7 @@ void Atten::Land::Closed::_approx(Coords &v) {
     //    }
   }
 }
-/*
+
 void Atten::Land::Closed::_reliefTangentStraightLines(int start, int end) {
   std::tuple<int, std::pair<int, double>> sender = {}, reciever = {};
   _checkTangent(&sender, start, end, "sender");

@@ -115,7 +115,7 @@ struct Data {
     const QVector<double> &y(void) {
       QVector<double> v;
       std::transform(_coords.begin(), _coords.end(), std::back_inserter(v),
-                     _coords.second());
+                     _coords.last);
       return v;
     }
 
