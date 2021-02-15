@@ -44,8 +44,7 @@ void loop(Iterator begin, Iterator end, Func f) {
 
 template <typename Container, typename T, typename Func>
 void find_if_el(Container &c, T begin, T end, Func f) {
-  std::find_if(c.cbegin() + begin, c.cbegin() + end,
-               [=](int val) { return f(); });
+  std::find_if(c.cbegin() + begin, c.cbegin() + end, [=]() { return f(); });
 }
 
 namespace NRrls {
@@ -105,23 +104,35 @@ struct Data {
     double e_x(void) { return std::prev(_coords.end()).key(); }
     double e_y(void) { return std::prev(_coords.end()).value(); }
 
-    const QVector<double> &x(void) {
-      QVector<double> v;
-      std::transform(_coords.begin(), _coords.end(), std::back_inserter(v),
-                     _coords.first());
-      return v;
+    void x(QVector<double> &v) const {
+      v.reserve(_coords.size());
+      foreach (auto i, _coords.keys())
+        v.push_back(i);
     }
 
-    const QVector<double> &y(void) {
-      QVector<double> v;
-      std::transform(_coords.begin(), _coords.end(), std::back_inserter(v),
-                     _coords.second());
-      return v;
+    void y(QVector<double> &v) const {
+      v.reserve(_coords.size());
+      foreach (auto i, _coords.values())
+        v.push_back(i);
     }
+
+    const QList<double> &x(void) { return _coords.keys(); }
+
+    const QList<double> &y(void) { return _coords.values(); }
 
     QMap<double, double>::iterator begin() { return _coords.begin(); }
 
     QMap<double, double>::iterator end() { return _coords.end(); }
+
+    std::map<double, double> toMap(void) const { return _coords.toStdMap(); }
+
+    QMap<double, double>::iterator lowerBound(double key) {
+      return _coords.lowerBound(key);
+    }
+
+    double &last() {
+      return _coords.last();
+    }
 
     double &operator[](double x) { return _coords[x]; }
 
@@ -129,8 +140,6 @@ struct Data {
     QMap<double, double> _coords;  ///< Координаты
   } coords;
   QPair<double, double> los;  ///< Уравнение линии прямой видимости (ЛПВ)
-  QMap<double, double>
-      HNull_hNull_div;  ///< Отношения критических и относительных просветов
   QMap<double, double> h_null;  ///< Относительные просветы
   QMap<double, double> H_null;  ///< Критические просветы
   QMap<double, double> H;  ///< Расстояние между ЛПВ и линией профиля местности

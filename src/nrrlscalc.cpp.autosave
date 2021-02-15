@@ -796,7 +796,7 @@ void Atten::Land::Opened::_planeApproximation(double mid, double length) {
 void Atten::Land::Opened::_sphereApproximation(double start, double end) {
   auto min_height =  ///< Значение минимальной высоты на интервале
       coords[std::min_element(
-          *std::lower_bound(coords.begin(), coords.end(), start),
+          *std::lower_bound(coords.begin(), coords.end(), start, []()),
           *std::lower_bound(coords.begin(), coords.end(), end))];
   auto max_height =  ///< Значение максимальной высоты на интервале
       *std::max_element(h.begin() + start, h.begin() + end);
