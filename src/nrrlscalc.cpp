@@ -192,6 +192,16 @@ class Opened : public Land::Item {
   bool exec() override;
 
  private:
+  QPair<double, double> _findMinH(void) const {
+    auto H = data->param.H.toStdMap();
+    auto H_min = std::min_element(H.begin(), H.end(),
+                                  [](const std::pair<double, double> &lhs,
+                                     const std::pair<double, double> &rhs) {
+                                    return lhs.second < rhs.second;
+                                  });
+    return {H_min->first, H_min->second};
+  }
+
   /**
    * Функция нахождения наивысшей точки пересечения высотного профиля и
    * отрезка, соединяющего приемник и точку, зеркальную передатчику
@@ -216,8 +226,6 @@ class Opened : public Land::Item {
   QPair<QMap<double, double>::ConstIterator,
         QMap<double, double>::ConstIterator>
   _findIntersectionInterval(void);
-
-  bool _isTangent(double a, double b) const;
 
   /**
    * Функция сравнения с критерием Рэлея
@@ -753,6 +761,7 @@ namespace Land {
 
 bool Opened::exec() {
   auto p = _findIntersectionInterval();
+  ostream << p.first.key() << ' ' << p.second.key();
   //  ostream << p.first.key() << ' ' << p.second.key();
   if (!_data) return false;
   return true;
@@ -760,29 +769,21 @@ bool Opened::exec() {
 
 QPair<QMap<double, double>::ConstIterator, QMap<double, double>::ConstIterator>
 Opened::_findIntersectionInterval(void) {
-  auto los_parallel = data->param.los;
-  QMap<double, double>::ConstIterator it;
-  QMap<double, double>::ConstIterator H_min = data->param.H.begin();
-  for (it = data->param.H.begin(); it != data->param.H.end(); ++it)
-    //    H_min = H_min.value() > it.value() ?
-    //    std::lower_bound(data->param.H.begin(), data->param.H.end(), it->) :
-    //    H_min;
-    while (!_isTangent(los_parallel.first, los_parallel.second)) {
-      it = std::next(it);
-      los_parallel.second = it.value() - los_parallel.first * it.key();
+  auto H_min = _findMinH();
+  auto [a, b] = strLineEquation(data->tower.sender.first,
+                                data->tower.sender.second - H_min.second,
+                                H_min.first, H_min.second);
+  b -= data->param.H_null[H_min.second];
+  QMap<double, double>::ConstIterator right, left;
+  for (auto it = coords.lowerBound(H_min.first); it != coords.end() - 1; ++it) {
+    if (std::next(it).value() < a * it.key() + b) {
+      right = it;
+      for (auto jt = coords.lowerBound(H_min.first); jt != coords.begin() + 1;
+           --jt)
+        if (std::prev(jt).value() < a * jt.key() + b) left = jt;
     }
-  los_parallel.second -= data->param.H_null[it.key()];
-  ostream << it.key() << ' ' << it.value();
-  //  for (auto i = it; i != coords.end(); ++i) {
-  //    if ((i + 1).value() <
-  //        los_parallel.first * (i + 1).key() + los_parallel.second) {
-  //      for (auto j = it; j != coords.begin(); --j) {
-  //        if ((i - 1).value() <
-  //            los_parallel.first * (i - 1).key() + los_parallel.second)
-  //          return {i, j};
-  //      }
-  //    }
-  //  }
+  }
+  return {left, right};
 }
 
 void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
@@ -806,13 +807,6 @@ void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
   //  } else {
   //    ostream << _attentuationPlane(1, delta_h);
   //  }
-}
-
-bool Opened::_isTangent(double a, double b) const {
-  LOOP_START(coords.begin(), coords.end(), it);
-  if (a * it.key() + b <= it.value()) return false;
-  LOOP_END;
-  return true;
 }
 
 double Opened::_attentuationPlane(double phi_null, double delta_h) {

@@ -14,16 +14,11 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QCustomPlot" name="customPlot" native="true">
-    <property name="geometry">
-     <rect>
-      <x>580</x>
-      <y>280</y>
-      <width>561</width>
-      <height>331</height>
-     </rect>
-    </property>
-   </widget>
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QCustomPlot" name="customPlot" native="true"/>
+    </item>
+   </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
  </widget>
