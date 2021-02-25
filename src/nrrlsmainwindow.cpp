@@ -4,6 +4,7 @@
 #include "nrrlscalc.h"
 #include "nrrlslogcategory.h"
 #include "nrrlsmainwindow.h"
+#include <iostream>
 
 #include "ui_nrrlsmainwindow.h"
 
@@ -19,8 +20,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     : QMainWindow(parent), _d(new Private) {
   _d->ui = new Ui::NRrlsMainWindow;
   _d->ui->setupUi(this);
-  _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui->customPlot);
-  _d->textItem = new QCPItemText(_d->ui->customPlot);
 
   setSettings(options);
 
@@ -30,9 +29,28 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   const QRect &r = qApp->desktop()->screen()->rect();
   setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
 
+  QWidget *a = new QWidget(this);
+  la = new QHBoxLayout(this);
+  l = new QLineEdit(this);
+  pushButton_fileDial = new QPushButton("Файл", this);
+  a->setLayout(la);
+  la->addWidget(pushButton_fileDial);
+  la->addWidget(l);
+  a->setGeometry(2, 684, 285, 39);
+
+  QString filename;
+  connect(pushButton_fileDial, &QPushButton::clicked, [&]() {
+    QString str =
+        QFileDialog::getOpenFileName(a, "Open File", QString(), "*.csv ");
+    l->setText(str);
+//    filename = l->text();
+  });
+//  _d->ui->customPlot->replot();
+//  _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui->customPlot, filename);
+
+  std::cout << filename.toStdString();
   connect(_d->ui->customPlot, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
-  _d->ui->customPlot->replot();
 }
 
 NRrlsMainWindow::~NRrlsMainWindow() {
@@ -40,7 +58,7 @@ NRrlsMainWindow::~NRrlsMainWindow() {
   delete _d;
 }
 
-void NRrlsMainWindow::init() { _d->_c->exec(); }
+//void NRrlsMainWindow::init() { _d->_c->exec(); }
 
 void NRrlsMainWindow::saveSettings() {}
 
@@ -75,11 +93,11 @@ void NRrlsMainWindow::setDebugLevel(int level) {
 
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   QCustomPlot *customPlot = qobject_cast<QCustomPlot *>(sender());
-  qreal x = customPlot->xAxis->pixelToCoord(event->pos().x());
-  qreal y = customPlot->yAxis->pixelToCoord(event->pos().y());
-  _d->textItem->setText(QString("(%1, %2)")
-                            .arg(static_cast<qint32>(x) / 1000)
-                            .arg(static_cast<qint32>(y)));
-  _d->textItem->position->setCoords(QPointF(x, y));
+  double x = customPlot->xAxis->pixelToCoord(event->pos().x());
+  double y = customPlot->yAxis->pixelToCoord(event->pos().y());
+  _d->ui->label_coords->setText(
+      QString("%1, %2")
+          .arg(x >= 0 ? std::round(x / 1000 * 100) / 100 : 0)
+          .arg(y >= 0 ? std::round(y * 100) / 100 : 0));
   customPlot->replot();
 }

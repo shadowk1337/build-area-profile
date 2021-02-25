@@ -70,17 +70,18 @@ int main(int argc, char *argv[]) {
     return options.error();
   } else {
     auto data = options.data();
-
   }
 
   NRrlsMainWindow w(options.data());
+  QPalette p;
+  p.setBrush(QPalette::Background, QBrush(QColor(Qt::white)));
+  w.setPalette(p);
   w.restoreSettings();
-  w.show();
-  w.init();
+//  w.init();
 
+  w.show();
   int res = app.exec();
   w.saveSettings();
-
   return res;
 
   return app.exec();

@@ -2,6 +2,9 @@
 #define NRRLSMMAINWINDOW_H
 
 #include <QMainWindow>
+#include <QPushButton>
+#include <QHBoxLayout>
+#include <QLineEdit>
 
 /**
  * Главное окно
@@ -26,6 +29,9 @@ class NRrlsMainWindow : public QMainWindow {
  private:
   struct Private;
   Private *const _d;
+  QHBoxLayout *la;
+  QLineEdit *l;
+  QPushButton *pushButton_fileDial;
 
  private slots:
   void onMouseMove(QMouseEvent *event);

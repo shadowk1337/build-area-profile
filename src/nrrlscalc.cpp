@@ -458,7 +458,8 @@ Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
       qMakePair(Fill::Item::Ptr::create(_data, _cp), QString("Fill")),
       qMakePair(Profile::Item::Ptr::create(_data, _cp), QString("Profile")),
       qMakePair(Interval::Item::Ptr::create(_data), QString("Interval")),
-      qMakePair(Atten::Land::Item::Ptr::create(_data), QString("Attentuation")),
+      //      qMakePair(Atten::Land::Item::Ptr::create(_data),
+      //      QString("Attentuation")),
       /*Atten::Free::Item::Ptr::create(_data),
       Atten::Air::Item::Ptr::create(_data),
       Median::Item::Ptr::create(_data)*/
@@ -486,7 +487,7 @@ bool Profile::Item::exec() {
           Los::Ptr::create(_data, _cp)->exec());
 }
 
-bool Atten::Land::Item::exec() {
+/*bool Atten::Land::Item::exec() {
   switch (data->interval_type) {  // 1-Открытый, 2-Полуоткрытый, 3-Закрытый
     case 1:
       Opened::Ptr::create(_data)->exec();
@@ -501,7 +502,7 @@ bool Atten::Land::Item::exec() {
       return false;
   }
   return true;
-}
+}*/
 
 bool Atten::Land::Item::_isTangent(double a, double b, double start,
                                    double end) const {
@@ -552,8 +553,7 @@ QPair<double, double> Calc::Item::strLineEquation(double x, double y, double xx,
 namespace Fill {
 
 bool Item::exec() {
-  QString filename = "heights4.csv";
-  QFile file(filename);
+  QFile file(data->filename);
   QTextStream in(&file);
   QRegExp rx("[ ;]");
   bool first = true;
@@ -562,12 +562,12 @@ bool Item::exec() {
   count = 0;
 
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    estream << QString("Couldn't open file %1\n").arg(filename);
+    estream << QString("Couldn't open file %1\n").arg(data->filename);
     return false;
   }
-#ifndef Q_OS_WINDOWS
-  system("sed -i '/^*$/d' heights4.csv");
-#endif
+//#ifndef Q_OS_WINDOWS
+//  system(QString("sed -i '/^*$/d' %1").arg(data->filename).toStdString());
+//#endif
   int l = -1, h = -1;
   while (!in.atEnd()) {
     QString line = in.readLine();
@@ -585,7 +585,7 @@ bool Item::exec() {
       continue;
     }
     if (l == -1 || h == -1) {
-      estream << QString("File %1 doesn't consist table names\n").arg(filename);
+      estream << QString("File %1 doesn't consist table names\n").arg(data->filename);
       return false;
     }
     count++;
@@ -595,7 +595,7 @@ bool Item::exec() {
   }
   file.close();
   if (!count) {
-    estream << QString("File %1 is empty\n").arg(filename);
+    estream << QString("File %1 is empty\n").arg(data->filename);
     return false;
   }
   paramFill();
@@ -633,7 +633,7 @@ bool Axes::exec() {
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   QFont pfont("Arial", 8);
   _cp->rescaleAxes();
-  _cp->setInteractions(QCP::iSelectPlottables);
+  //  _cp->setInteractions(QCP::iSelectPlottables);
 
   for (double i = 0; i < data->constant.area_length + 500; i += 500) {
     QString str = QString::number(static_cast<int>(i) / 1000);
@@ -647,7 +647,6 @@ bool Axes::exec() {
   _cp->yAxis->scaleRange(2);
   _cp->yAxis->setRange(0, h_max, Qt::AlignLeft);
   _cp->xAxis->setTicker(textTicker);
-  _cp->xAxis->setTickLabelFont(pfont);
   _cp->xAxis->setTickLabelRotation(-45);
   _cp->xAxis->setTickLength(0);
   _cp->yAxis->setSubTickLength(0);
@@ -754,7 +753,7 @@ bool Interval::Item::exec() {
   return true;
 }
 
-namespace Atten {
+/*namespace Atten {
 namespace Land {
 
 // Составляющая расчета. Реализация расчета затухания на открытом интервале
@@ -913,6 +912,7 @@ double SemiOpened::_t(double l, double s) {
 bool Closed::exec() {
   Peaks l = _countPeaks();
   auto param = _reliefTangentStraightLines(l);
+  ostream << param << '\n';
   ostream << _atten(param) << '\n';
   if (!_data) return false;
   return true;
@@ -976,7 +976,7 @@ double Closed::_reliefTangentStraightLines(const Peaks &p) {
   Peaks peaks;
 
   // Находим для каждого препятствия координаты его высшей точки
-  for (auto it : p) {
+  for (const auto &it : p) {
     double max_x = -1, max_y = -1;
     for (auto i = it.first; i <= it.second; ++i) {
       if (max_y < coords[i]) max_y = coords[i], max_x = i;
@@ -1055,11 +1055,12 @@ double Closed::_atten(double param) {
 
 }  // namespace Land
 }  // namespace Atten
-
-Core::Core(QCustomPlot *cp) {
+*/
+Core::Core(QCustomPlot *cp, QString filename) {
   _data = QSharedPointer<Data>::create();
   _cp = cp;
   _main = Main::Item::Ptr::create(_data, _cp);
+  _data->filename = filename;
 }
 
 bool Core::exec() { return _main->exec(); }

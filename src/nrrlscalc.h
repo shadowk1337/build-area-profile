@@ -7,6 +7,7 @@
 #include <QSharedPointer>
 #include <QVector>
 #include <cassert>
+#include <cmath>
 #include <iostream>
 #include <utility>
 #include "qcustomplot.h"
@@ -27,13 +28,6 @@
   vectpair_to_vect(vp, v, [](const decltype(vp) &p) { return p.part; })
 
 #define FIND (c, begin, end, f) find_if_el(c, begin, end, f)
-
-// template <typename Vpair, typename Vect, typename Func>
-// void vectpair_to_vect(Vpair &vp, Vect &v, Func f) {
-//  std::transform(vp.begin(), vp.end(), std::back_inserter(v), f(const
-//  decltype(vp) &));
-//                 [](const decltype(vp) &p) { return p.first; });
-//}
 
 template <typename Iterator, typename Func>
 void loop(Iterator begin, Iterator end, Func f) {
@@ -161,6 +155,7 @@ struct Data {
   Profile::Data param;  ///< Параметры высотного профиля
   Towers::Data tower;   ///< Параметры антенн
 
+  QString filename;
   int interval_type =
       0;  ///< Тип интервала: 1-Открытый, 2-Полуоткрытый, 3-Закрытый
   double wp = 0;  ///< Затухания в рельефе
@@ -273,7 +268,7 @@ class Item : public Master::Item {
  */
 class Core {
  public:
-  Core(QCustomPlot *cp);
+  Core(QCustomPlot *cp, QString filename);
 
  public:
   virtual bool exec();
