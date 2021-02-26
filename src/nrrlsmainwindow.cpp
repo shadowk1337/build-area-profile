@@ -58,7 +58,7 @@ NRrlsMainWindow::~NRrlsMainWindow() {
   delete _d;
 }
 
-//void NRrlsMainWindow::init() { _d->_c->exec(); }
+void NRrlsMainWindow::init() { _d->_c->exec(); }
 
 void NRrlsMainWindow::saveSettings() {}
 
