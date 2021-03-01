@@ -1,19 +1,16 @@
+#include <QFileDialog>
 #include <QtCore>
 #include <QtWidgets>
 
 #include "nrrlscalc.h"
 #include "nrrlslogcategory.h"
 #include "nrrlsmainwindow.h"
-#include <iostream>
-
-#include "ui_nrrlsmainwindow.h"
 
 struct NRrlsMainWindow::Private {
   Private() {}
 
   Ui::NRrlsMainWindow *ui = nullptr;
   QSharedPointer<NRrls::Calc::Core> _c;
-  QCPItemText *textItem;
 };
 
 NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
@@ -28,27 +25,52 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   int h = 768;
   const QRect &r = qApp->desktop()->screen()->rect();
   setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
+  double s_w = _d->ui->horizontalSlider_sender->width();
+  double s_h = _d->ui->horizontalSlider_sender->height();
+  QLabel *l1 = new QLabel("0", _d->ui->horizontalSlider_sender);
+  QLabel *l2 = new QLabel("25", _d->ui->horizontalSlider_sender);
+  l2->move(s_w / 4, s_h);
+  QLabel *l3 = new QLabel("50", _d->ui->horizontalSlider_sender);
+  l3->move(s_w / 2, s_h);
+  QLabel *l4 = new QLabel("75", _d->ui->horizontalSlider_sender);
+  l4->move(s_w * 3 / 4, s_h);
+  QLabel *l5 = new QLabel("100", _d->ui->horizontalSlider_sender);
+  l5->move(s_w, s_h);
 
   QWidget *a = new QWidget(this);
-  la = new QHBoxLayout(this);
-  l = new QLineEdit(this);
+  a->setGeometry(2, 700, 285, 50);
+  la = new QHBoxLayout(a);
   pushButton_fileDial = new QPushButton("Файл", this);
   a->setLayout(la);
   la->addWidget(pushButton_fileDial);
-  la->addWidget(l);
-  a->setGeometry(2, 684, 285, 39);
+  pushButton_fileDial->setMaximumSize(a->width(), a->height());
 
-  QString filename;
   connect(pushButton_fileDial, &QPushButton::clicked, [&]() {
-    QString str =
-        QFileDialog::getOpenFileName(a, "Open File", QString(), "*.csv ");
-    l->setText(str);
-//    filename = l->text();
+    QString temp = QFileDialog::getOpenFileName(this, "Open File", "*.csv");
+    _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
+    init();
   });
-//  _d->ui->customPlot->replot();
-//  _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui->customPlot, filename);
 
-  std::cout << filename.toStdString();
+  connect(_d->ui->lineEdit_freq, &QLineEdit::editingFinished, [&]() {
+    QString temp = _d->ui->lineEdit_freq->text();
+    _d->_c->setFreq(temp.toDouble());
+    init();
+  });
+
+  //  connect(_d->ui->lineEdit_senderHeight, &QLineEdit::editingFinished, [&]()
+  //  {
+  //    QString temp = _d->ui->lineEdit_senderHeight->text();
+  //    _d->_c->setSenHeight(temp.toDouble());
+  //    init();
+  //  });
+
+  //  connect(_d->ui->lineEdit_recieverHeight, &QLineEdit::editingFinished,
+  //  [&]() {
+  //    QString temp = _d->ui->lineEdit_recieverHeight->text();
+  //    _d->_c->setRecHeight(temp.toDouble());
+  //    init();
+  //  });
+
   connect(_d->ui->customPlot, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
 }

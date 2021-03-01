@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
   p.setBrush(QPalette::Background, QBrush(QColor(Qt::white)));
   w.setPalette(p);
   w.restoreSettings();
-  w.init();
+//  w.init();
 
   w.show();
   int res = app.exec();

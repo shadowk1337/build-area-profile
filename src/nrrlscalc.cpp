@@ -1,4 +1,5 @@
 #include "nrrlscalc.h"
+#include <QDebug>
 
 QTextStream ostream(stdout);
 QTextStream estream(stderr);
@@ -565,9 +566,9 @@ bool Item::exec() {
     estream << QString("Couldn't open file %1\n").arg(data->filename);
     return false;
   }
-//#ifndef Q_OS_WINDOWS
-//  system(QString("sed -i '/^*$/d' %1").arg(data->filename).toStdString());
-//#endif
+  //#ifndef Q_OS_WINDOWS
+  //  system(QString("sed -i '/^*$/d' %1").arg(data->filename).toStdString());
+  // endif
   int l = -1, h = -1;
   while (!in.atEnd()) {
     QString line = in.readLine();
@@ -585,7 +586,8 @@ bool Item::exec() {
       continue;
     }
     if (l == -1 || h == -1) {
-      estream << QString("File %1 doesn't consist table names\n").arg(data->filename);
+      estream << QString("File %1 doesn't consist table names\n")
+                     .arg(data->filename);
       return false;
     }
     count++;
@@ -609,10 +611,9 @@ void Item::paramFill(void) {
   data->tower.sender.first = coords.b_x();
   data->tower.reciever.first = coords.e_x();
   data->constant.area_length = coords.e_x() - coords.b_x();
-  auto y1 = data->tower.sender.second = coords.b_y() + 20;
-  auto y2 = data->tower.reciever.second = coords.e_y() + 20;
-  data->param.los = strLineEquation(data->tower.sender.first, y1,
-                                    data->tower.reciever.first, y2);
+  data->param.los = strLineEquation(
+      data->tower.sender.first, data->tower.sender.second + coords.b_y(),
+      data->tower.reciever.first, data->tower.reciever.second + coords.e_y());
   LOOP_START(coords.begin(), coords.end(), it);
   data->param.H[it.key()] =
       data->param.los.first * it.key() + data->param.los.second - it.value();
@@ -630,10 +631,11 @@ namespace Profile {
 bool Axes::exec() {
   constexpr int window_add_height = 35;
   constexpr int window_add_length = 100;
+
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-  QFont pfont("Arial", 8);
   _cp->rescaleAxes();
-  //  _cp->setInteractions(QCP::iSelectPlottables);
+  _cp->setInteractions(QCP::iSelectPlottables | QCP::iRangeDrag |
+                       QCP::iRangeZoom);
 
   for (double i = 0; i < data->constant.area_length + 500; i += 500) {
     QString str = QString::number(static_cast<int>(i) / 1000);
@@ -644,10 +646,11 @@ bool Axes::exec() {
   coords.y(heights);
   double h_max =  ///< Максимальная высота графика
       *std::max_element(heights.begin(), heights.end()) + window_add_height;
+  _cp->yAxis->setLabel("Высота, м.");
   _cp->yAxis->scaleRange(2);
   _cp->yAxis->setRange(0, h_max, Qt::AlignLeft);
+  _cp->xAxis->setLabel("Расстояние, км.");
   _cp->xAxis->setTicker(textTicker);
-  _cp->xAxis->setTickLabelRotation(-45);
   _cp->xAxis->setTickLength(0);
   _cp->yAxis->setSubTickLength(0);
   _cp->xAxis->setRange(0, data->constant.area_length + window_add_length);
@@ -724,13 +727,21 @@ bool Fresnel::exec() {
 }
 
 bool Los::exec() {
-  QVector<double> y;
+  QVector<double> x, y;
+  RESERVE(x, y, data->param.count);
   QPen pen(QColor("#d6ba06"));
   pen.setWidth(2);
-  QCPItemLine *line = new QCPItemLine(_cp);
-  line->setPen(pen);
-  line->start->setCoords(data->tower.sender.first, data->tower.sender.second);
-  line->end->setCoords(data->tower.reciever.first, data->tower.reciever.second);
+
+  data->param.coords.x(x);
+  for (auto it : x)
+    y.push_back(data->param.los.first * it + data->param.los.second);
+  Etc::setGraph(_cp, x, y, pen);
+  //  QCPItemLine *line = new QCPItemLine(_cp);
+  //  line->setPen(pen);
+  //  line->start->setCoords(data->tower.sender.first,
+  //  data->tower.sender.second);
+  //  line->end->setCoords(data->tower.reciever.first,
+  //  data->tower.reciever.second);
   if (!_data) return false;
   return true;
 }
@@ -1056,14 +1067,37 @@ double Closed::_atten(double param) {
 }  // namespace Land
 }  // namespace Atten
 */
-Core::Core(QCustomPlot *cp, QString filename) {
+Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
   _data = QSharedPointer<Data>::create();
-  _cp = cp;
-  _main = Main::Item::Ptr::create(_data, _cp);
+  _data->m = m;
+  _cp = m->customPlot;
   _data->filename = filename;
+  _main = Main::Item::Ptr::create(_data, _cp);
 }
 
-bool Core::exec() { return _main->exec(); }
+bool Core::exec() {
+  if (_cp->graphCount()) {
+    _cp->graph(0)->data().data()->clear();
+    //    _cp->graph(1)->data().data()->clear();
+    //    _cp->graph(2)->data().data()->clear();
+    //    _cp->graph(3)->data().data()->clear();
+    //    _cp->graph(4)->data().data()->clear();
+    //    _cp->removeGraph(0);
+    //    _cp->removeGraph(1);
+    //    _cp->removeGraph(2);
+    //    _cp->removeGraph(3);
+    //    _cp->removeGraph();
+        _cp->replot();
+  }
+  Etc::setGraph(_cp, {1, 2, 3}, {2, 3, 4});
+  //  return _main->exec();
+}
+
+void Core::setFreq(double f) { _data->spec.f = f; }
+
+void Core::setSenHeight(double h) { _data->tower.sender.second = h; }
+
+void Core::setRecHeight(double h) { _data->tower.reciever.second = h; }
 
 }  // namespace Calc
 
