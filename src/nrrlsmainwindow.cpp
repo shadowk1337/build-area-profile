@@ -17,6 +17,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     : QMainWindow(parent), _d(new Private) {
   _d->ui = new Ui::NRrlsMainWindow;
   _d->ui->setupUi(this);
+  //  _d->ui->customPlot->close();
 
   setSettings(options);
 
@@ -25,20 +26,11 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   int h = 768;
   const QRect &r = qApp->desktop()->screen()->rect();
   setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
-  double s_w = _d->ui->horizontalSlider_sender->width();
-  double s_h = _d->ui->horizontalSlider_sender->height();
-  QLabel *l1 = new QLabel("0", _d->ui->horizontalSlider_sender);
-  QLabel *l2 = new QLabel("25", _d->ui->horizontalSlider_sender);
-  l2->move(s_w / 4, s_h);
-  QLabel *l3 = new QLabel("50", _d->ui->horizontalSlider_sender);
-  l3->move(s_w / 2, s_h);
-  QLabel *l4 = new QLabel("75", _d->ui->horizontalSlider_sender);
-  l4->move(s_w * 3 / 4, s_h);
-  QLabel *l5 = new QLabel("100", _d->ui->horizontalSlider_sender);
-  l5->move(s_w, s_h);
+
+  _d->ui->progressBar->hide();
 
   QWidget *a = new QWidget(this);
-  a->setGeometry(2, 700, 285, 50);
+  a->setGeometry(2, 695, 195, 50);
   la = new QHBoxLayout(a);
   pushButton_fileDial = new QPushButton("Файл", this);
   a->setLayout(la);
@@ -46,7 +38,10 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   pushButton_fileDial->setMaximumSize(a->width(), a->height());
 
   connect(pushButton_fileDial, &QPushButton::clicked, [&]() {
-    QString temp = QFileDialog::getOpenFileName(this, "Open File", "*.csv");
+    QFileDialog *in = new QFileDialog(this, "Open File", "*.csv");
+    in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
+    QString temp = in->getOpenFileName();
+    in->hide();
     _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
     init();
   });
@@ -57,19 +52,39 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     init();
   });
 
-  //  connect(_d->ui->lineEdit_senderHeight, &QLineEdit::editingFinished, [&]()
-  //  {
-  //    QString temp = _d->ui->lineEdit_senderHeight->text();
-  //    _d->_c->setSenHeight(temp.toDouble());
-  //    init();
-  //  });
+  connect(_d->ui->horizontalSlider_sender, &QSlider::valueChanged, [&]() {
+    int temp = _d->ui->horizontalSlider_sender->value();
+    _d->ui->label_sender->setText(QString::number(temp));
+  });
 
-  //  connect(_d->ui->lineEdit_recieverHeight, &QLineEdit::editingFinished,
-  //  [&]() {
-  //    QString temp = _d->ui->lineEdit_recieverHeight->text();
-  //    _d->_c->setRecHeight(temp.toDouble());
-  //    init();
-  //  });
+  connect(_d->ui->horizontalSlider_sender, &QSlider::sliderReleased, [&]() {
+    int temp = _d->ui->horizontalSlider_sender->value();
+    _d->_c->setSenHeight(temp);
+    if (_d->ui->customPlot->graphCount() >= 5) {
+      _d->ui->customPlot->graph(2)->data().data()->clear();
+      _d->ui->customPlot->graph(3)->data().data()->clear();
+      _d->ui->customPlot->graph(4)->data().data()->clear();
+    }
+    init();
+  });
+
+  connect(_d->ui->horizontalSlider_reciever, &QSlider::valueChanged, [&]() {
+    int temp = _d->ui->horizontalSlider_reciever->value();
+    _d->_c->setSenHeight(temp);
+    _d->ui->lineEdit_reciever->setText(QString::number(temp));
+  });
+
+
+  connect(_d->ui->horizontalSlider_reciever, &QSlider::sliderReleased, [&]() {
+    int temp = _d->ui->horizontalSlider_reciever->value();
+    _d->_c->setRecHeight(temp);
+    if (_d->ui->customPlot->graphCount() >= 5) {
+      _d->ui->customPlot->graph(2)->data().data()->clear();
+      _d->ui->customPlot->graph(3)->data().data()->clear();
+      _d->ui->customPlot->graph(4)->data().data()->clear();
+    }
+    init();
+  });
 
   connect(_d->ui->customPlot, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);

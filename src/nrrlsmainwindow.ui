@@ -32,7 +32,7 @@
       <x>0</x>
       <y>0</y>
       <width>1361</width>
-      <height>681</height>
+      <height>671</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -50,36 +50,10 @@
     <widget class="QPushButton" name="pushButton_first_view">
      <property name="geometry">
       <rect>
-       <x>1260</x>
-       <y>30</y>
-       <width>31</width>
+       <x>1180</x>
+       <y>20</y>
+       <width>151</width>
        <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>1</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_second_view">
-     <property name="geometry">
-      <rect>
-       <x>1290</x>
-       <y>30</y>
-       <width>31</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>2</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label">
-     <property name="geometry">
-      <rect>
-       <x>1220</x>
-       <y>10</y>
-       <width>141</width>
-       <height>20</height>
       </rect>
      </property>
      <property name="text">
@@ -90,8 +64,8 @@
    <widget class="QLabel" name="label_height_sender">
     <property name="geometry">
      <rect>
-      <x>580</x>
-      <y>693</y>
+      <x>490</x>
+      <y>685</y>
       <width>171</width>
       <height>17</height>
      </rect>
@@ -103,8 +77,8 @@
    <widget class="QLabel" name="label_freq">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>693</y>
+      <x>220</x>
+      <y>685</y>
       <width>91</width>
       <height>17</height>
      </rect>
@@ -116,8 +90,8 @@
    <widget class="QLabel" name="label_freq_meas">
     <property name="geometry">
      <rect>
-      <x>500</x>
-      <y>693</y>
+      <x>410</x>
+      <y>685</y>
       <width>67</width>
       <height>17</height>
      </rect>
@@ -129,10 +103,10 @@
    <widget class="Line" name="line">
     <property name="geometry">
      <rect>
-      <x>290</x>
+      <x>200</x>
       <y>710</y>
-      <width>1071</width>
-      <height>31</height>
+      <width>1161</width>
+      <height>21</height>
      </rect>
     </property>
     <property name="frameShadow">
@@ -145,7 +119,7 @@
    <widget class="QLabel" name="label_interval_type">
     <property name="geometry">
      <rect>
-      <x>540</x>
+      <x>310</x>
       <y>736</y>
       <width>111</width>
       <height>17</height>
@@ -158,7 +132,7 @@
    <widget class="QLabel" name="label_interval_type_2">
     <property name="geometry">
      <rect>
-      <x>860</x>
+      <x>560</x>
       <y>736</y>
       <width>181</width>
       <height>17</height>
@@ -171,7 +145,7 @@
    <widget class="QLabel" name="label_coords">
     <property name="geometry">
      <rect>
-      <x>1270</x>
+      <x>1250</x>
       <y>750</y>
       <width>111</width>
       <height>17</height>
@@ -184,8 +158,8 @@
    <widget class="QLineEdit" name="lineEdit_freq">
     <property name="geometry">
      <rect>
-      <x>380</x>
-      <y>693</y>
+      <x>290</x>
+      <y>685</y>
       <width>113</width>
       <height>21</height>
      </rect>
@@ -194,10 +168,10 @@
    <widget class="Line" name="line_2">
     <property name="geometry">
      <rect>
-      <x>280</x>
-      <y>680</y>
+      <x>190</x>
+      <y>670</y>
       <width>20</width>
-      <height>91</height>
+      <height>101</height>
      </rect>
     </property>
     <property name="frameShadow">
@@ -207,27 +181,11 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="Line" name="line_3">
-    <property name="geometry">
-     <rect>
-      <x>0</x>
-      <y>670</y>
-      <width>1361</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Raised</enum>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_sender_meas">
     <property name="geometry">
      <rect>
-      <x>910</x>
-      <y>693</y>
+      <x>850</x>
+      <y>685</y>
       <width>67</width>
       <height>17</height>
      </rect>
@@ -239,8 +197,8 @@
    <widget class="QSlider" name="horizontalSlider_sender">
     <property name="geometry">
      <rect>
-      <x>740</x>
-      <y>695</y>
+      <x>650</x>
+      <y>687</y>
       <width>160</width>
       <height>16</height>
      </rect>
@@ -276,8 +234,8 @@
    <widget class="QLabel" name="label_sender_meas_2">
     <property name="geometry">
      <rect>
-      <x>1310</x>
-      <y>693</y>
+      <x>1330</x>
+      <y>685</y>
       <width>67</width>
       <height>17</height>
      </rect>
@@ -289,8 +247,8 @@
    <widget class="QLabel" name="label_height_sender_2">
     <property name="geometry">
      <rect>
-      <x>990</x>
-      <y>693</y>
+      <x>950</x>
+      <y>685</y>
       <width>171</width>
       <height>17</height>
      </rect>
@@ -302,8 +260,8 @@
    <widget class="QSlider" name="horizontalSlider_reciever">
     <property name="geometry">
      <rect>
-      <x>1140</x>
-      <y>695</y>
+      <x>1100</x>
+      <y>687</y>
       <width>160</width>
       <height>16</height>
      </rect>
@@ -321,7 +279,290 @@
      <enum>QSlider::TicksBothSides</enum>
     </property>
     <property name="tickInterval">
-     <number>10</number>
+     <number>25</number>
+    </property>
+   </widget>
+   <widget class="Line" name="line_4">
+    <property name="geometry">
+     <rect>
+      <x>460</x>
+      <y>670</y>
+      <width>20</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="Line" name="line_5">
+    <property name="geometry">
+     <rect>
+      <x>920</x>
+      <y>670</y>
+      <width>20</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="Line" name="line_3">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>660</y>
+      <width>1361</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>653</x>
+      <y>700</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>687</x>
+      <y>700</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>25</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>723</x>
+      <y>700</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>50</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>760</x>
+      <y>700</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>75</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>792</x>
+      <y>700</y>
+      <width>21</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>100</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>1210</x>
+      <y>700</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>75</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>1242</x>
+      <y>700</y>
+      <width>21</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>100</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>1174</x>
+      <y>700</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>50</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>1138</x>
+      <y>700</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>25</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>1103</x>
+      <y>700</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>DejaVu Sans</family>
+      <pointsize>8</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>0</string>
+    </property>
+   </widget>
+   <widget class="QProgressBar" name="progressBar">
+    <property name="enabled">
+     <bool>true</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>1120</x>
+      <y>750</y>
+      <width>118</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="value">
+     <number>0</number>
+    </property>
+    <property name="textVisible">
+     <bool>false</bool>
+    </property>
+    <property name="format">
+     <string>%p%</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_reciever">
+    <property name="geometry">
+     <rect>
+      <x>1270</x>
+      <y>685</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_sender">
+    <property name="geometry">
+     <rect>
+      <x>820</x>
+      <y>685</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
     </property>
    </widget>
   </widget>

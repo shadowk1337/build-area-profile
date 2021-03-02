@@ -1,5 +1,4 @@
 #include "nrrlscalc.h"
-#include <QDebug>
 
 QTextStream ostream(stdout);
 QTextStream estream(stderr);
@@ -468,13 +467,21 @@ Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
 }
 
 bool Item::exec() {
+  auto data_m = _data.toStrongRef()->m;
   for (auto item : _items) {
+    data_m->progressBar->setValue(data_m->progressBar->value() +
+                                  100 / _items.size());
+    QThread::msleep(100);
     if (!item.first->exec()) {
       estream << "Error in " << QString("%1 %2").arg(__FILE__).arg(item.second)
               << " function\n";
       return false;
     }
   }
+  data_m->customPlot->replot();
+  data_m->progressBar->setValue(100);
+  QThread::msleep(500);
+  data_m->progressBar->hide();
   return true;
 }
 
@@ -515,12 +522,11 @@ bool Atten::Land::Item::_isTangent(double a, double b, double start,
 
 namespace Etc {
 
-void setGraph(QCustomPlot *cp, const QVector<double> &x,
+void setGraph(QCustomPlot *cp, int it, const QVector<double> &x,
               const QVector<double> &y, QPen pen = QPen{}) {
-  static int it = 0;
   cp->addGraph();
   cp->graph(it)->setData(x, y, true);
-  cp->graph(it++)->setPen(pen);
+  cp->graph(it)->setPen(pen);
 }
 
 }  // namespace Etc
@@ -684,7 +690,8 @@ bool Earth::exec() {
       y.push_back(-(i * i / (2 * equivalent_radius)) + move_graph_up_value);
     }
   }
-  Etc::setGraph(_cp, x, y, pen);
+  Etc::setGraph(_cp, 0, x, y, pen);  // 0
+  x.clear(), y.clear();
   assert(x.size() == y.size());
 
   if (!_data) return false;
@@ -698,7 +705,8 @@ bool Curve::exec() {
   pen.setWidth(2);
   coords.x(x);
   coords.y(y);
-  Etc::setGraph(_cp, x, y, pen);
+  Etc::setGraph(_cp, 1, x, y, pen);  // 1
+  x.clear(), y.clear();
 
   if (!_data) return false;
   return true;
@@ -714,14 +722,15 @@ bool Fresnel::exec() {
   y.push_back((-data->param.H_null[i.key()]) + data->param.los.first * i.key() +
               data->param.los.second);
   LOOP_END;
-  Etc::setGraph(_cp, x, y, pen);
+  Etc::setGraph(_cp, 2, x, y, pen);  // 2
 
   decltype(x)::ConstIterator it = x.begin();
   LOOP_START(y.begin(), y.end(), i);
   *i += 2 * data->param.H_null[*it];
   it = (it != x.end()) ? std::next(it) : std::prev(x.end());
   LOOP_END;
-  Etc::setGraph(_cp, x, y, pen);
+  Etc::setGraph(_cp, 3, x, y, pen);  // 3
+  x.clear(), y.clear();
   if (!_data) return false;
   return true;
 }
@@ -735,8 +744,9 @@ bool Los::exec() {
   data->param.coords.x(x);
   for (auto it : x)
     y.push_back(data->param.los.first * it + data->param.los.second);
-  Etc::setGraph(_cp, x, y, pen);
-  //  QCPItemLine *line = new QCPItemLine(_cp);
+  Etc::setGraph(_cp, 4, x, y, pen);  // 4
+  x.clear(), y.clear();
+  QCPItemLine *line = new QCPItemLine(_cp);
   //  line->setPen(pen);
   //  line->start->setCoords(data->tower.sender.first,
   //  data->tower.sender.second);
@@ -1076,21 +1086,9 @@ Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
 }
 
 bool Core::exec() {
-  if (_cp->graphCount()) {
-    _cp->graph(0)->data().data()->clear();
-    //    _cp->graph(1)->data().data()->clear();
-    //    _cp->graph(2)->data().data()->clear();
-    //    _cp->graph(3)->data().data()->clear();
-    //    _cp->graph(4)->data().data()->clear();
-    //    _cp->removeGraph(0);
-    //    _cp->removeGraph(1);
-    //    _cp->removeGraph(2);
-    //    _cp->removeGraph(3);
-    //    _cp->removeGraph();
-        _cp->replot();
-  }
-  Etc::setGraph(_cp, {1, 2, 3}, {2, 3, 4});
-  //  return _main->exec();
+  _data->m->progressBar->show();
+  _data->m->progressBar->setValue(0);
+  return _main->exec();
 }
 
 void Core::setFreq(double f) { _data->spec.f = f; }
