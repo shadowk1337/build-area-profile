@@ -61,7 +61,7 @@
      </property>
     </widget>
    </widget>
-   <widget class="QLabel" name="label_height_sender">
+   <widget class="QLabel" name="label_senderHeight">
     <property name="geometry">
      <rect>
       <x>490</x>
@@ -87,7 +87,7 @@
      <string>Частота:</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_freq_meas">
+   <widget class="QLabel" name="label_freqMeas">
     <property name="geometry">
      <rect>
       <x>410</x>
@@ -116,7 +116,7 @@
      <enum>Qt::Horizontal</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label_interval_type">
+   <widget class="QLabel" name="label_interval">
     <property name="geometry">
      <rect>
       <x>310</x>
@@ -129,10 +129,10 @@
      <string>Тип интервала: </string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_interval_type_2">
+   <widget class="QLabel" name="label_attentuation">
     <property name="geometry">
      <rect>
-      <x>560</x>
+      <x>610</x>
       <y>736</y>
       <width>181</width>
       <height>17</height>
@@ -181,10 +181,10 @@
      <enum>Qt::Vertical</enum>
     </property>
    </widget>
-   <widget class="QLabel" name="label_sender_meas">
+   <widget class="QLabel" name="label_senderMeas">
     <property name="geometry">
      <rect>
-      <x>850</x>
+      <x>880</x>
       <y>685</y>
       <width>67</width>
       <height>17</height>
@@ -218,6 +218,12 @@
     <property name="maximum">
      <number>100</number>
     </property>
+    <property name="singleStep">
+     <number>1</number>
+    </property>
+    <property name="tracking">
+     <bool>true</bool>
+    </property>
     <property name="orientation">
      <enum>Qt::Horizontal</enum>
     </property>
@@ -231,7 +237,7 @@
      <number>25</number>
     </property>
    </widget>
-   <widget class="QLabel" name="label_sender_meas_2">
+   <widget class="QLabel" name="label_recieverMeas">
     <property name="geometry">
      <rect>
       <x>1330</x>
@@ -244,7 +250,7 @@
      <string>м.</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label_height_sender_2">
+   <widget class="QLabel" name="label_recieverHeight">
     <property name="geometry">
      <rect>
       <x>950</x>
@@ -552,7 +558,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QLabel" name="label_sender">
+   <widget class="QLineEdit" name="lineEdit_sender">
     <property name="geometry">
      <rect>
       <x>820</x>
@@ -561,8 +567,44 @@
       <height>21</height>
      </rect>
     </property>
+   </widget>
+   <widget class="QLabel" name="label_intervalType">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>736</y>
+      <width>161</width>
+      <height>17</height>
+     </rect>
+    </property>
     <property name="text">
      <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_attentuationValue">
+    <property name="geometry">
+     <rect>
+      <x>800</x>
+      <y>736</y>
+      <width>81</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_attentuationMeas">
+    <property name="geometry">
+     <rect>
+      <x>860</x>
+      <y>736</y>
+      <width>67</width>
+      <height>17</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>дБ</string>
     </property>
    </widget>
   </widget>

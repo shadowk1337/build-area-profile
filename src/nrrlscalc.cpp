@@ -199,6 +199,8 @@ class Opened : public Land::Item {
                                      const std::pair<double, double> &rhs) {
                                     return lhs.second < rhs.second;
                                   });
+    for (auto it : H)
+      ostream << it.second << ' ';
     return {H_min->first, H_min->second};
   }
 
@@ -458,8 +460,7 @@ Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
       qMakePair(Fill::Item::Ptr::create(_data, _cp), QString("Fill")),
       qMakePair(Profile::Item::Ptr::create(_data, _cp), QString("Profile")),
       qMakePair(Interval::Item::Ptr::create(_data), QString("Interval")),
-      //      qMakePair(Atten::Land::Item::Ptr::create(_data),
-      //      QString("Attentuation")),
+      qMakePair(Atten::Land::Item::Ptr::create(_data), QString("Attentuation")),
       /*Atten::Free::Item::Ptr::create(_data),
       Atten::Air::Item::Ptr::create(_data),
       Median::Item::Ptr::create(_data)*/
@@ -471,7 +472,7 @@ bool Item::exec() {
   for (auto item : _items) {
     data_m->progressBar->setValue(data_m->progressBar->value() +
                                   100 / _items.size());
-    QThread::msleep(100);
+    QThread::msleep(10);
     if (!item.first->exec()) {
       estream << "Error in " << QString("%1 %2").arg(__FILE__).arg(item.second)
               << " function\n";
@@ -495,22 +496,25 @@ bool Profile::Item::exec() {
           Los::Ptr::create(_data, _cp)->exec());
 }
 
-/*bool Atten::Land::Item::exec() {
+bool Atten::Land::Item::exec() {
   switch (data->interval_type) {  // 1-Открытый, 2-Полуоткрытый, 3-Закрытый
     case 1:
+      data->m->label_intervalType->setText("Открытый");
       Opened::Ptr::create(_data)->exec();
       break;
     case 2:
-      //    SemiOpened::Ptr::create(_data)->exec();
+      data->m->label_intervalType->setText("Полуоткрытый");
+      //      SemiOpened::Ptr::create(_data)->exec();
       break;
     case 3:
-      Closed::Ptr::create(_data)->exec();
+      data->m->label_intervalType->setText("Закрытый");
+      //      Closed::Ptr::create(_data)->exec();
       break;
     default:
       return false;
   }
   return true;
-}*/
+}
 
 bool Atten::Land::Item::_isTangent(double a, double b, double start,
                                    double end) const {
@@ -540,7 +544,7 @@ double Item::lNull(double h0, double k) const {
          (1 + (h0 * h0) / (4 * k * (1 - k)));
 }
 
-double Item::HNull(int i) const {
+double Item::HNull(double i) const {
   auto data = _data.toStrongRef();
   return sqrt(data->constant.area_length * data->constant.lambda * k(i) *
               ((1 - k(i)) / 3));
@@ -592,7 +596,7 @@ bool Item::exec() {
       continue;
     }
     if (l == -1 || h == -1) {
-      estream << QString("File %1 doesn't consist table names\n")
+      estream << QString("File %1 doesn't contain table names\n")
                      .arg(data->filename);
       return false;
     }
@@ -678,7 +682,6 @@ bool Earth::exec() {
 
   double half =  ///< Половина длины рассматриваемого участка
       data->constant.area_length / 2;
-  //  QVector<Profile::Data::Coords>::iterator it = coords.begin();
   coords.x(x);
   decltype(x)::ConstIterator it = x.begin();
   for (double i = -half; it != x.end(); it = std::next(it), i = -half + *it) {
@@ -690,7 +693,7 @@ bool Earth::exec() {
       y.push_back(-(i * i / (2 * equivalent_radius)) + move_graph_up_value);
     }
   }
-  Etc::setGraph(_cp, 0, x, y, pen);  // 0
+  Etc::setGraph(_cp, 0, x, y, pen);
   x.clear(), y.clear();
   assert(x.size() == y.size());
 
@@ -705,7 +708,7 @@ bool Curve::exec() {
   pen.setWidth(2);
   coords.x(x);
   coords.y(y);
-  Etc::setGraph(_cp, 1, x, y, pen);  // 1
+  Etc::setGraph(_cp, 1, x, y, pen);
   x.clear(), y.clear();
 
   if (!_data) return false;
@@ -722,14 +725,14 @@ bool Fresnel::exec() {
   y.push_back((-data->param.H_null[i.key()]) + data->param.los.first * i.key() +
               data->param.los.second);
   LOOP_END;
-  Etc::setGraph(_cp, 2, x, y, pen);  // 2
+  Etc::setGraph(_cp, 2, x, y, pen);
 
   decltype(x)::ConstIterator it = x.begin();
   LOOP_START(y.begin(), y.end(), i);
   *i += 2 * data->param.H_null[*it];
   it = (it != x.end()) ? std::next(it) : std::prev(x.end());
   LOOP_END;
-  Etc::setGraph(_cp, 3, x, y, pen);  // 3
+  Etc::setGraph(_cp, 3, x, y, pen);
   x.clear(), y.clear();
   if (!_data) return false;
   return true;
@@ -744,14 +747,8 @@ bool Los::exec() {
   data->param.coords.x(x);
   for (auto it : x)
     y.push_back(data->param.los.first * it + data->param.los.second);
-  Etc::setGraph(_cp, 4, x, y, pen);  // 4
+  Etc::setGraph(_cp, 4, x, y, pen);
   x.clear(), y.clear();
-  QCPItemLine *line = new QCPItemLine(_cp);
-  //  line->setPen(pen);
-  //  line->start->setCoords(data->tower.sender.first,
-  //  data->tower.sender.second);
-  //  line->end->setCoords(data->tower.reciever.first,
-  //  data->tower.reciever.second);
   if (!_data) return false;
   return true;
 }
@@ -759,6 +756,7 @@ bool Los::exec() {
 }  // namespace Profile
 
 bool Interval::Item::exec() {
+  data->interval_type = 0;
   LOOP_START(data->param.coords.begin(), data->param.coords.end(), it);
   auto i = it.key();
   if (data->param.H[i] >= data->param.H_null[i] && data->param.h_null[i] >= 0)
@@ -770,11 +768,12 @@ bool Interval::Item::exec() {
            data->param.h_null[i] < 0)
     data->interval_type = 3;
   LOOP_END;
+
   if (!_data) return false;
   return true;
 }
 
-/*namespace Atten {
+namespace Atten {
 namespace Land {
 
 // Составляющая расчета. Реализация расчета затухания на открытом интервале
@@ -790,51 +789,56 @@ bool Opened::exec() {
 QPair<QMap<double, double>::ConstIterator, QMap<double, double>::ConstIterator>
 Opened::_findIntersectionInterval(void) {
   auto H_min = _findMinH();
-  auto [a, b] = strLineEquation(data->tower.sender.first,
-                                data->tower.sender.second - H_min.second,
-                                H_min.first, H_min.second);
-  b -= data->param.H_null[H_min.second];
-  QMap<double, double>::ConstIterator right, left;
-  for (auto it = coords.lowerBound(H_min.first); it != coords.end() - 1; ++it) {
-    if (std::next(it).value() < a * it.key() + b) {
-      right = it;
-      for (auto jt = coords.lowerBound(H_min.first); jt != coords.begin() + 1;
-           --jt)
-        if (std::prev(jt).value() < a * jt.key() + b) left = jt;
-    }
-  }
-  return {left, right};
+//  ostream << H_min.first << ' ' << H_min.second;
+//  auto p =
+//      strLineEquation(data->tower.sender.first,
+//                      data->tower.sender.second + coords.b_y() - H_min.second,
+//                      H_min.first, H_min.second);
+//  p.second -= data->param.H_null[H_min.second];
+//  QMap<double, double>::ConstIterator right, left;
+  //    for (auto it = coords.lowerBound(H_min.first); it != coords.end() - 1;
+  //    ++it)
+//  LOOP_START(coords.lowerBound(H_min.first), coords.end() - 1, it);
+//  if (std::next(it).value() < p.first * it.key() + p.second) {
+    //      right = it;
+    //      for (auto jt = coords.lowerBound(H_min.first); jt != coords.begin()
+    //      + 1;
+    //           --jt)
+    //        if (std::prev(jt).value() < a * jt.key() + b) left = jt;
+//  }
+//  LOOP_END;
+  //  return {left, right};
 }
 
-void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
-  QVector<double> h;
-  coords.y(h);
-  auto pair =
-      strLineEquation(start.key(), start.value(), end.key(), end.value());
-  auto H_null = data->param.H_null.values();
-  auto h_null = data->param.h_null.values();
-  auto max_H0_h0 =  ///< Максимально допустимое значение неровности рельефа
-      0.75 * *std::max_element(H_null.begin(), H_null.end()) /
-      *std::min_element(h_null.begin(), h_null.end());
-  double delta_h = 0;
-  LOOP_START(coords.lowerBound(start.key()), coords.lowerBound(end.value()),
-             it);
-  delta_h = std::max(pair.first * *it + pair.second - h.at(*it), delta_h);
-  LOOP_END;
-  //  if (delta_h > max_H0_h0) {
-  //    auto phi_null = _mirror_coef();
-  //    ostream << _attentuationPlane(phi_null, delta_h);
-  //  } else {
-  //    ostream << _attentuationPlane(1, delta_h);
-  //  }
-}
+// void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
+//  QVector<double> h;
+//  coords.y(h);
+//  auto pair =
+//      strLineEquation(start.key(), start.value(), end.key(), end.value());
+//  auto H_null = data->param.H_null.values();
+//  auto h_null = data->param.h_null.values();
+//  auto max_H0_h0 =  ///< Максимально допустимое значение неровности рельефа
+//      0.75 * *std::max_element(H_null.begin(), H_null.end()) /
+//      *std::min_element(h_null.begin(), h_null.end());
+//  double delta_h = 0;
+//  LOOP_START(coords.lowerBound(start.key()), coords.lowerBound(end.value()),
+//             it);
+//  delta_h = std::max(pair.first * *it + pair.second - h.at(*it), delta_h);
+//  LOOP_END;
+//  //  if (delta_h > max_H0_h0) {
+//  //    auto phi_null = _mirror_coef();
+//  //    ostream << _attentuationPlane(phi_null, delta_h);
+//  //  } else {
+//  //    ostream << _attentuationPlane(1, delta_h);
+//  //  }
+//}
 
-double Opened::_attentuationPlane(double phi_null, double delta_h) {
-  return -10 *
-         log10(1 + qPow(phi_null, 2) -
-               2 * qPow(phi_null, 2) * qCos(M_PI / 3 * delta_h * delta_h));
-}  // Конец реализации расчета затухания на открытом интервале
-
+// double Opened::_attentuationPlane(double phi_null, double delta_h) {
+//  return -10 *
+//         log10(1 + qPow(phi_null, 2) -
+//               2 * qPow(phi_null, 2) * qCos(M_PI / 3 * delta_h * delta_h));
+//}  // Конец реализации расчета затухания на открытом интервале
+/*
 // Составляющая расчета. Реализация расчета затухания на полуоткрытом интервале
 
 bool SemiOpened::exec() {
@@ -1073,10 +1077,10 @@ double Closed::_atten(double param) {
   else
     return 6.9 + 20 * log10(qSqrt(qPow((param - .1), 2) + 1) + param - .1);
 }
-
+*/
 }  // namespace Land
 }  // namespace Atten
-*/
+
 Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
   _data = QSharedPointer<Data>::create();
   _data->m = m;

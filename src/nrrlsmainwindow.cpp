@@ -17,17 +17,18 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     : QMainWindow(parent), _d(new Private) {
   _d->ui = new Ui::NRrlsMainWindow;
   _d->ui->setupUi(this);
-  //  _d->ui->customPlot->close();
 
   setSettings(options);
+
+  _d->ui->customPlot->xAxis->setVisible(0);
+  _d->ui->customPlot->yAxis->setVisible(0);
+  _d->ui->progressBar->hide();
 
   setWindowTitle(tr("РРЛС"));
   int w = 1360;
   int h = 768;
   const QRect &r = qApp->desktop()->screen()->rect();
   setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
-
-  _d->ui->progressBar->hide();
 
   QWidget *a = new QWidget(this);
   a->setGeometry(2, 695, 195, 50);
@@ -37,52 +38,77 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   la->addWidget(pushButton_fileDial);
   pushButton_fileDial->setMaximumSize(a->width(), a->height());
 
+  int h1, h2;
+
   connect(pushButton_fileDial, &QPushButton::clicked, [&]() {
+    _d->ui->customPlot->xAxis->setVisible(1);
+    _d->ui->customPlot->yAxis->setVisible(1);
+    h1 = h2 = 20;
+    _d->ui->horizontalSlider_sender->setValue(h1);
+    _d->ui->horizontalSlider_reciever->setValue(h2);
+    _d->ui->lineEdit_sender->setText(QString::number(h1));
+    _d->ui->lineEdit_reciever->setText(QString::number(h2));
     QFileDialog *in = new QFileDialog(this, "Open File", "*.csv");
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
     QString temp = in->getOpenFileName();
     in->hide();
     _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
+    _d->_c->setSenHeight(h1);
+    _d->_c->setRecHeight(h2);
     init();
   });
 
   connect(_d->ui->lineEdit_freq, &QLineEdit::editingFinished, [&]() {
-    QString temp = _d->ui->lineEdit_freq->text();
-    _d->_c->setFreq(temp.toDouble());
-    init();
+    if (_d->ui->customPlot->graphCount() >= 5) {
+      QString temp = _d->ui->lineEdit_freq->text();
+      _d->_c->setFreq(temp.toDouble());
+      init();
+    }
   });
 
   connect(_d->ui->horizontalSlider_sender, &QSlider::valueChanged, [&]() {
-    int temp = _d->ui->horizontalSlider_sender->value();
-    _d->ui->label_sender->setText(QString::number(temp));
+    h1 = _d->ui->horizontalSlider_sender->value();
+    _d->ui->lineEdit_sender->setText(QString::number(h1));
   });
 
   connect(_d->ui->horizontalSlider_sender, &QSlider::sliderReleased, [&]() {
-    int temp = _d->ui->horizontalSlider_sender->value();
-    _d->_c->setSenHeight(temp);
+    h1 = _d->ui->horizontalSlider_sender->value();
     if (_d->ui->customPlot->graphCount() >= 5) {
+      _d->_c->setSenHeight(h1);
       _d->ui->customPlot->graph(2)->data().data()->clear();
       _d->ui->customPlot->graph(3)->data().data()->clear();
       _d->ui->customPlot->graph(4)->data().data()->clear();
+      init();
     }
+  });
+
+  connect(_d->ui->lineEdit_sender, &QLineEdit::textEdited, [&]() {
+    h1 = _d->ui->lineEdit_sender->text().toInt();
+    _d->ui->horizontalSlider_sender->setValue(h1);
+    _d->_c->setSenHeight(h1);
     init();
   });
 
   connect(_d->ui->horizontalSlider_reciever, &QSlider::valueChanged, [&]() {
-    int temp = _d->ui->horizontalSlider_reciever->value();
-    _d->_c->setSenHeight(temp);
-    _d->ui->lineEdit_reciever->setText(QString::number(temp));
+    h2 = _d->ui->horizontalSlider_reciever->value();
+    _d->ui->lineEdit_reciever->setText(QString::number(h2));
   });
 
-
   connect(_d->ui->horizontalSlider_reciever, &QSlider::sliderReleased, [&]() {
-    int temp = _d->ui->horizontalSlider_reciever->value();
-    _d->_c->setRecHeight(temp);
+    h2 = _d->ui->horizontalSlider_reciever->value();
     if (_d->ui->customPlot->graphCount() >= 5) {
+      _d->_c->setRecHeight(h2);
       _d->ui->customPlot->graph(2)->data().data()->clear();
       _d->ui->customPlot->graph(3)->data().data()->clear();
       _d->ui->customPlot->graph(4)->data().data()->clear();
+      init();
     }
+  });
+
+  connect(_d->ui->lineEdit_reciever, &QLineEdit::textEdited, [&]() {
+    h2 = _d->ui->lineEdit_reciever->text().toInt();
+    _d->ui->horizontalSlider_reciever->setValue(h2);
+    _d->_c->setRecHeight(h2);
     init();
   });
 
