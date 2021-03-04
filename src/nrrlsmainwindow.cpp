@@ -22,6 +22,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   _d->ui->customPlot->xAxis->setVisible(0);
   _d->ui->customPlot->yAxis->setVisible(0);
+  _d->ui->lineEdit_sender->setText("0");
+  _d->ui->lineEdit_reciever->setText("0");
   _d->ui->progressBar->hide();
 
   setWindowTitle(tr("РРЛС"));
@@ -38,7 +40,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   la->addWidget(pushButton_fileDial);
   pushButton_fileDial->setMaximumSize(a->width(), a->height());
 
-  int h1, h2;
+  int h1, h2; ///< Высоты, задаваемые ползунками
 
   connect(pushButton_fileDial, &QPushButton::clicked, [&]() {
     _d->ui->customPlot->xAxis->setVisible(1);
@@ -78,11 +80,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->ui->customPlot->graph(2)->data().data()->clear();
       _d->ui->customPlot->graph(3)->data().data()->clear();
       _d->ui->customPlot->graph(4)->data().data()->clear();
+
+      _d->ui->customPlot->graph(5)->data().data()->clear();
+
       init();
     }
   });
 
-  connect(_d->ui->lineEdit_sender, &QLineEdit::textEdited, [&]() {
+  connect(_d->ui->lineEdit_sender, &QLineEdit::editingFinished, [&]() {
     h1 = _d->ui->lineEdit_sender->text().toInt();
     _d->ui->horizontalSlider_sender->setValue(h1);
     _d->_c->setSenHeight(h1);
@@ -101,11 +106,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->ui->customPlot->graph(2)->data().data()->clear();
       _d->ui->customPlot->graph(3)->data().data()->clear();
       _d->ui->customPlot->graph(4)->data().data()->clear();
+
+      _d->ui->customPlot->graph(5)->data().data()->clear();
+
       init();
     }
   });
 
-  connect(_d->ui->lineEdit_reciever, &QLineEdit::textEdited, [&]() {
+  connect(_d->ui->lineEdit_reciever, &QLineEdit::editingFinished, [&]() {
     h2 = _d->ui->lineEdit_reciever->text().toInt();
     _d->ui->horizontalSlider_reciever->setValue(h2);
     _d->_c->setRecHeight(h2);

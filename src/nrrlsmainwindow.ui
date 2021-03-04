@@ -70,6 +70,12 @@
       <height>17</height>
      </rect>
     </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Sunken</enum>
+    </property>
     <property name="text">
      <string>Высота передатчика:</string>
     </property>
@@ -194,49 +200,6 @@
      <string>м.</string>
     </property>
    </widget>
-   <widget class="QSlider" name="horizontalSlider_sender">
-    <property name="geometry">
-     <rect>
-      <x>650</x>
-      <y>687</y>
-      <width>160</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="sizePolicy">
-     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-      <horstretch>0</horstretch>
-      <verstretch>0</verstretch>
-     </sizepolicy>
-    </property>
-    <property name="cursor">
-     <cursorShape>PointingHandCursor</cursorShape>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::StrongFocus</enum>
-    </property>
-    <property name="maximum">
-     <number>100</number>
-    </property>
-    <property name="singleStep">
-     <number>1</number>
-    </property>
-    <property name="tracking">
-     <bool>true</bool>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-    <property name="invertedAppearance">
-     <bool>false</bool>
-    </property>
-    <property name="tickPosition">
-     <enum>QSlider::TicksBothSides</enum>
-    </property>
-    <property name="tickInterval">
-     <number>25</number>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_recieverMeas">
     <property name="geometry">
      <rect>
@@ -261,6 +224,31 @@
     </property>
     <property name="text">
      <string>Высота приемника:</string>
+    </property>
+   </widget>
+   <widget class="QSlider" name="horizontalSlider_sender">
+    <property name="geometry">
+     <rect>
+      <x>650</x>
+      <y>687</y>
+      <width>160</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>PointingHandCursor</cursorShape>
+    </property>
+    <property name="maximum">
+     <number>100</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+    <property name="tickPosition">
+     <enum>QSlider::TicksBothSides</enum>
+    </property>
+    <property name="tickInterval">
+     <number>25</number>
     </property>
    </widget>
    <widget class="QSlider" name="horizontalSlider_reciever">
@@ -573,9 +561,15 @@
      <rect>
       <x>430</x>
       <y>736</y>
-      <width>161</width>
+      <width>121</width>
       <height>17</height>
      </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Plain</enum>
     </property>
     <property name="text">
      <string/>

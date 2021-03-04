@@ -199,8 +199,6 @@ class Opened : public Land::Item {
                                      const std::pair<double, double> &rhs) {
                                     return lhs.second < rhs.second;
                                   });
-    for (auto it : H)
-      ostream << it.second << ' ';
     return {H_min->first, H_min->second};
   }
 
@@ -508,7 +506,7 @@ bool Atten::Land::Item::exec() {
       break;
     case 3:
       data->m->label_intervalType->setText("Закрытый");
-      //      Closed::Ptr::create(_data)->exec();
+      Closed::Ptr::create(_data)->exec();
       break;
     default:
       return false;
@@ -677,8 +675,7 @@ bool Earth::exec() {
   double equivalent_radius =
       data->constant.radius /
       (1 + data->constant.g_standard * data->constant.radius / 2);
-  QPen pen(QColor("#014506"));
-  pen.setWidth(2);
+  QPen pen(QColor("#014506"), 2);
 
   double half =  ///< Половина длины рассматриваемого участка
       data->constant.area_length / 2;
@@ -704,8 +701,7 @@ bool Earth::exec() {
 bool Curve::exec() {
   QVector<double> x, y;
   RESERVE(x, y, data->param.count);
-  QPen pen(QColor("#137ea8"));
-  pen.setWidth(2);
+  QPen pen(QColor("#137ea8"), 2);
   coords.x(x);
   coords.y(y);
   Etc::setGraph(_cp, 1, x, y, pen);
@@ -741,8 +737,7 @@ bool Fresnel::exec() {
 bool Los::exec() {
   QVector<double> x, y;
   RESERVE(x, y, data->param.count);
-  QPen pen(QColor("#d6ba06"));
-  pen.setWidth(2);
+  QPen pen(QColor("#d6ba06"), 2);
 
   data->param.coords.x(x);
   for (auto it : x)
@@ -780,7 +775,6 @@ namespace Land {
 
 bool Opened::exec() {
   auto p = _findIntersectionInterval();
-  ostream << p.first.key() << ' ' << p.second.key();
   //  ostream << p.first.key() << ' ' << p.second.key();
   if (!_data) return false;
   return true;
@@ -789,25 +783,22 @@ bool Opened::exec() {
 QPair<QMap<double, double>::ConstIterator, QMap<double, double>::ConstIterator>
 Opened::_findIntersectionInterval(void) {
   auto H_min = _findMinH();
-//  ostream << H_min.first << ' ' << H_min.second;
-//  auto p =
-//      strLineEquation(data->tower.sender.first,
-//                      data->tower.sender.second + coords.b_y() - H_min.second,
-//                      H_min.first, H_min.second);
-//  p.second -= data->param.H_null[H_min.second];
-//  QMap<double, double>::ConstIterator right, left;
-  //    for (auto it = coords.lowerBound(H_min.first); it != coords.end() - 1;
-  //    ++it)
-//  LOOP_START(coords.lowerBound(H_min.first), coords.end() - 1, it);
-//  if (std::next(it).value() < p.first * it.key() + p.second) {
-    //      right = it;
-    //      for (auto jt = coords.lowerBound(H_min.first); jt != coords.begin()
-    //      + 1;
-    //           --jt)
-    //        if (std::prev(jt).value() < a * jt.key() + b) left = jt;
-//  }
-//  LOOP_END;
-  //  return {left, right};
+  auto p =
+      strLineEquation(data->tower.sender.first,
+                      data->tower.sender.second + coords.b_y() - H_min.second,
+                      H_min.first, H_min.second);
+  p.second -= data->param.H_null[H_min.second];
+  QMap<double, double>::ConstIterator right, left;
+  LOOP_START(coords.lowerBound(H_min.first), coords.end() - 1, it);
+  if (std::next(it).value() < p.first * it.key() + p.second) {
+    right = it;
+    for (auto jt = coords.lowerBound(H_min.first); jt != coords.begin() + 1;
+         --jt)
+      if (std::prev(jt).value() < p.first * jt.key() + p.second) left = jt;
+  }
+  LOOP_END;
+  //  ostream << left.value() << ' ' << right.value();
+  return {left, right};
 }
 
 // void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
@@ -931,14 +922,15 @@ double SemiOpened::_attentuationPWedg(double nu) {
 double SemiOpened::_t(double l, double s) {
   return l / s;
 }  // Конец реализации расчета затухания на полуоткрытом интервале
-
+*/
 // Составляющая расчета. Реализация расчета затухания на закрытом интервале
 
 bool Closed::exec() {
   Peaks l = _countPeaks();
   auto param = _reliefTangentStraightLines(l);
-  ostream << param << '\n';
-  ostream << _atten(param) << '\n';
+  //  ostream << param << '\n';
+  //  ostream << _atten(param) << '\n';
+  //  ostream << "--------\n";
   if (!_data) return false;
   return true;
 }
@@ -996,8 +988,8 @@ void Closed::_approx(Peaks &v) {
 }
 
 double Closed::_reliefTangentStraightLines(const Peaks &p) {
-  QPair<double, double> left,
-      right;  ///< Координаты высшей точки правого и левого препятствия
+  QPair<double, double> left,  ///< Координаты высшей точки левого препятствия
+      right;  ///< Координаты высшей точки правого препятствия
   Peaks peaks;
 
   // Находим для каждого препятствия координаты его высшей точки
@@ -1010,13 +1002,17 @@ double Closed::_reliefTangentStraightLines(const Peaks &p) {
   }
 
   Peaks::iterator p_it = peaks.begin();
+
   LOOP_START(p.begin(), p.end(), it);
   left = (it == p.begin())
-             ? qMakePair(data->tower.sender.first, data->tower.sender.second)
+             ? qMakePair(data->tower.sender.first,
+                         data->tower.sender.second + data->param.coords.b_y())
              : *(it - 1);
-  right = (it == p.end() - 1) ? qMakePair(data->tower.reciever.first,
-                                          data->tower.reciever.second)
-                              : *(it + 1);
+  right =
+      (it == p.end() - 1)
+          ? qMakePair(data->tower.reciever.first,
+                      data->tower.reciever.second + data->param.coords.e_y())
+          : *(it + 1);
   _tangent(*it, left, right);
   p_it = std::next(p_it);
   LOOP_END;
@@ -1036,11 +1032,32 @@ double Closed::_tangent(const QPair<double, double> &p,
       exit(0);
     }
     line_l = strLineEquation(left.first, left.second, it.key(), it.value());
+    ostream << line_l.first << ' ' << line_l.second << '\n';
     if (_isTangent(line_l.first, line_l.second, it.key(),
                    (coords.end() - 1).key())) {
+      QVector<double> x, y;
+      _data.toStrongRef()->param.coords.x(x);
+      for (auto it : x) {
+        y.push_back(line_l.first * it + line_l.second);
+      }
+      _data.toStrongRef()->m->customPlot->addGraph();
+      _data.toStrongRef()->m->customPlot->graph(5)->addData(x, y);
       break;
     }
   }
+
+  //
+
+  //  ostream << line_l.first << ' ' << line_l.second << '\n';
+  //  QVector<double> x, y;
+  //  _data.toStrongRef()->param.coords.x(x);
+  //  for (auto it : x) {
+  //      y.push_back(line_l.first * it + line_l.second);
+  //    }
+  //  _data.toStrongRef()->m->customPlot->addGraph();
+  //  _data.toStrongRef()->m->customPlot->graph(5)->addData(x, y);
+
+  //
   // Поиск касательной со стороны правого препятствия
   for (auto it = (coords.lowerBound(right.first) - 1); it != coords.begin();
        it = std::prev(it)) {
@@ -1050,7 +1067,9 @@ double Closed::_tangent(const QPair<double, double> &p,
       break;
     }
   }
+
   auto poi = _pointOfIntersection(line_l, line_r);
+  //  ostream << poi.first << ' ' << poi.second << '\n';
   double h =
       poi.second - data->param.los.first * poi.first - data->param.los.second;
   double d1 = qSqrt(qPow(poi.second - left.second, 2) +
@@ -1077,8 +1096,9 @@ double Closed::_atten(double param) {
   else
     return 6.9 + 20 * log10(qSqrt(qPow((param - .1), 2) + 1) + param - .1);
 }
-*/
+
 }  // namespace Land
+
 }  // namespace Atten
 
 Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
