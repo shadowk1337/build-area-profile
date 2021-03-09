@@ -256,30 +256,6 @@ class SemiOpened : public Land::Item {
 
  private:
   /**
-   * Функция аппроксимации сферой
-   * @param x     - индекс рассматриваемой точки
-   * @param obst_sph_radius
-   *                - радиус препятствия
-   * @return Затухание на интервале
-   */
-  double _sphereApproximation(double x, double obst_sph_radius);
-
-  /**
-   * Функция аппроксимации клином
-   * @param x     - индекс рассматриваемой точки
-   * @return Затухание на интервале
-   */
-  double _wedgeApproximation(double x);
-
-  /**
-   * Функция нахождения высоты хорды
-   * @param sh_height
-   *                - высота затеняющего препятствия
-   * @return Величина высоты хорды
-   */
-  double _deltaY(double sh_ind);
-
-  /**
    * Функция нахождения затеняющего препятствия
    * @return Пара .first
    *                - индекс препятствия .second - величина минимального
@@ -287,54 +263,15 @@ class SemiOpened : public Land::Item {
    */
   QPair<double, double> _shadingObstacle(void) const;
 
+  double _tangent(const QPair<double, double> &p);
+
  private:
-  /**
-   * Функция нахождения параметра рельефа местности
-   * @param k       - относительная координата
-   * @param H0      - критический просвет
-   * @param obstacleShereRadius
-   *                - радиус сферы препятствия
-   * @return Величина параметра рельефа местности
-   */
-  inline double _areaReliefParameter(double k, double H0,
-                                     double obstacleShereRadius);
+  inline QPair<double, double> _pointOfIntersection(
+      QPair<double, double> l, QPair<double, double> r) const;
 
-  /**
-   * Функция нахождения функции параметра рельефа
-   * @param mu      - параметр рельефа местности
-   * @return Величина функции параметра рельефа
-   */
-  inline double _reliefParFuncSph(double mu);
+  inline double _diffractionParam(double h, double d1, double d2) const;
 
-  /**
-   * Функция нахождения затухания
-   * @param mu      - параметр рельефа местности
-   * @return Величина затухания
-   */
-  inline double _attentuationPSph(double mu);
-
-  /**
-   * Функция нахождения параметра клиновидного препятствия
-   * @param H       - реальный просвет
-   * @param k       - относительная координата
-   * @return Величина параметра клиновидного препятствия
-   */
-  inline double _nuWedg(double H, double k);
-
-  /**
-   * Функция нахождения затухания
-   * @param nu      - параметр клиновидного препятствия
-   * @return Величина затухания
-   */
-  inline double _attentuationPWedg(double nu);
-
-  /**
-   * Функция нахождения относительной протяженности вершины препятствия
-   * @param l       - действительная протяженность вершины
-   * @param s       - масштаб расстояний
-   * @return Величина относительной протяженности вершины препятствия
-   */
-  inline double _t(double l, double s);
+  inline double _atten(double param) const;
 };
 
 /**
@@ -470,7 +407,6 @@ bool Item::exec() {
   for (auto item : _items) {
     data_m->progressBar->setValue(data_m->progressBar->value() +
                                   100 / _items.size());
-    QThread::msleep(10);
     if (!item.first->exec()) {
       estream << "Error in " << QString("%1 %2").arg(__FILE__).arg(item.second)
               << " function\n";
@@ -479,7 +415,7 @@ bool Item::exec() {
   }
   data_m->customPlot->replot();
   data_m->progressBar->setValue(100);
-  QThread::msleep(500);
+  QThread::msleep(200);
   data_m->progressBar->hide();
   return true;
 }
@@ -502,7 +438,7 @@ bool Atten::Land::Item::exec() {
       break;
     case 2:
       data->m->label_intervalType->setText("Полуоткрытый");
-      //      SemiOpened::Ptr::create(_data)->exec();
+      SemiOpened::Ptr::create(_data)->exec();
       break;
     case 3:
       data->m->label_intervalType->setText("Закрытый");
@@ -516,9 +452,10 @@ bool Atten::Land::Item::exec() {
 
 bool Atten::Land::Item::_isTangent(double a, double b, double start,
                                    double end) const {
-  LOOP_START(coords.lowerBound(start), coords.lowerBound(end), it);
-  if (a * it.key() + b < it.value()) return false;
-  LOOP_END;
+  for (auto it = coords.lowerBound(start); it != coords.lowerBound(end);
+       it += (end - start >= 0) ? 1 : -1) {
+    if (a * it.key() + b < it.value()) return false;
+  }
   return true;
 }
 
@@ -789,14 +726,14 @@ Opened::_findIntersectionInterval(void) {
                       H_min.first, H_min.second);
   p.second -= data->param.H_null[H_min.second];
   QMap<double, double>::ConstIterator right, left;
-  LOOP_START(coords.lowerBound(H_min.first), coords.end() - 1, it);
-  if (std::next(it).value() < p.first * it.key() + p.second) {
-    right = it;
-    for (auto jt = coords.lowerBound(H_min.first); jt != coords.begin() + 1;
-         --jt)
-      if (std::prev(jt).value() < p.first * jt.key() + p.second) left = jt;
+  for (auto it = coords.lowerBound(H_min.first); it != coords.end() - 1; ++it) {
+    if ((it + 1).value() < p.first * it.key() + p.second) {
+      right = it;
+      for (auto jt = coords.lowerBound(H_min.first); jt != coords.begin() + 1;
+           --jt)
+        if ((jt - 1).value() < p.first * jt.key() + p.second) left = jt;
+    }
   }
-  LOOP_END;
   //  ostream << left.value() << ' ' << right.value();
   return {left, right};
 }
@@ -829,108 +766,74 @@ Opened::_findIntersectionInterval(void) {
 //         log10(1 + qPow(phi_null, 2) -
 //               2 * qPow(phi_null, 2) * qCos(M_PI / 3 * delta_h * delta_h));
 //}  // Конец реализации расчета затухания на открытом интервале
-/*
+
 // Составляющая расчета. Реализация расчета затухания на полуоткрытом интервале
 
 bool SemiOpened::exec() {
   auto shad = _shadingObstacle();  ///< Координаты затеняющего препятствия
-  double l_null_length =  ///< Длина участка отражения
-      lNull(data->param.h_null[shad.first], k(shad.first));
-  double a = obstacleSphereRadius(l_null_length, _deltaY(shad.first));
-  //  if (a >= qSqrt(data->constant.area_length * data->constant.lambda * 0.5
-  //  *
-  //                 (0.5 / 3))) {
-  //    _sphereApproximation(shad.first, a);
-  //  } else {
-  //    _wedgeApproximation(shad.first);
-  //  }
+  //  ostream << shad.first << ' ' << shad.second << '\n';
+  double param = _tangent(shad);
+  ostream << param << ' ';
+  data->m->label_attentuationValue->setText(
+      QString("%1").arg(std::round(_atten(param) * 100) / 100));
   if (!_data) return false;
   return true;
 }
 
-double SemiOpened::_sphereApproximation(double x, double obst_sph_radius) {
-  double kk = k(x);  ///< Относительная координата точки
-  double mu =        ///< Параметр рельефа местности
-      _areaReliefParameter(kk, data->param.H_null[x], obst_sph_radius);
-  return _attentuationPSph(mu);
-}
-
-double SemiOpened::_wedgeApproximation(double x) {
-  double kk = k(x);  ///< Относительная координата точки
-  double nu =  ///<  Параметр клиновидного препятствия
-      _nuWedg(data->param.H[x], kk);
-  return _attentuationPWedg(nu);
-}
-
-double SemiOpened::_deltaY(double sh_ind) {
-  QVector<int> intersect;  ///< Индексы точек пересчения высотного профиля и
-                           ///< зоны Френеля
-
-  LOOP_START(data->param.H_null.begin(), data->param.H_null.end() - 1, it);
-  auto a =  ///< Величина высотного профиля
-      it.value();
-  auto b =  ///< Ордината нижней точки зоны Френеля с определенным индексом
-      data->param.los.first * sh_ind + data->param.los.second - it.value();
-  // Если a и b равны
-  if (qAbs(b - a) <= 0.5) intersect.push_back(it.key());
-  LOOP_END;
-  if (intersect.size() == 1 || !intersect.size()) {
-    return 0;
-  }
-  auto left =  ///< Первая точка пересечения
-      *intersect.begin();
-  auto right =  ///< Вторая точка пересечения
-      *std::prev(intersect.end());
-  if (right == left)
-    right = *std::lower_bound(intersect.begin(), intersect.end(), right);
-  auto [c, d] =  ///< Коэффициенты уравнения прямой
-      strLineEquation(left, coords[left], right, coords[right]);
-  return abs(coords[sh_ind] - c * sh_ind - d);
-}  // namespace Land
-
 QPair<double, double> SemiOpened::_shadingObstacle(void) const {
-  double min_y = data->param.H[data->param.coords.b_x()];
-  QMap<double, double>::iterator i = data->param.H.begin();
-  LOOP_START(data->param.H.begin(), data->param.H.end(), it);
-  i = (it.value() < min_y) ? it : i;
-  LOOP_END;
-  return {i.key(), i.value()};
+  auto H = data->param.H.toStdMap();
+  auto min_H = std::min_element(
+      data->param.H.begin(), data->param.H.end(),
+      [&](const std::pair<double, double> &lhs,
+         const std::pair<double, double> &rhs) { return rhs > lhs; });
+  ostream << min_H.value() << ' ';
+//  return {i.key(), i.value()};
 }
 
-double SemiOpened::_areaReliefParameter(double k, double H0,
-                                        double obstacleShereRadius) {
-  return pow(qPow(data->constant.area_length, 2) * k * k * ((1 - k) * (1 - k)) /
-                 (obstacleShereRadius * H0),
-             1.0 / 3);
+double SemiOpened::_tangent(const QPair<double, double> &p) {
+  auto line_l = strLineEquation(coords.b_x(), coords.b_y(), p.first, p.second);
+  auto line_r = strLineEquation(coords.e_x(), coords.e_y(), p.first, p.second);
+
+  auto poi = _pointOfIntersection(line_l, line_r);
+  ostream << poi.first << ' ' << poi.second << '\n';
+  double h =  ///< Возвышение препятствия над ЛПВ
+      poi.second - data->param.los.first * poi.first - data->param.los.second;
+  double d1 =  ///< Расстояние от левого конца трассы интервала до препятствия
+      qSqrt(qPow(poi.second - coords.b_y(), 2) +
+            qPow(poi.first - coords.b_x(), 2));
+  double d2 =  ///< Расстояние от правого конца трассы интервала до препятствия
+      qSqrt(qPow(poi.second - coords.e_y(), 2) +
+            qPow(poi.first - coords.e_x(), 2));
+  return _diffractionParam(h, d1, d2);
 }
 
-double SemiOpened::_reliefParFuncSph(double mu) { return 4 + 10 / (mu - 0.1); }
-
-double SemiOpened::_attentuationPSph(double mu) {
-  return 6 + 16.4 / (mu * (1 + 0.8 * mu));
+QPair<double, double> SemiOpened::_pointOfIntersection(
+    QPair<double, double> l, QPair<double, double> r) const {
+  double x = (r.second - l.second) / (l.first - r.first);
+  double y = l.first * x + l.second;
+  return {x, y};
 }
 
-double SemiOpened::_nuWedg(double H, double k) {
-  return -H * qSqrt(2 / (data->constant.lambda *
-                         (data->constant.area_length / 2) * 2 * k * (1 - k)));
+double SemiOpened::_diffractionParam(double h, double d1, double d2) const {
+  return h * qSqrt(2 * (d1 + d2) / (data->constant.lambda * d1 * d2));
 }
 
-double SemiOpened::_attentuationPWedg(double nu) {
-  return 6.9 + 20 * log10(qSqrt(pow(nu - 0.1, 2) + 1) + nu - 0.1);
+double SemiOpened::_atten(double param) const {
+  if (param <= -.7)
+    return 0;
+  else
+    return 6.9 + 20 * log10(qSqrt(qPow((param - .1), 2) + 1) + param - .1);
 }
 
-double SemiOpened::_t(double l, double s) {
-  return l / s;
-}  // Конец реализации расчета затухания на полуоткрытом интервале
-*/
+// Конец реализации расчета затухания на полуоткрытом интервале
+
 // Составляющая расчета. Реализация расчета затухания на закрытом интервале
 
 bool Closed::exec() {
   Peaks l = _countPeaks();
   auto param = _reliefTangentStraightLines(l);
-  //  ostream << param << '\n';
-  //  ostream << _atten(param) << '\n';
-  //  ostream << "--------\n";
+  data->m->label_attentuationValue->setText(
+      QString("%1").arg(std::round(_atten(param) * 100) / 100));
   if (!_data) return false;
   return true;
 }
@@ -981,7 +884,7 @@ void Closed::_approx(Peaks &v) {
   if (log10(M_PI - qAsin(qSqrt(data->constant.area_length * (r2 - r1) /
                                (r2 * (data->constant.area_length - r1))))) >
       0.408) {
-    std::next(it)->first = it->first;
+    (it + 1)->first = it->first;
     v.erase(it);
   }
   LOOP_END;
@@ -991,6 +894,7 @@ double Closed::_reliefTangentStraightLines(const Peaks &p) {
   QPair<double, double> left,  ///< Координаты высшей точки левого препятствия
       right;  ///< Координаты высшей точки правого препятствия
   Peaks peaks;
+  double diffraction_param = 0;
 
   // Находим для каждого препятствия координаты его высшей точки
   for (const auto &it : p) {
@@ -1001,21 +905,19 @@ double Closed::_reliefTangentStraightLines(const Peaks &p) {
     peaks.push_back({max_x, max_y});
   }
 
-  Peaks::iterator p_it = peaks.begin();
-
-  LOOP_START(p.begin(), p.end(), it);
-  left = (it == p.begin())
+  LOOP_START(peaks.begin(), peaks.end(), it);
+  left = (it == peaks.begin())
              ? qMakePair(data->tower.sender.first,
                          data->tower.sender.second + data->param.coords.b_y())
              : *(it - 1);
   right =
-      (it == p.end() - 1)
+      (it == peaks.end() - 1)
           ? qMakePair(data->tower.reciever.first,
                       data->tower.reciever.second + data->param.coords.e_y())
           : *(it + 1);
-  _tangent(*it, left, right);
-  p_it = std::next(p_it);
+  diffraction_param += _tangent(*it, left, right);
   LOOP_END;
+  return diffraction_param;
 }
 
 double Closed::_tangent(const QPair<double, double> &p,
@@ -1025,57 +927,27 @@ double Closed::_tangent(const QPair<double, double> &p,
 
   // Поиск касательной со стороны левого препятствия
   for (auto it = (coords.lowerBound(left.first) + 1); it != coords.end();
-       it = std::next(it)) {
-    // Если итератор вышел за пределы словаря
-    if ((coords.end() - 1).key() - it.key() < 0) {
-      estream << "Index out of interval range. Terminating\n";
-      exit(0);
-    }
+       ++it) {
     line_l = strLineEquation(left.first, left.second, it.key(), it.value());
-    ostream << line_l.first << ' ' << line_l.second << '\n';
-    if (_isTangent(line_l.first, line_l.second, it.key(),
-                   (coords.end() - 1).key())) {
-      QVector<double> x, y;
-      _data.toStrongRef()->param.coords.x(x);
-      for (auto it : x) {
-        y.push_back(line_l.first * it + line_l.second);
-      }
-      _data.toStrongRef()->m->customPlot->addGraph();
-      _data.toStrongRef()->m->customPlot->graph(5)->addData(x, y);
-      break;
-    }
+    if (_isTangent(line_l.first, line_l.second, it.key(), coords.e_x())) break;
   }
 
-  //
-
-  //  ostream << line_l.first << ' ' << line_l.second << '\n';
-  //  QVector<double> x, y;
-  //  _data.toStrongRef()->param.coords.x(x);
-  //  for (auto it : x) {
-  //      y.push_back(line_l.first * it + line_l.second);
-  //    }
-  //  _data.toStrongRef()->m->customPlot->addGraph();
-  //  _data.toStrongRef()->m->customPlot->graph(5)->addData(x, y);
-
-  //
   // Поиск касательной со стороны правого препятствия
   for (auto it = (coords.lowerBound(right.first) - 1); it != coords.begin();
-       it = std::prev(it)) {
+       --it) {
     line_r = strLineEquation(right.first, right.second, it.key(), it.value());
-    if (_isTangent(line_r.first, line_r.second, (coords.begin()).key(),
-                   it.key())) {
-      break;
-    }
+    if (_isTangent(line_r.first, line_r.second, coords.b_x(), it.key())) break;
   }
 
   auto poi = _pointOfIntersection(line_l, line_r);
-  //  ostream << poi.first << ' ' << poi.second << '\n';
-  double h =
+  double h =  ///< Возвышение препятствия над ЛПВ
       poi.second - data->param.los.first * poi.first - data->param.los.second;
-  double d1 = qSqrt(qPow(poi.second - left.second, 2) +
-                    qPow(poi.first - left.first, 2));
-  double d2 = qSqrt(qPow(poi.second - right.second, 2) +
-                    qPow(poi.first - right.first, 2));
+  double d1 =  ///< Расстояние от левого конца трассы интервала до препятствия
+      qSqrt(qPow(poi.second - left.second, 2) +
+            qPow(poi.first - left.first, 2));
+  double d2 =  ///< Расстояние от правого конца трассы интервала до препятствия
+      qSqrt(qPow(poi.second - right.second, 2) +
+            qPow(poi.first - right.first, 2));
   return _diffractionParam(h, d1, d2);
 }
 

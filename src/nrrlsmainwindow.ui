@@ -138,7 +138,7 @@
    <widget class="QLabel" name="label_attentuation">
     <property name="geometry">
      <rect>
-      <x>610</x>
+      <x>615</x>
       <y>736</y>
       <width>181</width>
       <height>17</height>

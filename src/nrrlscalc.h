@@ -5,7 +5,6 @@
 #include <QFile>
 #include <QIODevice>
 #include <QSharedPointer>
-#include <QTime>
 #include <QVector>
 #include <cassert>
 #include <cmath>
@@ -19,6 +18,7 @@
 
 #define LOOP_START(begin, end, it) \
   loop(begin, end, [&](decltype(begin) it) {
+
 #define LOOP_END \
   ;              \
   })

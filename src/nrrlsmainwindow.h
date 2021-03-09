@@ -1,10 +1,10 @@
 #ifndef NRRLSMMAINWINDOW_H
 #define NRRLSMMAINWINDOW_H
 
-#include <QMainWindow>
-#include <QPushButton>
 #include <QHBoxLayout>
 #include <QLineEdit>
+#include <QMainWindow>
+#include <QPushButton>
 
 /**
  * Главное окно
@@ -35,6 +35,7 @@ class NRrlsMainWindow : public QMainWindow {
 
  private slots:
   void onMouseMove(QMouseEvent *event);
+  void tabPressed(QEvent *event);
 };
 
 #endif  // NRRLSMMAINWINDOW_H
