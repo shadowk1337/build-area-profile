@@ -192,16 +192,6 @@ class Opened : public Land::Item {
   bool exec() override;
 
  private:
-  QPair<double, double> _findMinH(void) const {
-    auto H = data->param.H.toStdMap();
-    auto H_min = std::min_element(H.begin(), H.end(),
-                                  [](const std::pair<double, double> &lhs,
-                                     const std::pair<double, double> &rhs) {
-                                    return lhs.second < rhs.second;
-                                  });
-    return {H_min->first, H_min->second};
-  }
-
   /**
    * Функция нахождения наивысшей точки пересечения высотного профиля и
    * отрезка, соединяющего приемник и точку, зеркальную передатчику
@@ -209,13 +199,6 @@ class Opened : public Land::Item {
    * @return Координаты наивысшей точки пересечения
    */
   QPair<double, double> _findPointOfIntersection(void);
-
-  /**
-   * Функция аппроксимации плоскостью
-   * @param start   - Координаты начальной точки участка отражения
-   * @param end     - Координаты конечной точки участка отражения
-   */
-  void _planeApproximation(QMapCIt start, QMapCIt end);
 
   /**
    * Функция аппроксимации сферой
@@ -348,7 +331,7 @@ class Item : public Calc::Item {
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
  public:
-  bool exec() override { return false; }
+  bool exec() override;
 };
 
 }  // namespace Free
@@ -364,7 +347,7 @@ class Item : public Calc::Item {
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
  public:
-  virtual bool exec() override { return false; }
+  virtual bool exec() override;
 };
 
 }  // namespace Air
@@ -691,13 +674,11 @@ bool Interval::Item::exec() {
   data->interval_type = 0;
   LOOP_START(data->param.coords.begin(), data->param.coords.end(), it);
   auto i = it.key();
-  if (data->param.H[i] >= data->param.H_null[i] && data->param.h_null[i] >= 0)
+  if (data->param.H[i] >= data->param.H_null[i])
     data->interval_type = std::max(data->interval_type, 1);
-  else if (data->param.H_null[i] > data->param.H[i] && data->param.H[i] > 0.1 &&
-           data->param.h_null[i] < 0.1 && data->param.h_null[i] > 0)
+  else if (data->param.H_null[i] > data->param.H[i] && data->param.H[i] > 0)
     data->interval_type = std::max(data->interval_type, 2);
-  else if (data->param.H_null[i] > data->param.H[i] &&
-           data->param.h_null[i] < 0)
+  else if (0 > data->param.H[i])
     data->interval_type = 3;
   LOOP_END;
 
@@ -711,15 +692,23 @@ namespace Land {
 // Составляющая расчета. Реализация расчета затухания на открытом интервале
 
 bool Opened::exec() {
-  auto p = _findIntersectionInterval();
-  //  ostream << p.first.key() << ' ' << p.second.key();
+  //  auto p = _findIntersectionInterval();
+  //  ostream << p.first.key() << ' ' << p.second.key() << '\n';
+
   if (!_data) return false;
   return true;
 }
 
 QPair<QMap<double, double>::ConstIterator, QMap<double, double>::ConstIterator>
 Opened::_findIntersectionInterval(void) {
-  auto H_min = _findMinH();
+  auto H = data->param.H.toStdMap();
+  std::pair<double, double> H_min =
+      *std::min_element(H.begin(), H.end(),
+                        [&](const std::pair<double, double> &lhs,
+                            const std::pair<double, double> &rhs) {
+                          return rhs.second > lhs.second;
+                        });
+  H_min = *coords.toMap().lower_bound(H_min.first);
   auto p =
       strLineEquation(data->tower.sender.first,
                       data->tower.sender.second + coords.b_y() - H_min.second,
@@ -734,32 +723,31 @@ Opened::_findIntersectionInterval(void) {
         if ((jt - 1).value() < p.first * jt.key() + p.second) left = jt;
     }
   }
-  //  ostream << left.value() << ' ' << right.value();
   return {left, right};
 }
 
-// void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
-//  QVector<double> h;
-//  coords.y(h);
-//  auto pair =
-//      strLineEquation(start.key(), start.value(), end.key(), end.value());
-//  auto H_null = data->param.H_null.values();
-//  auto h_null = data->param.h_null.values();
-//  auto max_H0_h0 =  ///< Максимально допустимое значение неровности рельефа
-//      0.75 * *std::max_element(H_null.begin(), H_null.end()) /
-//      *std::min_element(h_null.begin(), h_null.end());
-//  double delta_h = 0;
-//  LOOP_START(coords.lowerBound(start.key()), coords.lowerBound(end.value()),
-//             it);
-//  delta_h = std::max(pair.first * *it + pair.second - h.at(*it), delta_h);
-//  LOOP_END;
-//  //  if (delta_h > max_H0_h0) {
-//  //    auto phi_null = _mirror_coef();
-//  //    ostream << _attentuationPlane(phi_null, delta_h);
-//  //  } else {
-//  //    ostream << _attentuationPlane(1, delta_h);
-//  //  }
-//}
+void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
+  QVector<double> h;
+  coords.y(h);
+  auto pair =
+      strLineEquation(start.key(), start.value(), end.key(), end.value());
+  auto H_null = data->param.H_null.values();
+  auto h_null = data->param.h_null.values();
+  auto max_H0_h0 =  ///< Максимально допустимое значение неровности рельефа
+      0.75 * *std::max_element(H_null.begin(), H_null.end()) /
+      *std::min_element(h_null.begin(), h_null.end());
+  double delta_h = 0;
+  LOOP_START(coords.lowerBound(start.key()), coords.lowerBound(end.value()),
+             it);
+  delta_h = std::max(pair.first * *it + pair.second - h.at(*it), delta_h);
+  LOOP_END;
+  //  if (delta_h > max_H0_h0) {
+  //    auto phi_null = _mirror_coef();
+  //    ostream << _attentuationPlane(phi_null, delta_h);
+  //  } else {
+  //    ostream << _attentuationPlane(1, delta_h);
+  //  }
+}
 
 // double Opened::_attentuationPlane(double phi_null, double delta_h) {
 //  return -10 *
@@ -773,7 +761,6 @@ bool SemiOpened::exec() {
   auto shad = _shadingObstacle();  ///< Координаты затеняющего препятствия
   //  ostream << shad.first << ' ' << shad.second << '\n';
   double param = _tangent(shad);
-  ostream << param << ' ';
   data->m->label_attentuationValue->setText(
       QString("%1").arg(std::round(_atten(param) * 100) / 100));
   if (!_data) return false;
@@ -782,12 +769,13 @@ bool SemiOpened::exec() {
 
 QPair<double, double> SemiOpened::_shadingObstacle(void) const {
   auto H = data->param.H.toStdMap();
-  auto min_H = std::min_element(
-      data->param.H.begin(), data->param.H.end(),
-      [&](const std::pair<double, double> &lhs,
-         const std::pair<double, double> &rhs) { return rhs > lhs; });
-  ostream << min_H.value() << ' ';
-//  return {i.key(), i.value()};
+  auto min_H = std::min_element(H.begin(), H.end(),
+                                [&](const std::pair<double, double> &lhs,
+                                    const std::pair<double, double> &rhs) {
+                                  return rhs.second > lhs.second;
+                                });
+  auto p = coords.lowerBound(min_H->first);
+  return {p.key(), p.value()};
 }
 
 double SemiOpened::_tangent(const QPair<double, double> &p) {
@@ -971,6 +959,22 @@ double Closed::_atten(double param) {
 
 }  // namespace Land
 
+bool Free::Item::exec() {}
+
+bool Air::Item::exec() {
+  double f = _data.toStrongRef()->spec.f;
+  double gamma_o =
+      (6.09 / (f * f - 0.227) + 7.19e-3 + 4.81 / (qPow(f - 57, 2) + 1.5)) * f *
+      f * 1e-3;
+  double gamma_h2o =
+      (0.05 + 3.6 / (qPow(f - 22.2, 2) + 8.5) + 0.0021 * 7.5 +
+       10.6 / (qPow(f - 188.3, 2) + 9) + 8.9 / (qPow(f - 325.4, 2) + 26.3)) *
+      f * f * 7.5 * 1e-4;
+  //  double atten = _data.toStrongRef()->constant.area_length * (1 - );
+  if (!_data) return false;
+  return true;
+}
+
 }  // namespace Atten
 
 Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
@@ -987,7 +991,10 @@ bool Core::exec() {
   return _main->exec();
 }
 
-void Core::setFreq(double f) { _data->spec.f = f; }
+void Core::setFreq(double f) {
+  _data->spec.f = f;
+  _data->constant.lambda = (double)3e+8 / (f * 1e+9);
+}
 
 void Core::setSenHeight(double h) { _data->tower.sender.second = h; }
 

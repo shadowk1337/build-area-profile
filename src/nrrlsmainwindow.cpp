@@ -42,18 +42,21 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   la->addWidget(pushButton_fileDial);
   pushButton_fileDial->setMaximumSize(a->width(), a->height());
 
-  int h1, h2;  ///< Высоты, задаваемые ползунками
+  double freq;  ///< Частота, задаваемая ползунком
+  int h1, h2;   ///< Высоты, задаваемые ползунками
 
   connect(pushButton_fileDial, &QPushButton::clicked, [&]() {
+    freq = 1.5;
+    h1 = h2 = 20;
     QFileDialog *in = new QFileDialog(this, "Open File", "*.csv");
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
     QString temp = in->getOpenFileName();
     if (!temp.isEmpty()) {
       _d->ui->customPlot->xAxis->setVisible(1);
       _d->ui->customPlot->yAxis->setVisible(1);
-      h1 = h2 = 20;
       _d->ui->horizontalSlider_sender->setValue(h1);
       _d->ui->horizontalSlider_reciever->setValue(h2);
+      _d->ui->lineEdit_freq->setText(QString::number(freq));
       _d->ui->lineEdit_sender->setText(QString::number(h1));
       _d->ui->lineEdit_reciever->setText(QString::number(h2));
       in->hide();
@@ -66,8 +69,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->lineEdit_freq, &QLineEdit::textEdited, [&]() {
     if (_d->ui->customPlot->graphCount() >= 5) {
-      QString temp = _d->ui->lineEdit_freq->text();
-      _d->_c->setFreq(temp.toDouble());
+      freq = _d->ui->lineEdit_freq->text().toDouble();
+      _d->_c->setFreq(freq);
       init();
     }
   });
@@ -107,6 +110,16 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->_c->setRecHeight(h2);
       _d->ui->customPlot->clearGraphs();
       init();
+    }
+  });
+
+  connect(_d->ui->pushButton_view, &QPushButton::clicked, [&]() {
+    if (_d->ui->pushButton_view->text().toLower() == "высотный профиль") {
+      _d->ui->pushButton_view->setText("Диаграмма уровней передачи");
+      _d->ui->customPlot->clearGraphs();
+      _d->ui->customPlot->replot();
+    } else {
+      _d->ui->pushButton_view->setText("Высотный профиль");
     }
   });
 

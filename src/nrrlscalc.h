@@ -18,7 +18,6 @@
 
 #define LOOP_START(begin, end, it) \
   loop(begin, end, [&](decltype(begin) it) {
-
 #define LOOP_END \
   ;              \
   })
@@ -57,8 +56,8 @@ struct Data {
   double radius = 6.37e+06;  ///< Действительный радиус Земли (в метрах)
   double g_standard = -8e-08;  ///< Вертикальный градиент индекса
                                ///< преломления в Приземной части тропосферы
-  double lambda = 0.2;  ///< Длина волны
-  double area_length;  ///< Длина рассматриваемого участка (в метрах)
+  double lambda = 0.2;     ///< Длина волны
+  double area_length = 0;  ///< Длина рассматриваемого участка (в метрах)
 };
 
 }  // namespace Const
@@ -152,8 +151,8 @@ struct Data {
   typedef QWeakPointer<Data> WeakPtr;
 
   Const::Data constant;  ///< Константы
-  Spec::Data spec;       ///< Параметры РРЛС
   Profile::Data param;  ///< Параметры высотного профиля
+  Spec::Data spec;      ///< Параметры РРЛС
   Towers::Data tower;   ///< Параметры антенн
 
   Ui::NRrlsMainWindow *m;
