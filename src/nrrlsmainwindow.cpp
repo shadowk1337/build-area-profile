@@ -24,6 +24,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   _d->ui->customPlot->xAxis->setVisible(0);
   _d->ui->customPlot->yAxis->setVisible(0);
+  _d->ui->label_coords->hide();
   _d->ui->lineEdit_sender->setText("0");
   _d->ui->lineEdit_reciever->setText("0");
   _d->ui->progressBar->hide();
@@ -34,26 +35,31 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   const QRect &r = qApp->desktop()->screen()->rect();
   setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
 
-  QWidget *a = new QWidget(this);
+  changeWidget = new QPushButton(this);
+  changeWidget->setGeometry(1130, 25, 221, 20);
+  changeWidget->setText(tr("Высотный профиль"));
+
+  QWidget *a = new QWidget(_d->ui->centralwidget);
   a->setGeometry(2, 695, 195, 50);
   la = new QHBoxLayout(a);
-  pushButton_fileDial = new QPushButton("Файл", this);
+  fileDial = new QPushButton(tr("Файл"), _d->ui->centralwidget);
   a->setLayout(la);
-  la->addWidget(pushButton_fileDial);
-  pushButton_fileDial->setMaximumSize(a->width(), a->height());
+  la->addWidget(fileDial);
+  fileDial->setMaximumSize(a->width(), a->height());
 
   double freq;  ///< Частота, задаваемая ползунком
   int h1, h2;   ///< Высоты, задаваемые ползунками
 
-  connect(pushButton_fileDial, &QPushButton::clicked, [&]() {
+  connect(fileDial, &QPushButton::clicked, [&]() {
     freq = 1.5;
     h1 = h2 = 20;
-    QFileDialog *in = new QFileDialog(this, "Open File", "*.csv");
+    QFileDialog *in = new QFileDialog(this, tr("Open File"), "*.csv");
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
     QString temp = in->getOpenFileName();
     if (!temp.isEmpty()) {
       _d->ui->customPlot->xAxis->setVisible(1);
       _d->ui->customPlot->yAxis->setVisible(1);
+      _d->ui->label_coords->show();
       _d->ui->horizontalSlider_sender->setValue(h1);
       _d->ui->horizontalSlider_reciever->setValue(h2);
       _d->ui->lineEdit_freq->setText(QString::number(freq));
@@ -113,13 +119,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     }
   });
 
-  connect(_d->ui->pushButton_view, &QPushButton::clicked, [&]() {
-    if (_d->ui->pushButton_view->text().toLower() == "высотный профиль") {
-      _d->ui->pushButton_view->setText("Диаграмма уровней передачи");
-      _d->ui->customPlot->clearGraphs();
+  connect(changeWidget, &QPushButton::clicked, [&]() {
+    if (_d->ui->stack->currentIndex() == 0) {
+      changeWidget->setText(tr("Диаграмма уровней передачи"));
+      _d->ui->stack->setCurrentIndex(1);
       _d->ui->customPlot->replot();
-    } else {
-      _d->ui->pushButton_view->setText("Высотный профиль");
+    } else if (_d->ui->stack->currentIndex() == 1) {
+      changeWidget->setText(tr("Высотный профиль"));
+      _d->ui->stack->setCurrentIndex(0);
     }
   });
 

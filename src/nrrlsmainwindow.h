@@ -5,6 +5,7 @@
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QPushButton>
+#include <QStackedWidget>
 
 /**
  * Главное окно
@@ -30,8 +31,7 @@ class NRrlsMainWindow : public QMainWindow {
   struct Private;
   Private *const _d;
   QHBoxLayout *la;
-  QLineEdit *l;
-  QPushButton *pushButton_fileDial;
+  QPushButton *fileDial, *changeWidget;
 
  private slots:
   void onMouseMove(QMouseEvent *event);

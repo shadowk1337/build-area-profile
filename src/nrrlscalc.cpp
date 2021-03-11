@@ -557,7 +557,7 @@ void Item::paramFill(void) {
 namespace Profile {
 
 bool Axes::exec() {
-  constexpr int window_add_height = 35;
+  constexpr int window_add_height = 45;
   constexpr int window_add_length = 100;
 
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
@@ -575,7 +575,6 @@ bool Axes::exec() {
   double h_max =  ///< Максимальная высота графика
       *std::max_element(heights.begin(), heights.end()) + window_add_height;
   _cp->yAxis->setLabel("Высота, м.");
-  _cp->yAxis->scaleRange(2);
   _cp->yAxis->setRange(0, h_max, Qt::AlignLeft);
   _cp->xAxis->setLabel("Расстояние, км.");
   _cp->xAxis->setTicker(textTicker);

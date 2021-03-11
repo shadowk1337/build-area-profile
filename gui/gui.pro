@@ -2,6 +2,8 @@
 QT += widgets \
       core \
       printsupport
+#      gui \
+#      widgets
 
 #TEMPLATE = app
 TARGET = rvision_rrls_gui
