@@ -22,8 +22,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   setSettings(options);
 
-  _d->ui->customPlot->xAxis->setVisible(0);
-  _d->ui->customPlot->yAxis->setVisible(0);
+  _d->ui->customplot_1->xAxis->setVisible(0);
+  _d->ui->customplot_1->yAxis->setVisible(0);
   _d->ui->label_coords->hide();
   _d->ui->lineEdit_sender->setText("0");
   _d->ui->lineEdit_reciever->setText("0");
@@ -38,45 +38,48 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   changeWidget = new QPushButton(this);
   changeWidget->setGeometry(1130, 25, 221, 20);
   changeWidget->setText(tr("Высотный профиль"));
+  changeWidget->hide();
 
-  QWidget *a = new QWidget(_d->ui->centralwidget);
+  QWidget *a = new QWidget(_d->ui->profile);
   a->setGeometry(2, 695, 195, 50);
   la = new QHBoxLayout(a);
-  fileDial = new QPushButton(tr("Файл"), _d->ui->centralwidget);
+  fileDial = new QPushButton(tr("Файл"), _d->ui->profile);
   a->setLayout(la);
   la->addWidget(fileDial);
   fileDial->setMaximumSize(a->width(), a->height());
 
-  double freq;  ///< Частота, задаваемая ползунком
-  int h1, h2;   ///< Высоты, задаваемые ползунками
+  int h1, h2;  ///< Высоты, задаваемые ползунками
+
+  _d->ui->comboBox_freq->addItems({"0.1", "1.0", "3.0", "6.0", "10.0"});
+  _d->ui->comboBox_freq->addItems({"15.0", "20.0", "30.0"});
+  _d->ui->comboBox_freq->setCurrentText("1.0");
 
   connect(fileDial, &QPushButton::clicked, [&]() {
-    freq = 1.5;
     h1 = h2 = 20;
     QFileDialog *in = new QFileDialog(this, tr("Open File"), "*.csv");
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
     QString temp = in->getOpenFileName();
+    changeWidget->show();
     if (!temp.isEmpty()) {
-      _d->ui->customPlot->xAxis->setVisible(1);
-      _d->ui->customPlot->yAxis->setVisible(1);
+      _d->ui->customplot_1->xAxis->setVisible(1);
+      _d->ui->customplot_1->yAxis->setVisible(1);
       _d->ui->label_coords->show();
       _d->ui->horizontalSlider_sender->setValue(h1);
       _d->ui->horizontalSlider_reciever->setValue(h2);
-      _d->ui->lineEdit_freq->setText(QString::number(freq));
       _d->ui->lineEdit_sender->setText(QString::number(h1));
       _d->ui->lineEdit_reciever->setText(QString::number(h2));
-      in->hide();
       _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
+      _d->_c->setFreq(_d->ui->comboBox_freq->currentText().toDouble());
       _d->_c->setSenHeight(h1);
       _d->_c->setRecHeight(h2);
+      in->hide();
       init();
     }
   });
 
-  connect(_d->ui->lineEdit_freq, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customPlot->graphCount() >= 5) {
-      freq = _d->ui->lineEdit_freq->text().toDouble();
-      _d->_c->setFreq(freq);
+  connect(_d->ui->comboBox_freq, &QComboBox::currentTextChanged, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      _d->_c->setFreq(_d->ui->comboBox_freq->currentText().toDouble());
       init();
     }
   });
@@ -88,15 +91,15 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->horizontalSlider_sender, &QSlider::sliderReleased, [&]() {
     h1 = _d->ui->horizontalSlider_sender->value();
-    if (_d->ui->customPlot->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
       _d->_c->setSenHeight(h1);
-      _d->ui->customPlot->clearGraphs();
+      _d->ui->customplot_1->clearGraphs();
       init();
     }
   });
 
   connect(_d->ui->lineEdit_sender, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customPlot->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
       h1 = heightParse(_d->ui->lineEdit_sender->text().toInt());
       if (h1) _d->ui->lineEdit_sender->setText(QString::number(h1));
       _d->ui->horizontalSlider_sender->setValue(h1);
@@ -112,26 +115,26 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->horizontalSlider_reciever, &QSlider::sliderReleased, [&]() {
     h2 = heightParse(_d->ui->horizontalSlider_reciever->value());
-    if (_d->ui->customPlot->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
       _d->_c->setRecHeight(h2);
-      _d->ui->customPlot->clearGraphs();
+      _d->ui->customplot_1->clearGraphs();
       init();
     }
   });
 
   connect(changeWidget, &QPushButton::clicked, [&]() {
-    if (_d->ui->stack->currentIndex() == 0) {
+    if (_d->ui->stackwidget->currentIndex() == 0) {
       changeWidget->setText(tr("Диаграмма уровней передачи"));
-      _d->ui->stack->setCurrentIndex(1);
-      _d->ui->customPlot->replot();
-    } else if (_d->ui->stack->currentIndex() == 1) {
+      _d->ui->stackwidget->setCurrentIndex(1);
+      _d->ui->customplot_1->replot();
+    } else if (_d->ui->stackwidget->currentIndex() == 1) {
       changeWidget->setText(tr("Высотный профиль"));
-      _d->ui->stack->setCurrentIndex(0);
+      _d->ui->stackwidget->setCurrentIndex(0);
     }
   });
 
   connect(_d->ui->lineEdit_reciever, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customPlot->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
       h2 = heightParse(_d->ui->lineEdit_reciever->text().toInt());
       if (h2) _d->ui->lineEdit_reciever->setText(QString::number(h2));
       _d->ui->horizontalSlider_reciever->setValue(h2);
@@ -142,7 +145,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   //  connect() TODO: connect to tab
 
-  connect(_d->ui->customPlot, &QCustomPlot::mouseMove, this,
+  connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
 }
 
@@ -184,14 +187,14 @@ void NRrlsMainWindow::setDebugLevel(int level) {
 }
 
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
-  QCustomPlot *customPlot = qobject_cast<QCustomPlot *>(sender());
-  double x = customPlot->xAxis->pixelToCoord(event->pos().x());
-  double y = customPlot->yAxis->pixelToCoord(event->pos().y());
+  QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
+  double x = customplot_1->xAxis->pixelToCoord(event->pos().x());
+  double y = customplot_1->yAxis->pixelToCoord(event->pos().y());
   _d->ui->label_coords->setText(
       QString("%1, %2")
           .arg(x >= 0 ? std::round(x / 1000 * 100) / 100 : 0)
           .arg(y >= 0 ? std::round(y * 100) / 100 : 0));
-  customPlot->replot();
+  customplot_1->replot();
 }
 
 void NRrlsMainWindow::tabPressed(QEvent *event) {

@@ -332,6 +332,9 @@ class Item : public Calc::Item {
 
  public:
   bool exec() override;
+
+ private:
+  QSharedPointer<Calc::Data> data = _data.toStrongRef();
 };
 
 }  // namespace Free
@@ -347,10 +350,32 @@ class Item : public Calc::Item {
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
  public:
-  virtual bool exec() override;
+  bool exec() override;
+
+ private:
+  QSharedPointer<Calc::Data> data = _data.toStrongRef();
 };
 
 }  // namespace Air
+
+namespace Feeder {
+
+/**
+ * Составляющая расчета. Расчет затухания в фидере на передачу и прием
+ */
+class Item : public Calc::Item {
+ public:
+  QSHDEF(Item);
+  Item(const Data::WeakPtr &data) : Calc::Item(data) {}
+
+ public:
+  bool exec() override;
+
+ private:
+  QSharedPointer<Calc::Data> data = _data.toStrongRef();
+};
+
+}  // namespace Feeder
 
 }  // namespace Atten
 
@@ -370,6 +395,22 @@ class Item : public Calc::Item {
 
 }  // namespace Median
 
+namespace Diagram {
+
+class Setup : public Calc::Item {
+ public:
+  QSHDEF(Item);
+  Setup(const Data::WeakPtr &data) : Calc::Item(data) {}
+
+ protected:
+  QSharedPointer<Calc::Data> data = _data.toStrongRef();
+
+ public:
+  bool exec() override;
+};
+
+}  // namespace Diagram
+
 namespace Main {
 
 Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
@@ -386,7 +427,7 @@ Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
 }
 
 bool Item::exec() {
-  auto data_m = _data.toStrongRef()->m;
+  auto data_m = _data.toStrongRef()->mainWindow;
   for (auto item : _items) {
     data_m->progressBar->setValue(data_m->progressBar->value() +
                                   100 / _items.size());
@@ -396,7 +437,7 @@ bool Item::exec() {
       return false;
     }
   }
-  data_m->customPlot->replot();
+  data_m->customplot_1->replot();
   data_m->progressBar->setValue(100);
   QThread::msleep(200);
   data_m->progressBar->hide();
@@ -416,15 +457,15 @@ bool Profile::Item::exec() {
 bool Atten::Land::Item::exec() {
   switch (data->interval_type) {  // 1-Открытый, 2-Полуоткрытый, 3-Закрытый
     case 1:
-      data->m->label_intervalType->setText("Открытый");
+      data->mainWindow->label_intervalType->setText("Открытый");
       Opened::Ptr::create(_data)->exec();
       break;
     case 2:
-      data->m->label_intervalType->setText("Полуоткрытый");
+      data->mainWindow->label_intervalType->setText("Полуоткрытый");
       SemiOpened::Ptr::create(_data)->exec();
       break;
     case 3:
-      data->m->label_intervalType->setText("Закрытый");
+      data->mainWindow->label_intervalType->setText("Закрытый");
       Closed::Ptr::create(_data)->exec();
       break;
     default:
@@ -558,7 +599,6 @@ namespace Profile {
 
 bool Axes::exec() {
   constexpr int window_add_height = 45;
-  constexpr int window_add_length = 100;
 
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   _cp->rescaleAxes();
@@ -572,15 +612,18 @@ bool Axes::exec() {
 
   QVector<double> heights;
   coords.y(heights);
-  double h_max =  ///< Максимальная высота графика
-      *std::max_element(heights.begin(), heights.end()) + window_add_height;
+  double h_max = *std::max_element(heights.begin(), heights.end());
+  double y_max =  ///< Высота видимости графика
+      std::max(h_max, std::max(coords.b_y() + data->tower.sender.second,
+                               coords.e_y() + data->tower.reciever.second)) +
+      window_add_height;
   _cp->yAxis->setLabel("Высота, м.");
-  _cp->yAxis->setRange(0, h_max, Qt::AlignLeft);
+  _cp->yAxis->setRange(0, y_max, Qt::AlignLeft);
   _cp->xAxis->setLabel("Расстояние, км.");
   _cp->xAxis->setTicker(textTicker);
   _cp->xAxis->setTickLength(0);
   _cp->yAxis->setSubTickLength(0);
-  _cp->xAxis->setRange(0, data->constant.area_length + window_add_length);
+  _cp->xAxis->setRange(0, data->constant.area_length);
 
   if (_data.isNull()) return false;
   return true;
@@ -758,10 +801,9 @@ void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
 
 bool SemiOpened::exec() {
   auto shad = _shadingObstacle();  ///< Координаты затеняющего препятствия
-  //  ostream << shad.first << ' ' << shad.second << '\n';
-  double param = _tangent(shad);
-  data->m->label_attentuationValue->setText(
-      QString("%1").arg(std::round(_atten(param) * 100) / 100));
+  double atten = data->wp = _atten(_tangent(shad));
+  data->mainWindow->label_attentuationValue->setText(
+      QString("%1").arg(std::round(atten * 100) / 100));
   if (!_data) return false;
   return true;
 }
@@ -782,7 +824,6 @@ double SemiOpened::_tangent(const QPair<double, double> &p) {
   auto line_r = strLineEquation(coords.e_x(), coords.e_y(), p.first, p.second);
 
   auto poi = _pointOfIntersection(line_l, line_r);
-  ostream << poi.first << ' ' << poi.second << '\n';
   double h =  ///< Возвышение препятствия над ЛПВ
       poi.second - data->param.los.first * poi.first - data->param.los.second;
   double d1 =  ///< Расстояние от левого конца трассы интервала до препятствия
@@ -818,9 +859,9 @@ double SemiOpened::_atten(double param) const {
 
 bool Closed::exec() {
   Peaks l = _countPeaks();
-  auto param = _reliefTangentStraightLines(l);
-  data->m->label_attentuationValue->setText(
-      QString("%1").arg(std::round(_atten(param) * 100) / 100));
+  double atten = data->wp = _atten(_reliefTangentStraightLines(l));
+  data->mainWindow->label_attentuationValue->setText(
+      QString("%1").arg(std::round(atten * 100) / 100));
   if (!_data) return false;
   return true;
 }
@@ -958,35 +999,50 @@ double Closed::_atten(double param) {
 
 }  // namespace Land
 
-bool Free::Item::exec() {}
-
-bool Air::Item::exec() {
-  double f = _data.toStrongRef()->spec.f;
-  double gamma_o =
-      (6.09 / (f * f - 0.227) + 7.19e-3 + 4.81 / (qPow(f - 57, 2) + 1.5)) * f *
-      f * 1e-3;
-  double gamma_h2o =
-      (0.05 + 3.6 / (qPow(f - 22.2, 2) + 8.5) + 0.0021 * 7.5 +
-       10.6 / (qPow(f - 188.3, 2) + 9) + 8.9 / (qPow(f - 325.4, 2) + 26.3)) *
-      f * f * 7.5 * 1e-4;
-  //  double atten = _data.toStrongRef()->constant.area_length * (1 - );
+bool Free::Item::exec() {
+  data->ws = 122 + 20 * log10((data->constant.area_length / 1e+3) /
+                              (data->constant.lambda * 1e+2));
   if (!_data) return false;
   return true;
 }
+
+bool Air::Item::exec() {
+  double f = data->spec.f;
+  double temperature =
+      data->mainWindow->lineEdit_temperature->text().toDouble();
+  double gamma_oxygen =
+      (6.09 / (f * f - .227) + 7.19e-3 + 4.81 / (qPow(f - 57, 2) + 1.5)) * f *
+      f * 1e-3;
+  double gamma_water =
+      (.05 + 3.6 / (qPow(f - 22.2, 2) + 8.5) + 0.0021 * 7.5 +
+       10.6 / (qPow(f - 188.3, 2) + 9) + 8.9 / (qPow(f - 325.4, 2) + 26.3)) *
+      f * f * 7.5 * 1e-4;
+  data->wa = data->constant.area_length *
+             ((1 - (temperature - 15) * .01) * gamma_oxygen +
+              (1 - (temperature - 15) * .06) * gamma_water);
+  if (!_data) return false;
+  return true;
+}
+
+//bool Feeder::Item::exec() {
+//  //  data->wf = {}
+//  if (!_data) return false;
+//  return true;
+//}
 
 }  // namespace Atten
 
 Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
   _data = QSharedPointer<Data>::create();
-  _data->m = m;
-  _cp = m->customPlot;
+  _data->mainWindow = m;
+  _cp = m->customplot_1;
   _data->filename = filename;
   _main = Main::Item::Ptr::create(_data, _cp);
 }
 
 bool Core::exec() {
-  _data->m->progressBar->show();
-  _data->m->progressBar->setValue(0);
+  _data->mainWindow->progressBar->show();
+  _data->mainWindow->progressBar->setValue(0);
   return _main->exec();
 }
 
@@ -998,6 +1054,12 @@ void Core::setFreq(double f) {
 void Core::setSenHeight(double h) { _data->tower.sender.second = h; }
 
 void Core::setRecHeight(double h) { _data->tower.reciever.second = h; }
+
+namespace Diagram {
+
+bool Setup::exec() {}
+
+}  // namespace Diagram
 
 }  // namespace Calc
 

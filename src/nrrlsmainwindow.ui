@@ -28,12 +28,12 @@
   <property name="animated">
    <bool>true</bool>
   </property>
-  <widget class="QStackedWidget" name="stack">
+  <widget class="QStackedWidget" name="stackwidget">
    <property name="currentIndex">
-    <number>0</number>
+    <number>1</number>
    </property>
-   <widget class="QWidget" name="centralwidget">
-    <widget class="QCustomPlot" name="customPlot" native="true">
+   <widget class="QWidget" name="profile">
+    <widget class="QCustomPlot" name="customplot_1" native="true">
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -90,7 +90,7 @@
     <widget class="QLabel" name="label_freqMeas">
      <property name="geometry">
       <rect>
-       <x>410</x>
+       <x>390</x>
        <y>685</y>
        <width>67</width>
        <height>17</height>
@@ -153,16 +153,6 @@
      </property>
      <property name="text">
       <string>0, 0</string>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_freq">
-     <property name="geometry">
-      <rect>
-       <x>290</x>
-       <y>685</y>
-       <width>113</width>
-       <height>21</height>
-      </rect>
      </property>
     </widget>
     <widget class="Line" name="line_2">
@@ -595,19 +585,46 @@
       <string>дБ</string>
      </property>
     </widget>
-   </widget>
-   <widget class="QWidget" name="diagram">
-    <widget class="QLabel" name="label">
+    <widget class="QComboBox" name="comboBox_freq">
      <property name="geometry">
       <rect>
-       <x>640</x>
-       <y>360</y>
-       <width>67</width>
-       <height>17</height>
+       <x>290</x>
+       <y>685</y>
+       <width>91</width>
+       <height>21</height>
       </rect>
      </property>
-     <property name="text">
-      <string>Test</string>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="diagram">
+    <widget class="QCustomPlot" name="customplot_2" native="true">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>0</y>
+       <width>1360</width>
+       <height>671</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_temperature">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>710</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBox_feeder">
+     <property name="geometry">
+      <rect>
+       <x>130</x>
+       <y>700</y>
+       <width>86</width>
+       <height>25</height>
+      </rect>
      </property>
     </widget>
    </widget>

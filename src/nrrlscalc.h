@@ -56,7 +56,7 @@ struct Data {
   double radius = 6.37e+06;  ///< Действительный радиус Земли (в метрах)
   double g_standard = -8e-08;  ///< Вертикальный градиент индекса
                                ///< преломления в Приземной части тропосферы
-  double lambda = 0.2;     ///< Длина волны
+  double lambda = 0;       ///< Длина волны
   double area_length = 0;  ///< Длина рассматриваемого участка (в метрах)
 };
 
@@ -155,13 +155,15 @@ struct Data {
   Spec::Data spec;      ///< Параметры РРЛС
   Towers::Data tower;   ///< Параметры антенн
 
-  Ui::NRrlsMainWindow *m;
+  Ui::NRrlsMainWindow *mainWindow;
   QString filename;
   int interval_type;  ///< Тип интервала: 1-Открытый, 2-Полуоткрытый,
                       ///< 3-Закрытый
   double wp = 0;  ///< Затухания в рельефе
   double ws = 0;  ///< Затухания в свободном пространстве
   double wa = 0;  ///< Затухания в газах атмосферы
+  QPair<double, double> wf =  ///< Затухания в фидере на передачу и прием
+      {0, 0};
   double p = 0;  ///< Медианное значение сигнала на входе приёмника
 };
 
