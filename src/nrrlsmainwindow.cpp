@@ -36,7 +36,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
 
   changeWidget = new QPushButton(this);
-  changeWidget->setGeometry(1130, 25, 221, 20);
+  changeWidget->setGeometry(1128, 21, 221, 20);
   changeWidget->setText(tr("Высотный профиль"));
   changeWidget->hide();
 
@@ -48,7 +48,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   la->addWidget(fileDial);
   fileDial->setMaximumSize(a->width(), a->height());
 
-  int h1, h2;  ///< Высоты, задаваемые ползунками
+  int h1, h2; ///< Высоты, задаваемые ползунками
 
   _d->ui->comboBox_freq->addItems({"0.1", "1.0", "3.0", "6.0", "10.0"});
   _d->ui->comboBox_freq->addItems({"15.0", "20.0", "30.0"});
@@ -56,9 +56,9 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(fileDial, &QPushButton::clicked, [&]() {
     h1 = h2 = 20;
-    QFileDialog *in = new QFileDialog(this, tr("Open File"), "*.csv");
+    QFileDialog *in = new QFileDialog(this);
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
-    QString temp = in->getOpenFileName();
+    QString temp = in->getOpenFileName(this, tr("Open File"), "*.csv");
     changeWidget->show();
     if (!temp.isEmpty()) {
       _d->ui->customplot_1->xAxis->setVisible(1);
@@ -101,7 +101,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->lineEdit_sender, &QLineEdit::textEdited, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5) {
       h1 = heightParse(_d->ui->lineEdit_sender->text().toInt());
-      if (h1) _d->ui->lineEdit_sender->setText(QString::number(h1));
+      if (h1)
+        _d->ui->lineEdit_sender->setText(QString::number(h1));
       _d->ui->horizontalSlider_sender->setValue(h1);
       _d->_c->setSenHeight(h1);
       init();
@@ -136,7 +137,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->lineEdit_reciever, &QLineEdit::textEdited, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5) {
       h2 = heightParse(_d->ui->lineEdit_reciever->text().toInt());
-      if (h2) _d->ui->lineEdit_reciever->setText(QString::number(h2));
+      if (h2)
+        _d->ui->lineEdit_reciever->setText(QString::number(h2));
       _d->ui->horizontalSlider_reciever->setValue(h2);
       _d->_c->setRecHeight(h2);
       init();
@@ -199,6 +201,7 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
 
 void NRrlsMainWindow::tabPressed(QEvent *event) {
   if (event->type() == QEvent::KeyPress) {
-    if (static_cast<QKeyEvent *>(event)->key() == Qt::Key_Tab) return;
+    if (static_cast<QKeyEvent *>(event)->key() == Qt::Key_Tab)
+      return;
   }
 }
