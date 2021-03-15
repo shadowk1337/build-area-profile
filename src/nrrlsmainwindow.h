@@ -35,6 +35,7 @@ class NRrlsMainWindow : public QMainWindow {
 
  private slots:
   void onMouseMove(QMouseEvent *event);
+  void onLineEditSenderLengthTextEdited(QLineEdit *event);
   void tabPressed(QEvent *event);
 };
 

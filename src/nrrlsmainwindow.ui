@@ -30,16 +30,16 @@
   </property>
   <widget class="QStackedWidget" name="stackwidget">
    <property name="currentIndex">
-    <number>1</number>
+    <number>0</number>
    </property>
    <widget class="QWidget" name="profile">
     <widget class="QCustomPlot" name="customplot_1" native="true">
      <property name="geometry">
       <rect>
-       <x>0</x>
-       <y>0</y>
-       <width>1360</width>
-       <height>671</height>
+       <x>10</x>
+       <y>20</y>
+       <width>1341</width>
+       <height>641</height>
       </rect>
      </property>
      <property name="minimumSize">
@@ -54,6 +54,25 @@
        <height>5000</height>
       </size>
      </property>
+     <property name="inputMethodHints">
+      <set>Qt::ImhNone</set>
+     </property>
+     <widget class="QFrame" name="frame">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>1341</width>
+        <height>641</height>
+       </rect>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+     </widget>
     </widget>
     <widget class="QLabel" name="label_senderHeight">
      <property name="geometry">
@@ -610,8 +629,8 @@
     <widget class="QLineEdit" name="lineEdit_temperature">
      <property name="geometry">
       <rect>
-       <x>290</x>
-       <y>710</y>
+       <x>270</x>
+       <y>700</y>
        <width>113</width>
        <height>25</height>
       </rect>
@@ -620,9 +639,29 @@
     <widget class="QComboBox" name="comboBox_feeder">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>90</x>
        <y>700</y>
-       <width>86</width>
+       <width>121</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_senderLength">
+     <property name="geometry">
+      <rect>
+       <x>630</x>
+       <y>700</y>
+       <width>113</width>
+       <height>25</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_recieverLength">
+     <property name="geometry">
+      <rect>
+       <x>810</x>
+       <y>690</y>
+       <width>113</width>
        <height>25</height>
       </rect>
      </property>

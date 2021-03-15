@@ -36,7 +36,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
 
   changeWidget = new QPushButton(this);
-  changeWidget->setGeometry(1130, 25, 221, 20);
+  changeWidget->setGeometry(1128, 21, 221, 20);
   changeWidget->setText(tr("Высотный профиль"));
   changeWidget->hide();
 
@@ -56,9 +56,9 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(fileDial, &QPushButton::clicked, [&]() {
     h1 = h2 = 20;
-    QFileDialog *in = new QFileDialog(this, tr("Open File"), "*.csv");
+    QFileDialog *in = new QFileDialog(this);
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
-    QString temp = in->getOpenFileName();
+    QString temp = in->getOpenFileName(this, tr("Open File"), "*.csv");
     changeWidget->show();
     if (!temp.isEmpty()) {
       _d->ui->customplot_1->xAxis->setVisible(1);
@@ -78,8 +78,25 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   });
 
   connect(_d->ui->comboBox_freq, &QComboBox::currentTextChanged, [&]() {
+    double freq = _d->ui->comboBox_freq->currentText().toDouble();
     if (_d->ui->customplot_1->graphCount() >= 5) {
-      _d->_c->setFreq(_d->ui->comboBox_freq->currentText().toDouble());
+      _d->_c->setFreq(freq);
+      _d->ui->comboBox_feeder->clear();
+      if (freq >= .1 && freq <= 10) {
+        _d->ui->comboBox_feeder->addItems(
+            {tr("РК-50-4-13"), tr("РК-50-7-11"), tr("РК-50-7-13")});
+        _d->ui->comboBox_feeder->addItems(
+            {tr("РК-50-7-25"), tr("РК-50-7-27"), tr("РК-50-7-32")});
+      }
+      if (freq >= .1 && freq <= 3)
+        _d->ui->comboBox_feeder->addItems(
+            {tr("РК-50-11-11"), tr("РК-50-13-15"), tr("РК-50-11-21")});
+      if (freq == 3) _d->ui->comboBox_feeder->addItem(tr("МЭК-22"));
+      if (freq == 6) _d->ui->comboBox_feeder->addItem(tr("МЭК-58"));
+      if (freq == 10) _d->ui->comboBox_feeder->addItem(tr("МЭК-84"));
+      if (freq == 15) _d->ui->comboBox_feeder->addItem(tr("МЭК-120"));
+      if (freq == 20) _d->ui->comboBox_feeder->addItem(tr("МЭК-180"));
+      if (freq == 30) _d->ui->comboBox_feeder->addItem(tr("МЭК-26"));
       init();
     }
   });
@@ -145,6 +162,9 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   //  connect() TODO: connect to tab
 
+  connect(_d->ui->lineEdit_senderLength, SIGNAL(&QLineEdit::textChanged()), this,
+          SLOT(&NRrlsMainWindow::onLineEditSenderLengthTextEdited()));
+
   connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
 }
@@ -200,5 +220,13 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
 void NRrlsMainWindow::tabPressed(QEvent *event) {
   if (event->type() == QEvent::KeyPress) {
     if (static_cast<QKeyEvent *>(event)->key() == Qt::Key_Tab) return;
+  }
+}
+
+void NRrlsMainWindow::onLineEditSenderLengthTextEdited(QLineEdit *event) {
+  std::cout << "h";
+  if (_d->ui->customplot_1->graphCount() >= 5) {
+    _d->_c->setSenFLength(event->text().toDouble());
+    init();
   }
 }

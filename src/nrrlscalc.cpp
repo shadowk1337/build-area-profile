@@ -148,17 +148,6 @@ class Item : public Calc::Item {
   virtual bool exec() override;
 
  protected:
-  class Edge {
-   public:
-    Edge() { _p = qMakePair(-1, -1); }
-    Edge(double x, double y) { _p = qMakePair(x, y); }
-
-    double x(void) { return _p.first; }
-    double y(void) { return _p.second; }
-
-   private:
-    QPair<double, double> _p;
-  };
   /**
    * Функция проверки касательности прямой к высотному профилю
    * @param a       - y = a * x + b
@@ -171,12 +160,6 @@ class Item : public Calc::Item {
 
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
   decltype(data->param.coords) coords = data->param.coords;
-  Edge calc_start =
-      Edge(coords.begin().key(),
-           coords.begin().value());  ///< Координата начальной точки интервала
-  //  Edge calc_end =
-  //      Edge(std::prev(coords.end()).key(),
-  //           coords.end().value()); ///< Координата конечной точки интервала
 };
 
 /**
@@ -198,32 +181,24 @@ class Opened : public Land::Item {
    * относительно высотного профиля
    * @return Координаты наивысшей точки пересечения
    */
-  QPair<double, double> _findPointOfIntersection(void);
+  QPair<int, int> _findPointOfIntersection(void);
+
+  /**
+   * Функция аппроксимации плоскостью
+   * @param start   - Индекс начальной точки участка отражения
+   * @param end     - Индекс конечной точки участка отражения
+   */
+  void _planeApproximation(QPair<int, int> intersec);
 
   /**
    * Функция аппроксимации сферой
-   * @param start   - Координаты начальной точки участка отражения
-   * @param end     - Координаты конечной точки участка отражения
+   * @param start   - Индекс начальной точки участка отражения
+   * @param end     - Индекс конечной точки участка отражения
    */
-
-  QPair<QMap<double, double>::ConstIterator,
-        QMap<double, double>::ConstIterator>
-  _findIntersectionInterval(void);
-
-  /**
-   * Функция сравнения с критерием Рэлея
-   * @param start   - Координаты начальной точки участка отражения
-   * @param end     - Координаты конечной точки участка отражения
-   */
-  void _rayleighAndGroundCriteria(QMapCIt mid, QMapCIt length);
+  void _sphereApproximation(QPair<int, int> intersec);
 
  private:
   double _attentuationPlane(double phi_null, double delta_h);
-
-  double _mirror_coef(double delta_h) {
-    //    double chi = .32 * delta_h * return std::max(qExp(-(qPow(4 * M_PI
-    //    *))))
-  }
 };
 
 /**
@@ -420,9 +395,10 @@ Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
       qMakePair(Profile::Item::Ptr::create(_data, _cp), QString("Profile")),
       qMakePair(Interval::Item::Ptr::create(_data), QString("Interval")),
       qMakePair(Atten::Land::Item::Ptr::create(_data), QString("Attentuation")),
-      /*Atten::Free::Item::Ptr::create(_data),
-      Atten::Air::Item::Ptr::create(_data),
-      Median::Item::Ptr::create(_data)*/
+      qMakePair(Atten::Free::Item::Ptr::create(_data), QString("Free")),
+      qMakePair(Atten::Air::Item::Ptr::create(_data), QString("Air")),
+      qMakePair(Atten::Feeder::Item::Ptr::create(_data), QString("Feeder"))
+      /*Median::Item::Ptr::create(_data)*/
   };
 }
 
@@ -525,7 +501,6 @@ namespace Fill {
 bool Item::exec() {
   QFile file(data->filename);
   QTextStream in(&file);
-  QRegExp rx("[ ;]");
   bool first = true;
   auto &coords = data->param.coords;
   size_t &count = data->param.count;
@@ -734,68 +709,76 @@ namespace Land {
 // Составляющая расчета. Реализация расчета затухания на открытом интервале
 
 bool Opened::exec() {
-  //  auto p = _findIntersectionInterval();
-  //  ostream << p.first.key() << ' ' << p.second.key() << '\n';
-
+  const auto point = _findPointOfIntersection();
+  double l_null_length =  ///< Длина участка отражения
+      lNull(data->param.h_null[point.first], k(point.first));
+  // Если длина участка отражения <= 1/4 длины всего интервала
+  (l_null_length <= 0.25 * data->constant.area_length)
+      ? _planeApproximation(point)
+      : _sphereApproximation(point);
   if (!_data) return false;
   return true;
 }
 
-QPair<QMap<double, double>::ConstIterator, QMap<double, double>::ConstIterator>
-Opened::_findIntersectionInterval(void) {
-  auto H = data->param.H.toStdMap();
-  std::pair<double, double> H_min =
-      *std::min_element(H.begin(), H.end(),
-                        [&](const std::pair<double, double> &lhs,
-                            const std::pair<double, double> &rhs) {
-                          return rhs.second > lhs.second;
-                        });
-  H_min = *coords.toMap().lower_bound(H_min.first);
-  auto p =
-      strLineEquation(data->tower.sender.first,
-                      data->tower.sender.second + coords.b_y() - H_min.second,
-                      H_min.first, H_min.second);
-  p.second -= data->param.H_null[H_min.second];
-  QMap<double, double>::ConstIterator right, left;
-  for (auto it = coords.lowerBound(H_min.first); it != coords.end() - 1; ++it) {
-    if ((it + 1).value() < p.first * it.key() + p.second) {
-      right = it;
-      for (auto jt = coords.lowerBound(H_min.first); jt != coords.begin() + 1;
-           --jt)
-        if ((jt - 1).value() < p.first * jt.key() + p.second) left = jt;
+QPair<int, int> Opened::_findPointOfIntersection(void) {
+  double opposite_y_coord =  ///< Ордината точки, зеркальной к передатчику
+                             ///< относительно высотного профиля
+      coords.b_y() - data->tower.sender.second;
+  auto pair = strLineEquation(coords.b_x(), opposite_y_coord, coords.e_x(),
+                              data->tower.reciever.second + coords.e_y());
+  //  QCPItemLine *line = new QCPItemLine(data->mainWindow->customplot_1);
+  //  line->start->setCoords(coords.b_x(), opposite_y_coord);
+  //  line->end->setCoords(coords.e_x(),
+  //                       data->tower.reciever.second + coords.e_y());
+  double inters_x;  ///< Индекс наивысшей точки пересечения высотного
+  ///< профиля и прямой, проведенной из точки приемника к точке, зеркальной
+  ///< передатчику
+  double inters_y;  ///< Ордината точки пересечения
+  // Поиск точки пересечения, если их несколько, то берется
+  // последняя в цикле точка
+  LOOP_START(std::next(coords.begin()), std::prev(coords.end()), it);
+  auto y_coord = pair.first * it.key() + pair.second;
+  if (it != coords.begin())
+    if ((y_coord >= (it - 1).value() && y_coord <= (it + 1).value()) ||
+        (y_coord <= (it - 1).value() && y_coord >= (it + 1).value())) {
+      inters_y = y_coord;
+      inters_x = it.key();
     }
-  }
-  return {left, right};
+  LOOP_END;
+  return {inters_x, inters_y};
 }
 
-void Opened::_rayleighAndGroundCriteria(QMapCIt start, QMapCIt end) {
-  QVector<double> h;
-  coords.y(h);
-  auto pair =
-      strLineEquation(start.key(), start.value(), end.key(), end.value());
-  auto H_null = data->param.H_null.values();
-  auto h_null = data->param.h_null.values();
-  auto max_H0_h0 =  ///< Максимально допустимое значение неровности рельефа
-      0.75 * *std::max_element(H_null.begin(), H_null.end()) /
-      *std::min_element(h_null.begin(), h_null.end());
-  double delta_h = 0;
-  LOOP_START(coords.lowerBound(start.key()), coords.lowerBound(end.value()),
-             it);
-  delta_h = std::max(pair.first * *it + pair.second - h.at(*it), delta_h);
-  LOOP_END;
-  //  if (delta_h > max_H0_h0) {
-  //    auto phi_null = _mirror_coef();
-  //    ostream << _attentuationPlane(phi_null, delta_h);
-  //  } else {
-  //    ostream << _attentuationPlane(1, delta_h);
+void Opened::_planeApproximation(QPair<int, int> intersec) {
+  ostream << 's';
+  double delta_r = qPow(data->param.H[intersec.first], 2) /
+                   (2 * data->constant.area_length * k(intersec.first) *
+                    (1 - k(intersec.first)));
+}
+
+void Opened::_sphereApproximation(QPair<int, int> intersec) {
+  auto coord = coords.toMap();
+  auto h_max = std::max_element(
+      coord.begin(), coord.end(),
+      [](const std::pair<double, double> &lhs,
+         const std::pair<double, double> &rhs) { return rhs > lhs; });
+  QPair<double, double> parallel_line = {
+      data->param.los.first, data->param.los.second -
+                                 data->param.H[intersec.first] -
+                                 data->param.H_null[intersec.first]};
+  QCPItemLine *line = new QCPItemLine(data->mainWindow->customplot_1);
+  line->start->setCoords(coords.b_x(), parallel_line.second);
+  line->end->setCoords(
+      coords.e_x(), parallel_line.first * coords.e_x() + parallel_line.second);
+  //  for () {
+
   //  }
 }
 
-// double Opened::_attentuationPlane(double phi_null, double delta_h) {
-//  return -10 *
-//         log10(1 + qPow(phi_null, 2) -
-//               2 * qPow(phi_null, 2) * qCos(M_PI / 3 * delta_h * delta_h));
-//}  // Конец реализации расчета затухания на открытом интервале
+double Opened::_attentuationPlane(double phi_null, double delta_h) {
+  return -10 *
+         log10(1 + qPow(phi_null, 2) -
+               2 * qPow(phi_null, 2) * qCos(M_PI / 3 * delta_h * delta_h));
+}  // Конец реализации расчета затухания на открытом интервале
 
 // Составляющая расчета. Реализация расчета затухания на полуоткрытом интервале
 
@@ -1024,11 +1007,17 @@ bool Air::Item::exec() {
   return true;
 }
 
-//bool Feeder::Item::exec() {
-//  //  data->wf = {}
-//  if (!_data) return false;
-//  return true;
-//}
+bool Feeder::Item::exec() {
+  QString feeder_t = data->mainWindow->comboBox_feeder->currentText();
+  double freq = data->mainWindow->comboBox_freq->currentText().toDouble();
+  data->wf = {data->constant.linear_atten[feeder_t][freq] *
+                  (data->tower.sender.second + data->tower.senderF_length),
+              data->constant.linear_atten[feeder_t][freq] *
+                  (data->tower.reciever.second + data->tower.recieverF_length)};
+  ostream << data->wf.first << ' ';
+  if (!_data) return false;
+  return true;
+}
 
 }  // namespace Atten
 
@@ -1054,6 +1043,13 @@ void Core::setFreq(double f) {
 void Core::setSenHeight(double h) { _data->tower.sender.second = h; }
 
 void Core::setRecHeight(double h) { _data->tower.reciever.second = h; }
+
+void Core::setSenFLength(double l) {
+  ostream << l << ' ';
+  _data->tower.senderF_length = l;
+}
+
+void Core::setRecFLength(double l) { _data->tower.recieverF_length = l; }
 
 namespace Diagram {
 
