@@ -196,7 +196,6 @@ class Item {
  public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data) : _data(data) {}
-  Item(const Data::WeakPtr &data, QCustomPlot *cp) : _data(data), _cp(cp) {}
 
   virtual ~Item() {}
 
@@ -252,7 +251,6 @@ class Item {
 
  protected:
   Data::WeakPtr _data;
-  QCustomPlot *_cp;
 };
 
 namespace Master {
@@ -263,7 +261,7 @@ namespace Master {
 class Item : public Calc::Item {
  public:
   QSHDEF(Item);
-  Item(const Data::WeakPtr &data, QCustomPlot *cp) : Calc::Item(data, cp) {}
+  Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
  protected:
   QList<QPair<Calc::Item::Ptr, QString>> _items;
@@ -279,9 +277,8 @@ namespace Main {
 class Item : public Master::Item {
  public:
   QSHDEF(Item);
-  Item(const Data::WeakPtr &data, QCustomPlot *cp);
+  Item(const Data::WeakPtr &data);
 
-  // NRrls::Calc::Item interface
  public:
   virtual bool exec();
 };

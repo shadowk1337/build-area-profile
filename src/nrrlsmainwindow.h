@@ -6,6 +6,7 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QStackedWidget>
+#include <QComboBox>
 
 /**
  * Главное окно
@@ -23,6 +24,7 @@ class NRrlsMainWindow : public QMainWindow {
   void restoreSettings();
 
  private:
+  void exec();
   void setSettings(const QVariantMap &options);
   void setWidgets();
   void setDebugLevel(int level);
@@ -35,7 +37,7 @@ class NRrlsMainWindow : public QMainWindow {
 
  private slots:
   void onMouseMove(QMouseEvent *event);
-  void onLineEditSenderLengthTextEdited(QLineEdit *event);
+  void onComboBoxValueChanged(QComboBox *event);
   void tabPressed(QEvent *event);
 };
 

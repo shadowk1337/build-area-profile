@@ -15,7 +15,7 @@ namespace Fill {
 class Item : public Calc::Item {
  public:
   QSHDEF(Item);
-  Item(Calc::Data::WeakPtr &data, QCustomPlot *cp) : Calc::Item(data, cp) {}
+  Item(Calc::Data::WeakPtr &data) : Calc::Item(data) {}
 
  public:
   bool exec() override;
@@ -35,14 +35,14 @@ namespace Profile {
 class Item : public Calc::Item {
  public:
   QSHDEF(Item);
-  Item(const Calc::Data::WeakPtr &data, QCustomPlot *cp)
-      : Calc::Item(data, cp) {}
+  Item(const Calc::Data::WeakPtr &data) : Calc::Item(data) {}
 
  public:
   virtual bool exec() override;
 
  protected:
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
+  QCustomPlot *cp = data->mainWindow->customplot_1;
   decltype(data->param.coords) coords = data->param.coords;
 };
 
@@ -52,8 +52,7 @@ class Item : public Calc::Item {
 class Axes : public Profile::Item {
  public:
   QSHDEF(Axes);
-  Axes(const Calc::Data::WeakPtr &data, QCustomPlot *cp)
-      : Profile::Item(data, cp) {}
+  Axes(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
  public:
   bool exec() override;
@@ -65,8 +64,7 @@ class Axes : public Profile::Item {
 class Earth : public Profile::Item {
  public:
   QSHDEF(Earth);
-  Earth(const Calc::Data::WeakPtr &data, QCustomPlot *cp)
-      : Profile::Item(data, cp) {}
+  Earth(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
  public:
   bool exec() override;
@@ -78,8 +76,7 @@ class Earth : public Profile::Item {
 class Curve : public Profile::Item {
  public:
   QSHDEF(Curve);
-  Curve(const Calc::Data::WeakPtr &data, QCustomPlot *cp)
-      : Profile::Item(data, cp) {}
+  Curve(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
  public:
   bool exec() override;
@@ -91,8 +88,7 @@ class Curve : public Profile::Item {
 class Fresnel : public Profile::Item {
  public:
   QSHDEF(Fresnel);
-  Fresnel(const Calc::Data::WeakPtr &data, QCustomPlot *cp)
-      : Profile::Item(data, cp) {}
+  Fresnel(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
  public:
   bool exec() override;
@@ -104,8 +100,7 @@ class Fresnel : public Profile::Item {
 class Los : public Profile::Item {
  public:
   QSHDEF(Los);
-  Los(const Calc::Data::WeakPtr &data, QCustomPlot *cp)
-      : Profile::Item(data, cp) {}
+  Los(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
  public:
   bool exec() override;
@@ -365,17 +360,30 @@ class Item : public Calc::Item {
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
  public:
-  bool exec() override { return false; }
+  bool exec() override;
 };
 
 }  // namespace Median
 
 namespace Diagram {
 
-class Setup : public Calc::Item {
+class Item : public Calc::Item {
  public:
   QSHDEF(Item);
-  Setup(const Data::WeakPtr &data) : Calc::Item(data) {}
+  Item(const Data::WeakPtr &data) : Calc::Item(data) {}
+
+ protected:
+  QSharedPointer<Calc::Data> data = _data.toStrongRef();
+  QCustomPlot *cp = data->mainWindow->customplot_2;
+
+ public:
+  bool exec() override;
+};
+
+class Axes : public Item {
+ public:
+  QSHDEF(Item);
+  Axes(const Data::WeakPtr &data) : Item(data) {}
 
  protected:
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
@@ -386,83 +394,10 @@ class Setup : public Calc::Item {
 
 }  // namespace Diagram
 
-namespace Main {
-
-Item::Item(const Data::WeakPtr &data, QCustomPlot *cp)
-    : Master::Item(data, cp) {
-  _items = {
-      qMakePair(Fill::Item::Ptr::create(_data, _cp), QString("Fill")),
-      qMakePair(Profile::Item::Ptr::create(_data, _cp), QString("Profile")),
-      qMakePair(Interval::Item::Ptr::create(_data), QString("Interval")),
-      qMakePair(Atten::Land::Item::Ptr::create(_data), QString("Attentuation")),
-      qMakePair(Atten::Free::Item::Ptr::create(_data), QString("Free")),
-      qMakePair(Atten::Air::Item::Ptr::create(_data), QString("Air")),
-      qMakePair(Atten::Feeder::Item::Ptr::create(_data), QString("Feeder"))
-      /*Median::Item::Ptr::create(_data)*/
-  };
-}
-
-bool Item::exec() {
-  auto data_m = _data.toStrongRef()->mainWindow;
-  for (auto item : _items) {
-    data_m->progressBar->setValue(data_m->progressBar->value() +
-                                  100 / _items.size());
-    if (!item.first->exec()) {
-      estream << "Error in " << QString("%1 %2").arg(__FILE__).arg(item.second)
-              << " function\n";
-      return false;
-    }
-  }
-  data_m->customplot_1->replot();
-  data_m->progressBar->setValue(100);
-  QThread::msleep(200);
-  data_m->progressBar->hide();
-  return true;
-}
-
-}  // namespace Main
-
-bool Profile::Item::exec() {
-  return (Axes::Ptr::create(_data, _cp)->exec() &&
-          Earth::Ptr::create(_data, _cp)->exec() &&
-          Curve::Ptr::create(_data, _cp)->exec() &&
-          Fresnel::Ptr::create(_data, _cp)->exec() &&
-          Los::Ptr::create(_data, _cp)->exec());
-}
-
-bool Atten::Land::Item::exec() {
-  switch (data->interval_type) {  // 1-Открытый, 2-Полуоткрытый, 3-Закрытый
-    case 1:
-      data->mainWindow->label_intervalType->setText("Открытый");
-      Opened::Ptr::create(_data)->exec();
-      break;
-    case 2:
-      data->mainWindow->label_intervalType->setText("Полуоткрытый");
-      SemiOpened::Ptr::create(_data)->exec();
-      break;
-    case 3:
-      data->mainWindow->label_intervalType->setText("Закрытый");
-      Closed::Ptr::create(_data)->exec();
-      break;
-    default:
-      return false;
-  }
-  return true;
-}
-
-bool Atten::Land::Item::_isTangent(double a, double b, double start,
-                                   double end) const {
-  for (auto it = coords.lowerBound(start); it != coords.lowerBound(end);
-       it += (end - start >= 0) ? 1 : -1) {
-    if (a * it.key() + b < it.value()) return false;
-  }
-  return true;
-}
-
 namespace Etc {
 
 void setGraph(QCustomPlot *cp, int it, const QVector<double> &x,
-              const QVector<double> &y, QPen pen = QPen{}) {
+              const QVector<double> &y, QPen pen) {
   cp->addGraph();
   cp->graph(it)->setData(x, y, true);
   cp->graph(it)->setPen(pen);
@@ -494,6 +429,84 @@ QPair<double, double> Calc::Item::strLineEquation(double x, double y, double xx,
   double a = (yy - y);
   double b = (xx - x);
   return {a / b, y - (x * a / b)};
+}
+
+namespace Main {
+
+Item::Item(const Data::WeakPtr &data) : Master::Item(data) {
+  _items = {
+      qMakePair(Fill::Item::Ptr::create(_data), QString("Fill")),
+      qMakePair(Profile::Item::Ptr::create(_data), QString("Profile")),
+      qMakePair(Interval::Item::Ptr::create(_data), QString("Interval")),
+      qMakePair(Atten::Land::Item::Ptr::create(_data), QString("Attentuation")),
+      qMakePair(Atten::Free::Item::Ptr::create(_data), QString("Free")),
+      qMakePair(Atten::Air::Item::Ptr::create(_data), QString("Air")),
+      //      qMakePair(Atten::Feeder::Item::Ptr::create(_data),
+      //      QString("Feeder")), qMakePair(Median::Item::Ptr::create(_data),
+      //      QString("Median")), qMakePair(Diagram::Item::Ptr::create(_data),
+      //      QString("Diagram"))
+  };
+}
+
+bool Item::exec() {
+  auto data_m = _data.toStrongRef()->mainWindow;
+  for (auto item : _items) {
+    data_m->progressBar->setValue(data_m->progressBar->value() +
+                                  100 / _items.size());
+    if (!item.first->exec()) {
+      estream << "Error in " << QString("%1 %2").arg(__FILE__).arg(item.second)
+              << " function\n";
+      return false;
+    }
+  }
+  data_m->customplot_1->replot();
+  data_m->progressBar->setValue(100);
+  QThread::msleep(200);
+  data_m->progressBar->hide();
+  return true;
+}
+
+}  // namespace Main
+
+bool Profile::Item::exec() {
+  return (
+      Axes::Ptr::create(_data)->exec() && Earth::Ptr::create(_data)->exec() &&
+      Curve::Ptr::create(_data)->exec() &&
+      Fresnel::Ptr::create(_data)->exec() && Los::Ptr::create(_data)->exec());
+}
+
+bool Diagram::Item::exec() {
+  return true /*(Axes::Ptr::create(_data)->exec())*/;
+}
+
+bool Atten::Land::Item::exec() {
+  switch (data->interval_type) {
+    case 1:
+      data->mainWindow->label_intervalType->setText(QObject::tr("Открытый"));
+      Opened::Ptr::create(_data)->exec();
+      break;
+    case 2:
+      data->mainWindow->label_intervalType->setText(
+          QObject::tr("Полуоткрытый"));
+      SemiOpened::Ptr::create(_data)->exec();
+      break;
+    case 3:
+      data->mainWindow->label_intervalType->setText(QObject::tr("Закрытый"));
+      Closed::Ptr::create(_data)->exec();
+      break;
+    default:
+      return false;
+  }
+  return true;
+}
+
+bool Atten::Land::Item::_isTangent(double a, double b, double start,
+                                   double end) const {
+  for (auto it = coords.lowerBound(start); it != coords.lowerBound(end);
+       it += (end - start >= 0) ? 1 : -1) {
+    if (a * it.key() + b < it.value()) return false;
+  }
+  return true;
 }
 
 namespace Fill {
@@ -576,9 +589,9 @@ bool Axes::exec() {
   constexpr int window_add_height = 45;
 
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-  _cp->rescaleAxes();
-  _cp->setInteractions(QCP::iSelectPlottables | QCP::iRangeDrag |
-                       QCP::iRangeZoom);
+  cp->rescaleAxes();
+  cp->setInteractions(QCP::iSelectPlottables | QCP::iRangeDrag |
+                      QCP::iRangeZoom);
 
   for (double i = 0; i < data->constant.area_length + 500; i += 500) {
     QString str = QString::number(static_cast<int>(i) / 1000);
@@ -592,13 +605,13 @@ bool Axes::exec() {
       std::max(h_max, std::max(coords.b_y() + data->tower.sender.second,
                                coords.e_y() + data->tower.reciever.second)) +
       window_add_height;
-  _cp->yAxis->setLabel("Высота, м.");
-  _cp->yAxis->setRange(0, y_max, Qt::AlignLeft);
-  _cp->xAxis->setLabel("Расстояние, км.");
-  _cp->xAxis->setTicker(textTicker);
-  _cp->xAxis->setTickLength(0);
-  _cp->yAxis->setSubTickLength(0);
-  _cp->xAxis->setRange(0, data->constant.area_length);
+  cp->yAxis->setLabel("Высота, м.");
+  cp->yAxis->setRange(0, y_max, Qt::AlignLeft);
+  cp->xAxis->setLabel("Расстояние, км.");
+  cp->xAxis->setTicker(textTicker);
+  cp->xAxis->setTickLength(0);
+  cp->yAxis->setSubTickLength(0);
+  cp->xAxis->setRange(0, data->constant.area_length);
 
   if (_data.isNull()) return false;
   return true;
@@ -627,7 +640,7 @@ bool Earth::exec() {
       y.push_back(-(i * i / (2 * equivalent_radius)) + move_graph_up_value);
     }
   }
-  Etc::setGraph(_cp, 0, x, y, pen);
+  Etc::setGraph(cp, 0, x, y, pen);
   x.clear(), y.clear();
   assert(x.size() == y.size());
 
@@ -641,7 +654,7 @@ bool Curve::exec() {
   QPen pen(QColor("#137ea8"), 2);
   coords.x(x);
   coords.y(y);
-  Etc::setGraph(_cp, 1, x, y, pen);
+  Etc::setGraph(cp, 1, x, y, pen);
   x.clear(), y.clear();
 
   if (!_data) return false;
@@ -658,14 +671,14 @@ bool Fresnel::exec() {
   y.push_back((-data->param.H_null[i.key()]) + data->param.los.first * i.key() +
               data->param.los.second);
   LOOP_END;
-  Etc::setGraph(_cp, 2, x, y, pen);
+  Etc::setGraph(cp, 2, x, y, pen);
 
   decltype(x)::ConstIterator it = x.begin();
   LOOP_START(y.begin(), y.end(), i);
   *i += 2 * data->param.H_null[*it];
   it = (it != x.end()) ? std::next(it) : std::prev(x.end());
   LOOP_END;
-  Etc::setGraph(_cp, 3, x, y, pen);
+  Etc::setGraph(cp, 3, x, y, pen);
   x.clear(), y.clear();
   if (!_data) return false;
   return true;
@@ -679,7 +692,7 @@ bool Los::exec() {
   data->param.coords.x(x);
   for (auto it : x)
     y.push_back(data->param.los.first * it + data->param.los.second);
-  Etc::setGraph(_cp, 4, x, y, pen);
+  Etc::setGraph(cp, 4, x, y, pen);
   x.clear(), y.clear();
   if (!_data) return false;
   return true;
@@ -765,10 +778,6 @@ void Opened::_sphereApproximation(QPair<int, int> intersec) {
       data->param.los.first, data->param.los.second -
                                  data->param.H[intersec.first] -
                                  data->param.H_null[intersec.first]};
-  QCPItemLine *line = new QCPItemLine(data->mainWindow->customplot_1);
-  line->start->setCoords(coords.b_x(), parallel_line.second);
-  line->end->setCoords(
-      coords.e_x(), parallel_line.first * coords.e_x() + parallel_line.second);
   //  for () {
 
   //  }
@@ -1009,24 +1018,48 @@ bool Air::Item::exec() {
 
 bool Feeder::Item::exec() {
   QString feeder_t = data->mainWindow->comboBox_feeder->currentText();
-  double freq = data->mainWindow->comboBox_freq->currentText().toDouble();
-  data->wf = {data->constant.linear_atten[feeder_t][freq] *
-                  (data->tower.sender.second + data->tower.senderF_length),
-              data->constant.linear_atten[feeder_t][freq] *
-                  (data->tower.reciever.second + data->tower.recieverF_length)};
-  ostream << data->wf.first << ' ';
+  //  double freq = data->mainWindow->comboBox_freq->currentText().toDouble();
+  //  data->wf = {data->constant.linear_atten[feeder_t][freq] *
+  //                  (data->tower.sender.second + data->tower.senderF_length),
+  //              data->constant.linear_atten[feeder_t][freq] *
+  //                  (data->tower.reciever.second +
+  //                  data->tower.recieverF_length)};
+  //  ostream << data->wf.first << ' ';
   if (!_data) return false;
   return true;
 }
 
 }  // namespace Atten
 
+namespace Median {
+
+bool Item::exec() {
+  constexpr int p = 20, g1 = 2, g2 = 2;
+  auto data = _data.toStrongRef();
+  data->p = p - data->wf.first + g1 - (data->wp + data->ws + data->wa) + g2 -
+            data->wf.second;
+  if (!_data) return false;
+  return true;
+}
+
+}  // namespace Median
+
+namespace Diagram {
+
+bool Axes::exec() {
+  cp->xAxis->setVisible(0);
+  cp->yAxis->setVisible(0);
+  if (!_data) return false;
+  return true;
+}
+
+}  // namespace Diagram
+
 Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
   _data = QSharedPointer<Data>::create();
   _data->mainWindow = m;
-  _cp = m->customplot_1;
   _data->filename = filename;
-  _main = Main::Item::Ptr::create(_data, _cp);
+  _main = Main::Item::Ptr::create(_data);
 }
 
 bool Core::exec() {
@@ -1037,25 +1070,16 @@ bool Core::exec() {
 
 void Core::setFreq(double f) {
   _data->spec.f = f;
-  _data->constant.lambda = (double)3e+8 / (f * 1e+9);
+  _data->constant.lambda = (double)3e+8 / (f * 1e+6);
 }
 
 void Core::setSenHeight(double h) { _data->tower.sender.second = h; }
 
 void Core::setRecHeight(double h) { _data->tower.reciever.second = h; }
 
-void Core::setSenFLength(double l) {
-  ostream << l << ' ';
-  _data->tower.senderF_length = l;
-}
+void Core::setSenFLength(double l) { _data->tower.senderF_length = l; }
 
 void Core::setRecFLength(double l) { _data->tower.recieverF_length = l; }
-
-namespace Diagram {
-
-bool Setup::exec() {}
-
-}  // namespace Diagram
 
 }  // namespace Calc
 

@@ -25,8 +25,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   _d->ui->customplot_1->xAxis->setVisible(0);
   _d->ui->customplot_1->yAxis->setVisible(0);
   _d->ui->label_coords->hide();
-  _d->ui->lineEdit_sender->setText("0");
-  _d->ui->lineEdit_reciever->setText("0");
+  _d->ui->lineEdit_station1->setText("0");
+  _d->ui->lineEdit_station2->setText("0");
   _d->ui->progressBar->hide();
 
   setWindowTitle(tr("РРЛС"));
@@ -40,45 +40,49 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   changeWidget->setText(tr("Высотный профиль"));
   changeWidget->hide();
 
-  QWidget *a = new QWidget(_d->ui->profile);
-  a->setGeometry(2, 695, 195, 50);
-  la = new QHBoxLayout(a);
-  fileDial = new QPushButton(tr("Файл"), _d->ui->profile);
-  a->setLayout(la);
-  la->addWidget(fileDial);
-  fileDial->setMaximumSize(a->width(), a->height());
-
   int h1, h2;  ///< Высоты, задаваемые ползунками
+  double freq;
+  QString fileName;
 
-  _d->ui->comboBox_freq->addItems({"0.1", "1.0", "3.0", "6.0", "10.0"});
-  _d->ui->comboBox_freq->addItems({"15.0", "20.0", "30.0"});
-  _d->ui->comboBox_freq->setCurrentText("1.0");
+  _d->ui->comboBox_rrsStation1->addItem(tr("Выбрать станцию"));
+  _d->ui->comboBox_rrsStation2->addItem(tr("Выбрать станцию"));
+  _d->ui->comboBox_rrsStation1->addItem(tr("Р-419МЦ"));
+  _d->ui->comboBox_rrsStation2->addItem(tr("Р-419МЦ"));
 
-  connect(fileDial, &QPushButton::clicked, [&]() {
+  connect(_d->ui->action_fileOpen, &QAction::triggered, [&]() {
     h1 = h2 = 20;
+    freq = 1000;
+
     QFileDialog *in = new QFileDialog(this);
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
-    QString temp = in->getOpenFileName(this, tr("Open File"), "*.csv");
+    fileName = in->getOpenFileName(this, tr("Открыть файл"), "*.csv");
     changeWidget->show();
-    if (!temp.isEmpty()) {
+    if (!fileName.isEmpty()) {
       _d->ui->customplot_1->xAxis->setVisible(1);
       _d->ui->customplot_1->yAxis->setVisible(1);
       _d->ui->label_coords->show();
-      _d->ui->horizontalSlider_sender->setValue(h1);
-      _d->ui->horizontalSlider_reciever->setValue(h2);
-      _d->ui->lineEdit_sender->setText(QString::number(h1));
-      _d->ui->lineEdit_reciever->setText(QString::number(h2));
-      _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
-      _d->_c->setFreq(_d->ui->comboBox_freq->currentText().toDouble());
+      _d->ui->lineEdit_station1->setText(QString::number(h1));
+      _d->ui->lineEdit_station2->setText(QString::number(h2));
+      _d->ui->lineEdit_freq->setText(QString::number(freq));
+      _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, fileName);
+      _d->_c->setFreq(_d->ui->lineEdit_freq->text().toDouble());
       _d->_c->setSenHeight(h1);
       _d->_c->setRecHeight(h2);
       in->hide();
-      init();
+      exec();
     }
   });
 
-  connect(_d->ui->comboBox_freq, &QComboBox::currentTextChanged, [&]() {
-    double freq = _d->ui->comboBox_freq->currentText().toDouble();
+  connect(_d->ui->action_fileReplot, &QAction::triggered, [&]() {
+    if (!fileName.isEmpty()) {
+      exec();
+      _d->ui->customplot_1->replot();
+      _d->ui->customplot_2->replot();
+    }
+  });
+
+  connect(_d->ui->lineEdit_freq, &QLineEdit::textEdited, [&]() {
+    freq = _d->ui->lineEdit_freq->text().toDouble();
     if (_d->ui->customplot_1->graphCount() >= 5) {
       _d->_c->setFreq(freq);
       _d->ui->comboBox_feeder->clear();
@@ -97,47 +101,22 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       if (freq == 15) _d->ui->comboBox_feeder->addItem(tr("МЭК-120"));
       if (freq == 20) _d->ui->comboBox_feeder->addItem(tr("МЭК-180"));
       if (freq == 30) _d->ui->comboBox_feeder->addItem(tr("МЭК-26"));
-      init();
+      exec();
     }
   });
 
-  connect(_d->ui->horizontalSlider_sender, &QSlider::valueChanged, [&]() {
-    h1 = _d->ui->horizontalSlider_sender->value();
-    _d->ui->lineEdit_sender->setText(QString::number(heightParse(h1)));
-  });
-
-  connect(_d->ui->horizontalSlider_sender, &QSlider::sliderReleased, [&]() {
-    h1 = _d->ui->horizontalSlider_sender->value();
+  connect(_d->ui->lineEdit_station1, &QLineEdit::textEdited, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5) {
+      h1 = heightParse(_d->ui->lineEdit_station1->text().toInt());
+      if (h1) _d->ui->lineEdit_station1->setText(QString::number(h1));
       _d->_c->setSenHeight(h1);
-      _d->ui->customplot_1->clearGraphs();
-      init();
+      exec();
     }
   });
 
-  connect(_d->ui->lineEdit_sender, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
-      h1 = heightParse(_d->ui->lineEdit_sender->text().toInt());
-      if (h1) _d->ui->lineEdit_sender->setText(QString::number(h1));
-      _d->ui->horizontalSlider_sender->setValue(h1);
-      _d->_c->setSenHeight(h1);
-      init();
-    }
-  });
-
-  connect(_d->ui->horizontalSlider_reciever, &QSlider::valueChanged, [&]() {
-    h2 = _d->ui->horizontalSlider_reciever->value();
-    _d->ui->lineEdit_reciever->setText(QString::number(heightParse(h2)));
-  });
-
-  connect(_d->ui->horizontalSlider_reciever, &QSlider::sliderReleased, [&]() {
-    h2 = heightParse(_d->ui->horizontalSlider_reciever->value());
-    if (_d->ui->customplot_1->graphCount() >= 5) {
-      _d->_c->setRecHeight(h2);
-      _d->ui->customplot_1->clearGraphs();
-      init();
-    }
-  });
+  //  connect(_d->ui->comboBox_rrsStation1, &QComboBox::currentTextChanged,
+  //  this,
+  //          &NRrlsMainWindow::onComboBoxValueChanged);
 
   connect(changeWidget, &QPushButton::clicked, [&]() {
     if (_d->ui->stackwidget->currentIndex() == 0) {
@@ -150,20 +129,19 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     }
   });
 
-  connect(_d->ui->lineEdit_reciever, &QLineEdit::textEdited, [&]() {
+  connect(_d->ui->lineEdit_station2, &QLineEdit::textEdited, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5) {
-      h2 = heightParse(_d->ui->lineEdit_reciever->text().toInt());
-      if (h2) _d->ui->lineEdit_reciever->setText(QString::number(h2));
-      _d->ui->horizontalSlider_reciever->setValue(h2);
+      h2 = heightParse(_d->ui->lineEdit_station2->text().toInt());
+      if (h2) _d->ui->lineEdit_station2->setText(QString::number(h2));
       _d->_c->setRecHeight(h2);
-      init();
+      exec();
     }
   });
 
-  //  connect() TODO: connect to tab
-
-  connect(_d->ui->lineEdit_senderLength, SIGNAL(&QLineEdit::textChanged()), this,
-          SLOT(&NRrlsMainWindow::onLineEditSenderLengthTextEdited()));
+  //  connect(_d->ui->lineEdit_station1Length, &QLineEdit::textEdited, [&]() {
+  //    _d->_c->setSenFLength(_d->ui->lineEdit_station1Length->text().toDouble());
+  //    init();
+  //  });
 
   connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
@@ -174,7 +152,9 @@ NRrlsMainWindow::~NRrlsMainWindow() {
   delete _d;
 }
 
-void NRrlsMainWindow::init() { _d->_c->exec(); }
+void NRrlsMainWindow::exec() { _d->_c->exec(); }
+
+void NRrlsMainWindow::init() {}
 
 void NRrlsMainWindow::saveSettings() {}
 
@@ -217,16 +197,14 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   customplot_1->replot();
 }
 
+void NRrlsMainWindow::onComboBoxValueChanged(QComboBox *event) {
+  std::cout << 'k';
+  //  _d->ui->lineEdit_capStation1->setText(  );
+  //  _d->ui->lineEdit_sensStation1->setText();
+};
+
 void NRrlsMainWindow::tabPressed(QEvent *event) {
   if (event->type() == QEvent::KeyPress) {
     if (static_cast<QKeyEvent *>(event)->key() == Qt::Key_Tab) return;
-  }
-}
-
-void NRrlsMainWindow::onLineEditSenderLengthTextEdited(QLineEdit *event) {
-  std::cout << "h";
-  if (_d->ui->customplot_1->graphCount() >= 5) {
-    _d->_c->setSenFLength(event->text().toDouble());
-    init();
   }
 }
