@@ -25,9 +25,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   _d->ui->customplot_1->xAxis->setVisible(0);
   _d->ui->customplot_1->yAxis->setVisible(0);
   _d->ui->label_coords->hide();
-  _d->ui->lineEdit_station1->setText("0");
-  _d->ui->lineEdit_station2->setText("0");
-  _d->ui->progressBar->hide();
 
   setWindowTitle(tr("РРЛС"));
   int w = 1360;
@@ -42,7 +39,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   int h1, h2;  ///< Высоты, задаваемые ползунками
   double freq;
-  QString fileName;
 
   _d->ui->comboBox_rrsStation1->addItem(tr("Выбрать станцию"));
   _d->ui->comboBox_rrsStation2->addItem(tr("Выбрать станцию"));
@@ -55,16 +51,16 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
     QFileDialog *in = new QFileDialog(this);
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
-    fileName = in->getOpenFileName(this, tr("Открыть файл"), "*.csv");
+    QString temp = in->getOpenFileName(this, tr("Открыть файл"), "", "*.csv");
     changeWidget->show();
-    if (!fileName.isEmpty()) {
+    if (!temp.isEmpty()) {
       _d->ui->customplot_1->xAxis->setVisible(1);
       _d->ui->customplot_1->yAxis->setVisible(1);
       _d->ui->label_coords->show();
       _d->ui->lineEdit_station1->setText(QString::number(h1));
       _d->ui->lineEdit_station2->setText(QString::number(h2));
       _d->ui->lineEdit_freq->setText(QString::number(freq));
-      _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, fileName);
+      _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
       _d->_c->setFreq(_d->ui->lineEdit_freq->text().toDouble());
       _d->_c->setSenHeight(h1);
       _d->_c->setRecHeight(h2);
@@ -74,11 +70,25 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   });
 
   connect(_d->ui->action_fileReplot, &QAction::triggered, [&]() {
-    if (!fileName.isEmpty()) {
-      exec();
-      _d->ui->customplot_1->replot();
-      _d->ui->customplot_2->replot();
-    }
+    //    if (!fileName.isEmpty()) {
+    exec();
+    _d->ui->customplot_1->replot();
+    _d->ui->customplot_2->replot();
+    //    }
+  });
+
+  connect(_d->ui->action_13, &QAction::triggered, [&]() {
+    if (_d->ui->action_13->text() == "Скрыть нижнюю панель") {
+      _d->ui->action_13->setText(tr("Показать нижнюю панель"));
+      _d->ui->widget->hide();
+      _d->ui->customplot_1->resize(1341, 731);
+      _d->ui->frame->resize(1341, 731);
+    } else {
+        _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
+        _d->ui->widget->show();
+        _d->ui->customplot_1->resize(1341, 521);
+        _d->ui->frame->resize(1341, 521);
+      }
   });
 
   connect(_d->ui->lineEdit_freq, &QLineEdit::textEdited, [&]() {

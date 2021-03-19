@@ -451,8 +451,6 @@ Item::Item(const Data::WeakPtr &data) : Master::Item(data) {
 bool Item::exec() {
   auto data_m = _data.toStrongRef()->mainWindow;
   for (auto item : _items) {
-    data_m->progressBar->setValue(data_m->progressBar->value() +
-                                  100 / _items.size());
     if (!item.first->exec()) {
       estream << "Error in " << QString("%1 %2").arg(__FILE__).arg(item.second)
               << " function\n";
@@ -460,9 +458,6 @@ bool Item::exec() {
     }
   }
   data_m->customplot_1->replot();
-  data_m->progressBar->setValue(100);
-  QThread::msleep(200);
-  data_m->progressBar->hide();
   return true;
 }
 
@@ -512,6 +507,7 @@ bool Atten::Land::Item::_isTangent(double a, double b, double start,
 namespace Fill {
 
 bool Item::exec() {
+  qDebug() << "1 ";
   QFile file(data->filename);
   QTextStream in(&file);
   bool first = true;
@@ -590,12 +586,12 @@ bool Axes::exec() {
 
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   cp->rescaleAxes();
-  cp->setInteractions(QCP::iSelectPlottables | QCP::iRangeDrag |
-                      QCP::iRangeZoom);
+  cp->setInteractions(QCP::iSelectPlottables /*| QCP::iRangeDrag |
+                      QCP::iRangeZoom*/);
 
-  for (double i = 0; i < data->constant.area_length + 500; i += 500) {
+  for (double i = 0; i < data->constant.area_length + 500; i += 1000) {
     QString str = QString::number(static_cast<int>(i) / 1000);
-    textTicker->addTick(i, str);
+    textTicker->addTicks({{i, str}, {i + 500, ""}});
   }
 
   QVector<double> heights;
@@ -1062,11 +1058,7 @@ Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
   _main = Main::Item::Ptr::create(_data);
 }
 
-bool Core::exec() {
-  _data->mainWindow->progressBar->show();
-  _data->mainWindow->progressBar->setValue(0);
-  return _main->exec();
-}
+bool Core::exec() { return _main->exec(); }
 
 void Core::setFreq(double f) {
   _data->spec.f = f;
