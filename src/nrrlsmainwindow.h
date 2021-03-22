@@ -1,12 +1,12 @@
 #ifndef NRRLSMMAINWINDOW_H
 #define NRRLSMMAINWINDOW_H
 
+#include <QComboBox>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QStackedWidget>
-#include <QComboBox>
 
 /**
  * Главное окно
@@ -36,7 +36,7 @@ class NRrlsMainWindow : public QMainWindow {
   QPushButton *fileDial, *changeWidget;
 
  private slots:
-  void onMouseMove(QMouseEvent *event);
+  //  void onMouseMove(QMouseEvent *event);
   void onComboBoxValueChanged(QComboBox *event);
   void tabPressed(QEvent *event);
 };

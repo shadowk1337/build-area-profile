@@ -6,7 +6,7 @@
 #include "nrrlslogcategory.h"
 #include "nrrlsmainwindow.h"
 
-inline int heightParse(int h) { return h = (h > 100) ? 100 : (h < 0) ? 0 : h; }
+inline int parse(int h) { return h = (h > 100) ? 100 : (h < 0) ? 0 : h; }
 
 struct NRrlsMainWindow::Private {
   Private() {}
@@ -24,7 +24,15 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   _d->ui->customplot_1->xAxis->setVisible(0);
   _d->ui->customplot_1->yAxis->setVisible(0);
-  _d->ui->label_coords->hide();
+  _d->ui->customplot_2->xAxis->setVisible(0);
+  _d->ui->customplot_2->yAxis->setVisible(0);
+  QCPTextElement *title = new QCPTextElement(_d->ui->customplot_2);
+  title->setText(QObject::tr(
+      "Диаграмма уровней распределения сигнала на интервале РРС1 - РРС2"));
+  title->setFont(QFont("FreeSans", 10, QFont::Bold));
+  _d->ui->customplot_2->plotLayout()->insertRow(0);
+  _d->ui->customplot_2->plotLayout()->addElement(0, 0, title);
+  //  _d->ui->label_coords->hide();
 
   setWindowTitle(tr("РРЛС"));
   int w = 1360;
@@ -33,66 +41,79 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
 
   changeWidget = new QPushButton(this);
-  changeWidget->setGeometry(1128, 21, 221, 20);
+  changeWidget->setGeometry(_d->ui->stackwidget->geometry().x() +
+                                _d->ui->customplot_1->geometry().x() +
+                                _d->ui->customplot_1->width() - 170,
+                            _d->ui->stackwidget->geometry().y() +
+                                _d->ui->customplot_1->geometry().y() + 20,
+                            170, 22);
   changeWidget->setText(tr("Высотный профиль"));
+  changeWidget->setFont(QFont("FreeSans", 9));
   changeWidget->hide();
-
-  int h1, h2;  ///< Высоты, задаваемые ползунками
-  double freq;
 
   _d->ui->comboBox_rrsStation1->addItem(tr("Выбрать станцию"));
   _d->ui->comboBox_rrsStation2->addItem(tr("Выбрать станцию"));
   _d->ui->comboBox_rrsStation1->addItem(tr("Р-419МЦ"));
   _d->ui->comboBox_rrsStation2->addItem(tr("Р-419МЦ"));
 
-  connect(_d->ui->action_fileOpen, &QAction::triggered, [&]() {
-    h1 = h2 = 20;
-    freq = 1000;
-
+  connect(_d->ui->action_fileOpen, &QAction::triggered, this, [&]() {
     QFileDialog *in = new QFileDialog(this);
     in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
     QString temp = in->getOpenFileName(this, tr("Открыть файл"), "", "*.csv");
     changeWidget->show();
     if (!temp.isEmpty()) {
+      _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
+      _d->ui->customplot_1->legend->setVisible(true);
       _d->ui->customplot_1->xAxis->setVisible(1);
       _d->ui->customplot_1->yAxis->setVisible(1);
-      _d->ui->label_coords->show();
-      _d->ui->lineEdit_station1->setText(QString::number(h1));
-      _d->ui->lineEdit_station2->setText(QString::number(h2));
-      _d->ui->lineEdit_freq->setText(QString::number(freq));
-      _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
-      _d->_c->setFreq(_d->ui->lineEdit_freq->text().toDouble());
-      _d->_c->setSenHeight(h1);
-      _d->_c->setRecHeight(h2);
+      //      _d->ui->label_coords->show();
+      _d->ui->lineEdit_freq->setText(QString::number(1000));
+      _d->ui->lineEdit_station1->setText(QString::number(20));
+      _d->ui->lineEdit_station2->setText(QString::number(20));
+      _d->_c->setFreq(1000);
+      _d->_c->setFHeight(20);
+      _d->_c->setSHeight(20);
       in->hide();
       exec();
     }
   });
 
-  connect(_d->ui->action_fileReplot, &QAction::triggered, [&]() {
-    //    if (!fileName.isEmpty()) {
+  connect(_d->ui->action_fileReplot, &QAction::triggered, this, [&]() {
     exec();
     _d->ui->customplot_1->replot();
     _d->ui->customplot_2->replot();
-    //    }
   });
 
-  connect(_d->ui->action_13, &QAction::triggered, [&]() {
+  connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
     if (_d->ui->action_13->text() == "Скрыть нижнюю панель") {
       _d->ui->action_13->setText(tr("Показать нижнюю панель"));
       _d->ui->widget->hide();
       _d->ui->customplot_1->resize(1341, 731);
       _d->ui->frame->resize(1341, 731);
     } else {
-        _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
-        _d->ui->widget->show();
-        _d->ui->customplot_1->resize(1341, 521);
-        _d->ui->frame->resize(1341, 521);
-      }
+      _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
+      _d->ui->widget->show();
+      _d->ui->customplot_1->resize(1341, 521);
+      _d->ui->frame->resize(1341, 521);
+    }
   });
 
+  connect(_d->ui->action_14, &QAction::triggered, this, [&]() {
+    if (_d->ui->action_14->text() == "Скрыть описание") {
+      _d->ui->action_14->setText(tr("Показать описание"));
+      _d->ui->customplot_1->legend->setTextColor(QColor(Qt::red));
+      _d->ui->customplot_1->legend->setVisible(false);
+    } else {
+      _d->ui->action_14->setText(tr("Скрыть описание"));
+      _d->ui->customplot_1->legend->setVisible(true);
+    }
+  });
+
+  connect(_d->ui->action_4, &QAction::triggered, this,
+          [&]() { QApplication::exit(); });
+
   connect(_d->ui->lineEdit_freq, &QLineEdit::textEdited, [&]() {
-    freq = _d->ui->lineEdit_freq->text().toDouble();
+    double freq = _d->ui->lineEdit_freq->text().toDouble();
     if (_d->ui->customplot_1->graphCount() >= 5) {
       _d->_c->setFreq(freq);
       _d->ui->comboBox_feeder->clear();
@@ -117,9 +138,20 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->lineEdit_station1, &QLineEdit::textEdited, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5) {
-      h1 = heightParse(_d->ui->lineEdit_station1->text().toInt());
-      if (h1) _d->ui->lineEdit_station1->setText(QString::number(h1));
-      _d->_c->setSenHeight(h1);
+      double h1 = parse(_d->ui->lineEdit_station1->text().toInt());
+      (h1 > 0) ? _d->ui->lineEdit_station1->setText(QString::number(h1))
+               : _d->ui->lineEdit_station1->setText("0");
+      _d->_c->setFHeight(h1);
+      exec();
+    }
+  });
+
+  connect(_d->ui->lineEdit_station2, &QLineEdit::textEdited, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      double h2 = parse(_d->ui->lineEdit_station2->text().toInt());
+      (h2 > 0) ? _d->ui->lineEdit_station2->setText(QString::number(h2))
+               : _d->ui->lineEdit_station2->setText("0");
+      _d->_c->setSHeight(h2);
       exec();
     }
   });
@@ -128,33 +160,70 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   //  this,
   //          &NRrlsMainWindow::onComboBoxValueChanged);
 
+  connect(_d->ui->lineEdit_capStation1, &QLineEdit::textEdited, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      _d->_c->setFPower(_d->ui->lineEdit_capStation1->text().toDouble());
+    }
+  });
+
+  connect(_d->ui->lineEdit_capStation2, &QLineEdit::textEdited, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      _d->_c->setSPower(_d->ui->lineEdit_capStation2->text().toDouble());
+    }
+  });
+
+  connect(_d->ui->lineEdit_sensStation1, &QLineEdit::textEdited, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      _d->_c->setFSensetivity(_d->ui->lineEdit_sensStation1->text().toDouble());
+    }
+  });
+
+  connect(_d->ui->lineEdit_sensStation2, &QLineEdit::textEdited, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      _d->_c->setSSensetivity(_d->ui->lineEdit_sensStation2->text().toDouble());
+    }
+  });
+
+  connect(_d->ui->lineEdit_coefAntenna1, &QLineEdit::textEdited, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      _d->_c->setFCoef(_d->ui->lineEdit_coefAntenna1->text().toDouble());
+    }
+  });
+
+  connect(_d->ui->lineEdit_coefAntenna2, &QLineEdit::textEdited, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      _d->_c->setSCoef(_d->ui->lineEdit_coefAntenna2->text().toDouble());
+    }
+  });
+
   connect(changeWidget, &QPushButton::clicked, [&]() {
     if (_d->ui->stackwidget->currentIndex() == 0) {
       changeWidget->setText(tr("Диаграмма уровней передачи"));
       _d->ui->stackwidget->setCurrentIndex(1);
-      _d->ui->customplot_1->replot();
     } else if (_d->ui->stackwidget->currentIndex() == 1) {
       changeWidget->setText(tr("Высотный профиль"));
       _d->ui->stackwidget->setCurrentIndex(0);
     }
+    exec();
   });
 
-  connect(_d->ui->lineEdit_station2, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
-      h2 = heightParse(_d->ui->lineEdit_station2->text().toInt());
-      if (h2) _d->ui->lineEdit_station2->setText(QString::number(h2));
-      _d->_c->setRecHeight(h2);
-      exec();
-    }
+  connect(_d->ui->lineEdit_lengthStation1, &QLineEdit::textEdited, [&]() {
+    _d->_c->setFLength(_d->ui->lineEdit_lengthStation1->text().toDouble());
+    exec();
   });
 
-  //  connect(_d->ui->lineEdit_station1Length, &QLineEdit::textEdited, [&]() {
-  //    _d->_c->setSenFLength(_d->ui->lineEdit_station1Length->text().toDouble());
-  //    init();
-  //  });
+  connect(_d->ui->lineEdit_lengthStation2, &QLineEdit::textEdited, [&]() {
+    _d->_c->setSLength(_d->ui->lineEdit_lengthStation2->text().toDouble());
+    exec();
+  });
 
-  connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
-          &NRrlsMainWindow::onMouseMove);
+  connect(_d->ui->lineEdit_temperature, &QLineEdit::textEdited, [&]() {
+    _d->_c->setTemperature(_d->ui->lineEdit_temperature->text().toDouble());
+    exec();
+  });
+
+  //  connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
+  //          &NRrlsMainWindow::onMouseMove);
 }
 
 NRrlsMainWindow::~NRrlsMainWindow() {
@@ -196,16 +265,16 @@ void NRrlsMainWindow::setDebugLevel(int level) {
   QLoggingCategory::setFilterRules(p.join("\n") + "\n");
 }
 
-void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
-  QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
-  double x = customplot_1->xAxis->pixelToCoord(event->pos().x());
-  double y = customplot_1->yAxis->pixelToCoord(event->pos().y());
-  _d->ui->label_coords->setText(
-      QString("%1, %2")
-          .arg(x >= 0 ? std::round(x / 1000 * 100) / 100 : 0)
-          .arg(y >= 0 ? std::round(y * 100) / 100 : 0));
-  customplot_1->replot();
-}
+// void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
+//  QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
+//  double x = customplot_1->xAxis->pixelToCoord(event->pos().x());
+//  double y = customplot_1->yAxis->pixelToCoord(event->pos().y());
+//  _d->ui->label_coords->setText(
+//      QString("%1, %2")
+//          .arg(x >= 0 ? std::round(x / 1000 * 100) / 100 : 0)
+//          .arg(y >= 0 ? std::round(y * 100) / 100 : 0));
+//  customplot_1->replot();
+//}
 
 void NRrlsMainWindow::onComboBoxValueChanged(QComboBox *event) {
   std::cout << 'k';

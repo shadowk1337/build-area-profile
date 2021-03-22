@@ -14,6 +14,8 @@
 
 #include "ui_nrrlsmainwindow.h"
 
+#define C(x) sgn(x) * log10(1 + qAbs(x) / 10)
+
 #define QSHDEF(x) typedef QSharedPointer<x> Ptr
 
 #define LOOP_START(begin, end, it) \
@@ -30,6 +32,11 @@
   vectpair_to_vect(vp, v, [](const decltype(vp) &p) { return p.part; })
 
 #define FIND (c, begin, end, f) find_if_el(c, begin, end, f)
+
+template <typename T>
+int sgn(T val) {
+  return (T(0) < val) - (val < T(0));
+}
 
 template <typename Iterator, typename Func>
 void loop(Iterator begin, Iterator end, Func f) {
@@ -58,6 +65,7 @@ struct Data {
   double lambda = 0;       ///< Длина волны
   double area_length = 0;  ///< Длина рассматриваемого участка (в метрах)
   const double radius = 6.37e+06;  ///< Действительный радиус Земли (в метрах)
+  double temperature = 0;
 
   const QMap<QString, QMap<double, double>>
       linear_atten =  ///< Погонные затухания в фидерах
@@ -86,8 +94,13 @@ namespace Spec {
  * Параметры РРЛС
  */
 struct Data {
-  double f = 0;  ///< Частота
-  double p = 0;  ///< Пороговое значение сигнала на входе приёмника
+  double f = 0;                      ///< Частота
+  QPair<double, double> p = {0, 0};  ///< Мощность
+  QPair<double, double> s = {0, 0};  ///< Чувствительность
+  double Flength =  ///< Длина горизонтального участка фидера передатчика
+      0;
+  double Slength =  ///< Длина горизонтального участка фидера приемника
+      0;
 };
 
 }  // namespace Spec
@@ -98,12 +111,9 @@ namespace Towers {
  * Параметры антенн
  */
 struct Data {
-  QPair<double, double> sender = {0, 0};  ///< Координаты передатчика
-  QPair<double, double> reciever = {0, 0};  ///< Координаты приемника
-  double senderF_length =  ///< Длина горизонтального участка фидера передатчика
-      0;
-  double recieverF_length =  ///< Длина горизонтального участка фидера приемника
-      0;
+  QPair<double, double> f = {0, 0};  ///< Координаты первой антенны
+  QPair<double, double> s = {0, 0};  ///< Координаты второй антенны
+  QPair<double, double> c = {0, 0};  ///< Коэффициент усиления
 };
 
 }  // namespace Towers
@@ -186,7 +196,7 @@ struct Data {
   double wa = 0;  ///< Затухания в газах атмосферы
   QPair<double, double> wf =  ///< Затухания в фидере на передачу и прием
       {0, 0};
-  double p = 0;  ///< Медианное значение сигнала на входе приёмника
+  double p = 0;  ///< Медианное значение сигнала на входе приёмника в логарифмическом виде
 };
 
 /**
@@ -264,7 +274,7 @@ class Item : public Calc::Item {
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
  protected:
-  QList<QPair<Calc::Item::Ptr, QString>> _items;
+  QList<QPair<Calc::Item::Ptr, int>> _items;
 };
 
 }  // namespace Master
@@ -285,9 +295,6 @@ class Item : public Master::Item {
 
 }  // namespace Main
 
-/**
- * Расчет радиовидимости для РРЛС
- */
 class Core {
  public:
   Core(Ui::NRrlsMainWindow *m, const QString &filename);
@@ -295,10 +302,17 @@ class Core {
  public:
   virtual bool exec();
   void setFreq(double f);
-  void setSenHeight(double h);
-  void setRecHeight(double h);
-  void setSenFLength(double l);
-  void setRecFLength(double l);
+  void setFHeight(double h);
+  void setSHeight(double h);
+  void setFCoef(double c);
+  void setSCoef(double c);
+  void setFLength(double l);
+  void setSLength(double l);
+  void setFPower(double p);
+  void setSPower(double p);
+  void setFSensetivity(double s);
+  void setSSensetivity(double s);
+  void setTemperature(double t);
 
  private:
   Data::Ptr _data;
