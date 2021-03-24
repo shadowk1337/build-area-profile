@@ -112,18 +112,6 @@ class Los : public Profile::Item {
   bool exec() override;
 };
 
-/**
- * Составляющая расчета. Легенда
- */
-class Legend : public Profile::Item {
- public:
-  QSHDEF(Legend);
-  Legend(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
-
- public:
-  bool exec() override;
-};
-
 }  // namespace Profile
 
 namespace Interval {
@@ -493,8 +481,7 @@ bool Profile::Item::exec() {
   return (
       Axes::Ptr::create(_data)->exec() && Earth::Ptr::create(_data)->exec() &&
       Curve::Ptr::create(_data)->exec() &&
-      Fresnel::Ptr::create(_data)->exec() && Los::Ptr::create(_data)->exec() &&
-      Legend::Ptr::create(_data)->exec());
+      Fresnel::Ptr::create(_data)->exec() && Los::Ptr::create(_data)->exec());
 }
 
 bool Diagram::Item::exec() {
@@ -607,13 +594,16 @@ namespace Profile {
 bool Axes::exec() {
   constexpr int window_add_height = 45;
 
+  cp->xAxis->setVisible(1);
+  cp->yAxis->setVisible(1);
+  cp->yAxis2->setVisible(1);
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
   cp->setInteractions(QCP::iSelectPlottables /*| QCP::iRangeDrag |
                       QCP::iRangeZoom*/);
 
-  for (double i = 0; i < data->constant.area_length + 500; i += 1000) {
+  for (double i = 0; i < data->constant.area_length; i += 1000) {
     QString str = QString::number(static_cast<int>(i) / 1000);
-    textTicker->addTicks({{i, str}, {i + 500, ""}});
+    textTicker->addTicks({{i, str}, {i + 1000, ""}});
   }
 
   QVector<double> heights;
@@ -623,12 +613,16 @@ bool Axes::exec() {
       std::max(h_max, std::max(coords.b_y() + data->tower.f.second,
                                coords.e_y() + data->tower.s.second)) +
       window_add_height;
-  cp->yAxis->setLabel(QObject::tr("Высота, м."));
   cp->yAxis->setRange(0, y_max, Qt::AlignLeft);
-  cp->xAxis->setLabel(QObject::tr("Расстояние, км."));
-  cp->xAxis->setTicker(textTicker);
-  cp->xAxis->setTickLength(0);
   cp->yAxis->setSubTickLength(0);
+  cp->yAxis->setTickLengthIn(3);
+  cp->yAxis2->setSubTickLength(0);
+  cp->yAxis2->setRange(0, y_max);
+  cp->yAxis2->setTickLengthIn(3);
+
+  cp->xAxis->setTicker(textTicker);
+  cp->xAxis->setTickLengthIn(0);
+  cp->xAxis->setTickLengthOut(3);
   cp->xAxis->setRange(0, data->constant.area_length);
 
   if (_data.isNull()) return false;
@@ -721,14 +715,6 @@ bool Los::exec() {
     y.push_back(data->param.los.first * it + data->param.los.second);
   Etc::setGraph(cp, 4, x, y, pen, QObject::tr("Линия прямой видимости"));
   x.clear(), y.clear();
-  if (!_data) return false;
-  return true;
-}
-
-bool Legend::exec() {
-  cp->legend = new QCPLegend;
-  cp->legend->setLayer(QObject::tr("Легенда"));
-  cp->legend->setFont(QFont("FreeSans", 9));
   if (!_data) return false;
   return true;
 }
@@ -1035,7 +1021,7 @@ bool Free::Item::exec() {
 }
 
 bool Air::Item::exec() {
-  double f = data->spec.f;
+  double f = data->spec.f / 1000.0;
   double gamma_oxygen =
       (6.09 / (f * f + .227) + 7.19e-3 + 4.81 / (qPow(f - 57, 2) + 1.5)) * f *
       f * 1e-3;
@@ -1069,9 +1055,9 @@ namespace Median {
 
 bool Item::exec() {
   auto data = _data.toStrongRef();
-  data->p = C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first) -
-            C(data->wp) - C(data->ws) - C(data->wa) + C(data->tower.c.second) -
-            C(data->wf.second);
+  data->p = data->spec.p.first - data->wf.first + data->tower.c.first -
+            data->wp - data->ws - data->wa + data->tower.c.second -
+            data->wf.second;
   if (!_data) return false;
   return true;
 }
@@ -1087,63 +1073,43 @@ bool Axes::exec() {
   cp->yAxis2->setTickLength(0);
   cp->yAxis->setSubTickLength(0);
   cp->yAxis2->setSubTickLength(0);
-  cp->yAxis->setTickLabels(false);
-  cp->yAxis2->setTickLabels(false);
+  //  cp->yAxis->setTickLabels(false);
+  //  cp->yAxis2->setTickLabels(false);
   if (!_data) return false;
   return true;
 }
 
 bool Setup::exec() {
+  QVector<double> x(6), y(6);
+
+  x[0] = 0, x[2] = x[1] = .1 * data->constant.area_length;
+  x[4] = x[3] = x[2] + data->constant.area_length;
+  x[5] = x[4] + .1 * data->constant.area_length;
+
+  y[0] = data->spec.p.first;
+  y[1] = y[0] - data->wf.first;
+  y[2] = y[1] + data->tower.c.first;
+  y[3] = y[2] - data->ws;
+  y[4] = y[3] + data->tower.c.second;
+  y[5] = data->p + data->wa + data->wp;
+
   cp->clearGraphs();
   cp->addGraph();
   cp->graph(0)->setPen(QPen(Qt::blue, 2));
-  cp->graph(0)->addData(
-      {C(0), C(data->spec.Flength), C(data->spec.Flength),
-       C(data->spec.Flength) + C(data->constant.area_length),
-       C(data->spec.Flength) + C(data->constant.area_length),
-       C(data->spec.Flength) + C(data->constant.area_length) +
-           C(data->spec.Slength)},
-      {C(data->spec.p.first), C(data->spec.p.first) - C(data->wf.first),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first) -
-           C(data->ws),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first) -
-           C(data->ws) + C(data->tower.c.second),
-       data->p + C(data->wa) + C(data->wp)});
+  cp->graph(0)->addData(x, y);
 
+  y[3] -= data->wp, y[4] = y[3] + data->tower.c.second, y[5] -= data->wp;
   cp->addGraph();
   cp->graph(1)->setPen(QPen(Qt::red, 2));
-  cp->graph(1)->addData(
-      {C(1), C(data->spec.Flength), C(data->spec.Flength),
-       C(data->spec.Flength) + C(data->constant.area_length),
-       C(data->spec.Flength) + C(data->constant.area_length),
-       C(data->spec.Flength) + C(data->constant.area_length) +
-           C(data->spec.Slength)},
-      {C(data->spec.p.first), C(data->spec.p.first) - C(data->wf.first),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first) -
-           C(data->ws) - C(data->wp),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first) -
-           C(data->ws) - C(data->wp) + C(data->tower.c.second),
-       data->p + C(data->wa)});
+  cp->graph(1)->addData(x, y);
 
+  y[3] -= data->wa, y[4] = y[3] + data->tower.c.second, y[5] = data->p;
   cp->addGraph();
   cp->graph(2)->setPen(QPen(Qt::black, 2));
   cp->graph(2)->setPen(QPen(Qt::DashLine));
-  cp->graph(2)->addData(
-      {C(0), C(data->spec.Flength), C(data->spec.Flength),
-       C(data->spec.Flength) + C(data->constant.area_length),
-       C(data->spec.Flength) + C(data->constant.area_length),
-       C(data->spec.Flength) + C(data->constant.area_length) +
-           C(data->spec.Slength)},
-      {C(data->spec.p.first), C(data->spec.p.first) - C(data->wf.first),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first) -
-           C(data->ws) - C(data->wp) - C(data->wa),
-       C(data->spec.p.first) - C(data->wf.first) + C(data->tower.c.first) -
-           C(data->ws) - C(data->wp) - C(data->wa) + C(data->tower.c.second),
-       data->p});
+  cp->graph(2)->addData(x, y);
   cp->rescaleAxes();
+  cp->yAxis2->rescale();
   if (!_data) return false;
   return true;
 }

@@ -20,6 +20,7 @@
 
 #define LOOP_START(begin, end, it) \
   loop(begin, end, [&](decltype(begin) it) {
+
 #define LOOP_END \
   ;              \
   })
@@ -27,9 +28,6 @@
 #define RESERVE(x, y, size) \
   x.reserve(size);          \
   y.reserve(size)
-
-#define TO_VECTOR(vp, v, part) \
-  vectpair_to_vect(vp, v, [](const decltype(vp) &p) { return p.part; })
 
 #define FIND (c, begin, end, f) find_if_el(c, begin, end, f)
 
@@ -44,11 +42,6 @@ void loop(Iterator begin, Iterator end, Func f) {
   for (_it = begin; _it != end; _it = std::next(_it)) {
     f(_it);
   }
-}
-
-template <typename Container, typename T, typename Func>
-void find_if_el(Container &c, T begin, T end, Func f) {
-  std::find_if(c.cbegin() + begin, c.cbegin() + end, [=]() { return f(); });
 }
 
 namespace NRrls {

@@ -1,5 +1,7 @@
 #include <QApplication>
+#include <QStyleFactory>
 #include <QtCore>
+#include <iostream>
 
 #include "nrrlsmainwindow.h"
 
@@ -65,6 +67,9 @@ int main(int argc, char *argv[]) {
   QApplication::setOrganizationName("Niissu");
   QApplication::setOrganizationDomain("niissu.ru");
 
+  if (QStyleFactory::keys().contains("Windows"))
+    QApplication::setStyle(QStyleFactory::create("Windows"));
+
   NRrls::Options options;
   if (!options.init(app.arguments())) {
     return options.error();
@@ -74,7 +79,6 @@ int main(int argc, char *argv[]) {
 
   NRrlsMainWindow w(options.data());
   QPalette p;
-  p.setBrush(QPalette::Background, QBrush(QColor(Qt::white)));
   w.setPalette(p);
   w.restoreSettings();
   w.init();

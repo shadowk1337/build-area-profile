@@ -21,14 +21,13 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   _d->ui->setupUi(this);
 
   setSettings(options);
-
   _d->ui->customplot_1->xAxis->setVisible(0);
   _d->ui->customplot_1->yAxis->setVisible(0);
   _d->ui->customplot_2->xAxis->setVisible(0);
   _d->ui->customplot_2->yAxis->setVisible(0);
   QCPTextElement *title = new QCPTextElement(_d->ui->customplot_2);
-  title->setText(QObject::tr(
-      "Диаграмма уровней распределения сигнала на интервале РРС1 - РРС2"));
+  title->setText(
+      tr("Диаграмма уровней распределения сигнала на интервале РРС1 - РРС2"));
   title->setFont(QFont("FreeSans", 10, QFont::Bold));
   _d->ui->customplot_2->plotLayout()->insertRow(0);
   _d->ui->customplot_2->plotLayout()->addElement(0, 0, title);
@@ -63,9 +62,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     changeWidget->show();
     if (!temp.isEmpty()) {
       _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
-      _d->ui->customplot_1->legend->setVisible(true);
-      _d->ui->customplot_1->xAxis->setVisible(1);
-      _d->ui->customplot_1->yAxis->setVisible(1);
       //      _d->ui->label_coords->show();
       _d->ui->lineEdit_freq->setText(QString::number(1000));
       _d->ui->lineEdit_station1->setText(QString::number(20));
@@ -87,25 +83,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
     if (_d->ui->action_13->text() == "Скрыть нижнюю панель") {
       _d->ui->action_13->setText(tr("Показать нижнюю панель"));
-      _d->ui->widget->hide();
+      _d->ui->frame_hider->hide();
       _d->ui->customplot_1->resize(1341, 731);
       _d->ui->frame->resize(1341, 731);
     } else {
       _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
-      _d->ui->widget->show();
-      _d->ui->customplot_1->resize(1341, 521);
-      _d->ui->frame->resize(1341, 521);
-    }
-  });
-
-  connect(_d->ui->action_14, &QAction::triggered, this, [&]() {
-    if (_d->ui->action_14->text() == "Скрыть описание") {
-      _d->ui->action_14->setText(tr("Показать описание"));
-      _d->ui->customplot_1->legend->setTextColor(QColor(Qt::red));
-      _d->ui->customplot_1->legend->setVisible(false);
-    } else {
-      _d->ui->action_14->setText(tr("Скрыть описание"));
-      _d->ui->customplot_1->legend->setVisible(true);
+      _d->ui->frame_hider->show();
+      _d->ui->customplot_1->resize(1341, 461);
+      _d->ui->frame->resize(1341, 461);
     }
   });
 
@@ -116,22 +101,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     double freq = _d->ui->lineEdit_freq->text().toDouble();
     if (_d->ui->customplot_1->graphCount() >= 5) {
       _d->_c->setFreq(freq);
-      _d->ui->comboBox_feeder->clear();
-      if (freq >= .1 && freq <= 10) {
-        _d->ui->comboBox_feeder->addItems(
-            {tr("РК-50-4-13"), tr("РК-50-7-11"), tr("РК-50-7-13")});
-        _d->ui->comboBox_feeder->addItems(
-            {tr("РК-50-7-25"), tr("РК-50-7-27"), tr("РК-50-7-32")});
-      }
-      if (freq >= .1 && freq <= 3)
-        _d->ui->comboBox_feeder->addItems(
-            {tr("РК-50-11-11"), tr("РК-50-13-15"), tr("РК-50-11-21")});
-      if (freq == 3) _d->ui->comboBox_feeder->addItem(tr("МЭК-22"));
-      if (freq == 6) _d->ui->comboBox_feeder->addItem(tr("МЭК-58"));
-      if (freq == 10) _d->ui->comboBox_feeder->addItem(tr("МЭК-84"));
-      if (freq == 15) _d->ui->comboBox_feeder->addItem(tr("МЭК-120"));
-      if (freq == 20) _d->ui->comboBox_feeder->addItem(tr("МЭК-180"));
-      if (freq == 30) _d->ui->comboBox_feeder->addItem(tr("МЭК-26"));
       exec();
     }
   });
