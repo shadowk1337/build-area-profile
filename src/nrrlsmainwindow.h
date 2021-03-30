@@ -36,9 +36,7 @@ class NRrlsMainWindow : public QMainWindow {
   QPushButton *fileDial, *changeWidget;
 
  private slots:
-  //  void onMouseMove(QMouseEvent *event);
-  void onComboBoxValueChanged(QComboBox *event);
-  void tabPressed(QEvent *event);
+  void onMouseMove(QMouseEvent *event);
 };
 
 #endif  // NRRLSMMAINWINDOW_H

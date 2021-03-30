@@ -67,8 +67,15 @@ int main(int argc, char *argv[]) {
   QApplication::setOrganizationName("Niissu");
   QApplication::setOrganizationDomain("niissu.ru");
 
-  if (QStyleFactory::keys().contains("Windows"))
-    QApplication::setStyle(QStyleFactory::create("Windows"));
+  QPalette palette;
+  palette.setColor(QPalette::Button, QColor("#d4cfc9"));
+  palette.setColor(QPalette::Window, QColor("#d4cfc9"));
+
+//  if (QStyleFactory::keys().contains("Windows")) {
+//    app.setPalette(palette);
+//    app.setStyleSheet("QLabel { background-color : #d4cfc9;}");
+//    app.setStyle(QStyleFactory::create("Windows"));
+//  }
 
   NRrls::Options options;
   if (!options.init(app.arguments())) {

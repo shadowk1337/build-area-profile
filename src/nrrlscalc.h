@@ -20,7 +20,6 @@
 
 #define LOOP_START(begin, end, it) \
   loop(begin, end, [&](decltype(begin) it) {
-
 #define LOOP_END \
   ;              \
   })
@@ -59,24 +58,6 @@ struct Data {
   double area_length = 0;  ///< Длина рассматриваемого участка (в метрах)
   const double radius = 6.37e+06;  ///< Действительный радиус Земли (в метрах)
   double temperature = 0;
-
-  const QMap<QString, QMap<double, double>>
-      linear_atten =  ///< Погонные затухания в фидерах
-      {{"РК-50-4-13", {{.1, .1}, {1, .5}, {3, .9}, {6, 1.4}, {10, 2}}},
-       {"РК-50-7-11", {{.1, .09}, {1, .4}, {3, .8}, {6, 1.1}, {10, 1.5}}},
-       {"РК-50-7-13", {{.1, .07}, {1, 0.3}, {3, .56}, {6, .8}, {10, 1.2}}},
-       {"РК-50-7-25", {{.1, .06}, {1, 0.26}, {3, .46}, {6, .7}, {10, 1}}},
-       {"РК-50-7-27", {{.1, .06}, {1, 0.25}, {3, .45}, {6, .65}, {10, .9}}},
-       {"РК-50-7-32", {{.1, .06}, {1, 0.26}, {3, .45}, {6, .9}, {10, 1}}},
-       {"РК-50-11-11", {{.1, .06}, {1, 0.29}, {3, .55}}},
-       {"РК-50-13-15", {{.1, .038}, {1, 0.16}, {3, .28}}},
-       {"РК-50-11-21", {{.1, .056}, {1, 0.22}, {3, .4}}},
-       {"МЭК-22", {{3, .01}}},
-       {"МЭК-58", {{6, .044}}},
-       {"МЭК-84", {{10, .08}}},
-       {"МЭК-120", {{15, .13}}},
-       {"МЭК-180", {{20, .24}}},
-       {"МЭК-26", {{30, .44}}}};
 };
 
 }  // namespace Const
@@ -90,10 +71,23 @@ struct Data {
   double f = 0;                      ///< Частота
   QPair<double, double> p = {0, 0};  ///< Мощность
   QPair<double, double> s = {0, 0};  ///< Чувствительность
-  double Flength =  ///< Длина горизонтального участка фидера передатчика
-      0;
-  double Slength =  ///< Длина горизонтального участка фидера приемника
-      0;
+
+  const QMap<QString, QVector<double>> stat = {
+      {QObject::tr("Р-419МЦ"), {48, 0, 10}}};
+
+  const QMap<QString, QVector<QPair<QString, double>>> j = {
+      {QObject::tr("Р-419МЦ"),
+       {{QObject::tr("68/136"), 4},
+        {QObject::tr("85/170"), 7},
+        {QObject::tr("68/272"), 4},
+        {QObject::tr("544/544"), 12},
+        {QObject::tr("2176"), 17},
+        {QObject::tr("При работе с модемом Е2"), 19},
+        {QObject::tr("Ц48"), 9},
+        {QObject::tr("Ц480"), 19},
+        {QObject::tr("А6-4"), 7},
+        {QObject::tr("БУК"), 6},
+        {QObject::tr("А6-5"), 10}}}};
 };
 
 }  // namespace Spec
@@ -107,6 +101,8 @@ struct Data {
   QPair<double, double> f = {0, 0};  ///< Координаты первой антенны
   QPair<double, double> s = {0, 0};  ///< Координаты второй антенны
   QPair<double, double> c = {0, 0};  ///< Коэффициент усиления
+  QPair<double, double> wf = {0,
+                              0};  ///< Затухания в фидерах на передачу и прием
 };
 
 }  // namespace Towers
@@ -119,10 +115,10 @@ namespace Profile {
 struct Data {
   class {
    public:
-    double b_x(void) { return _coords.begin().key(); }
-    double b_y(void) { return _coords.begin().value(); }
-    double e_x(void) { return std::prev(_coords.end()).key(); }
-    double e_y(void) { return std::prev(_coords.end()).value(); }
+    double b_x(void) { return _coords.firstKey(); }
+    double b_y(void) { return _coords.first(); }
+    double e_x(void) { return _coords.lastKey(); }
+    double e_y(void) { return _coords.last(); }
 
     void x(QVector<double> &v) const {
       v.reserve(_coords.size());
@@ -140,19 +136,15 @@ struct Data {
 
     const QList<double> &y(void) { return _coords.values(); }
 
-    QMap<double, double>::const_iterator begin() const {
-      return _coords.begin();
-    }
+    QMap<double, double>::iterator begin() { return _coords.begin(); }
 
-    QMap<double, double>::const_iterator end() const { return _coords.end(); }
+    QMap<double, double>::iterator end() { return _coords.end(); }
 
     std::map<double, double> toMap(void) const { return _coords.toStdMap(); }
 
     QMap<double, double>::const_iterator lowerBound(double key) const {
       return _coords.lowerBound(key);
     }
-
-    double &last() { return _coords.last(); }
 
     double &operator[](double x) { return _coords[x]; }
 
@@ -187,9 +179,8 @@ struct Data {
   double wp = 0;  ///< Затухания в рельефе
   double ws = 0;  ///< Затухания в свободном пространстве
   double wa = 0;  ///< Затухания в газах атмосферы
-  QPair<double, double> wf =  ///< Затухания в фидере на передачу и прием
-      {0, 0};
-  double p = 0;  ///< Медианное значение сигнала на входе приёмника в логарифмическом виде
+  QPair<double, double> p = {0, 0};  ///< Медианное значение сигнала на входе
+                                     ///< приёмника в логарифмическом виде
 };
 
 /**
@@ -299,13 +290,17 @@ class Core {
   void setSHeight(double h);
   void setFCoef(double c);
   void setSCoef(double c);
-  void setFLength(double l);
-  void setSLength(double l);
+  void setFFeedAtten(double f);
+  void setSFeedAtten(double f);
   void setFPower(double p);
   void setSPower(double p);
   void setFSensetivity(double s);
   void setSSensetivity(double s);
+  void setGradient(double g);
   void setTemperature(double t);
+
+ public:
+  Data d;
 
  private:
   Data::Ptr _data;
