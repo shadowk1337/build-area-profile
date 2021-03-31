@@ -154,7 +154,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
                 .stat[_d->ui->comboBox_rrsStation1->currentText()][1])));
         _d->ui->lineEdit_capStation1->setReadOnly(true);
         _d->ui->lineEdit_coefAntenna1->setReadOnly(true);
-        for (auto it :
+        for (const auto &it :
              _d->_c->d.spec.j[_d->ui->comboBox_rrsStation1->currentText()]
                  .keys())
           _d->ui->comboBox_jobStation1->addItem(it);
@@ -162,6 +162,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->ui->lineEdit_capStation1->setPalette(*palette);
       _d->ui->lineEdit_coefAntenna1->setPalette(*palette);
       delete palette;
+      exec();
     }
   });
 
@@ -185,7 +186,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
                 .stat[_d->ui->comboBox_rrsStation2->currentText()][1])));
         _d->ui->lineEdit_capStation2->setReadOnly(true);
         _d->ui->lineEdit_coefAntenna2->setReadOnly(true);
-        for (auto it :
+        for (const auto &it :
              _d->_c->d.spec.j[_d->ui->comboBox_rrsStation2->currentText()]
                  .keys())
           _d->ui->comboBox_jobStation2->addItem(it);
@@ -193,6 +194,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->ui->lineEdit_capStation2->setPalette(*palette);
       _d->ui->lineEdit_coefAntenna2->setPalette(*palette);
       delete palette;
+      exec();
     }
   });
 
@@ -214,6 +216,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       }
       _d->ui->lineEdit_sensStation1->setPalette(*palette);
       delete palette;
+      exec();
     }
   });
 
@@ -233,6 +236,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       }
       _d->ui->lineEdit_sensStation2->setPalette(*palette);
       delete palette;
+      exec();
     }
   });
 
@@ -353,7 +357,8 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
     QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
     double x = customplot_1->xAxis->pixelToCoord(event->pos().x());
-    if (_d->line != nullptr) delete _d->line;
+    if (_d->line != nullptr)
+      delete _d->line;
     _d->line = new QCPItemLine(_d->ui->customplot_1);
     _d->line->setPen(QPen(QColor(Qt::gray)));
     _d->line->start->setCoords(x, 0);
