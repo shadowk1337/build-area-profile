@@ -135,99 +135,135 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   });
 
   connect(_d->ui->comboBox_rrsStation1, &QComboBox::currentTextChanged, [&]() {
-    QPalette *palette = new QPalette();
-    _d->ui->comboBox_jobStation1->clear();
-    _d->ui->comboBox_jobStation1->addItem(tr("Выбрать режим"));
-    if (_d->ui->comboBox_rrsStation1->currentIndex() == 0) {
-      palette->setColor(QPalette::Base, Qt::white);
-      _d->ui->lineEdit_capStation1->setReadOnly(false);
-//      _d->ui->lineEdit_sensStation1->setReadOnly(false);
-      _d->ui->lineEdit_coefAntenna1->setReadOnly(false);
-    } else {
-      palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
-                                            QWidget::backgroundRole()));
-      _d->ui->lineEdit_capStation1->setText(QString::number(
-          _d->_c->d.spec.stat[_d->ui->comboBox_rrsStation1->currentText()][0]));
-      //      _d->ui->lineEdit_sensStation1->setText(QString::number(
-      //          _d->_c->d.spec.stat[_d->ui->comboBox_rrsStation1->currentText()][1]));
-      _d->ui->lineEdit_coefAntenna1->setText(QString::number(
-          _d->_c->d.spec.stat[_d->ui->comboBox_rrsStation1->currentText()][2]));
-      _d->ui->lineEdit_capStation1->setReadOnly(true);
-      //      _d->ui->lineEdit_sensStation1->setReadOnly(true);
-      _d->ui->lineEdit_coefAntenna1->setReadOnly(true);
-      for (auto it :
-           _d->_c->d.spec.j[_d->ui->comboBox_rrsStation1->currentText()])
-        _d->ui->comboBox_jobStation1->addItem(it.first);
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      QPalette *palette = new QPalette();
+      _d->ui->comboBox_jobStation1->clear();
+      _d->ui->comboBox_jobStation1->addItem(tr("Выбрать режим"));
+      if (_d->ui->comboBox_rrsStation1->currentIndex() <= 0) {
+        palette->setColor(QPalette::Base, Qt::white);
+        _d->ui->lineEdit_capStation1->setReadOnly(false);
+        _d->ui->lineEdit_coefAntenna1->setReadOnly(false);
+      } else {
+        palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
+                                              QWidget::backgroundRole()));
+        _d->ui->lineEdit_capStation1->setText(QString::number(_d->_c->setSPower(
+            _d->_c->d.spec
+                .stat[_d->ui->comboBox_rrsStation1->currentText()][0])));
+        _d->ui->lineEdit_coefAntenna1->setText(QString::number(_d->_c->setSCoef(
+            _d->_c->d.spec
+                .stat[_d->ui->comboBox_rrsStation1->currentText()][1])));
+        _d->ui->lineEdit_capStation1->setReadOnly(true);
+        _d->ui->lineEdit_coefAntenna1->setReadOnly(true);
+        for (auto it :
+             _d->_c->d.spec.j[_d->ui->comboBox_rrsStation1->currentText()]
+                 .keys())
+          _d->ui->comboBox_jobStation1->addItem(it);
+      }
+      _d->ui->lineEdit_capStation1->setPalette(*palette);
+      _d->ui->lineEdit_coefAntenna1->setPalette(*palette);
+      delete palette;
     }
-    _d->ui->lineEdit_capStation1->setPalette(*palette);
-//    _d->ui->lineEdit_sensStation1->setPalette(*palette);
-    _d->ui->lineEdit_coefAntenna1->setPalette(*palette);
   });
 
   connect(_d->ui->comboBox_rrsStation2, &QComboBox::currentTextChanged, [&]() {
-    QPalette *palette = new QPalette();
-    _d->ui->comboBox_jobStation2->clear();
-    _d->ui->comboBox_jobStation2->addItem(tr("Выбрать режим"));
-    if (_d->ui->comboBox_rrsStation2->currentIndex() == 0) {
-      palette->setColor(QPalette::Base, Qt::white);
-      _d->ui->lineEdit_capStation2->setReadOnly(false);
-//      _d->ui->lineEdit_sensStation2->setReadOnly(false);
-      _d->ui->lineEdit_coefAntenna2->setReadOnly(false);
-    } else {
-      palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
-                                            QWidget::backgroundRole()));
-      _d->ui->lineEdit_capStation2->setText(QString::number(
-          _d->_c->d.spec.stat[_d->ui->comboBox_rrsStation2->currentText()][0]));
-      //      _d->ui->lineEdit_sensStation2->setText(QString::number(
-      //          _d->_c->d.spec.stat[_d->ui->comboBox_rrsStation2->currentText()][1]));
-      _d->ui->lineEdit_coefAntenna2->setText(QString::number(
-          _d->_c->d.spec.stat[_d->ui->comboBox_rrsStation2->currentText()][2]));
-      _d->ui->lineEdit_capStation2->setReadOnly(true);
-      //      _d->ui->lineEdit_sensStation2->setReadOnly(true);
-      _d->ui->lineEdit_coefAntenna2->setReadOnly(true);
-      for (auto it :
-           _d->_c->d.spec.j[_d->ui->comboBox_rrsStation2->currentText()])
-        _d->ui->comboBox_jobStation2->addItem(it.first);
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      QPalette *palette = new QPalette();
+      _d->ui->comboBox_jobStation2->clear();
+      _d->ui->comboBox_jobStation2->addItem(tr("Выбрать режим"));
+      if (_d->ui->comboBox_rrsStation2->currentIndex() <= 0) {
+        palette->setColor(QPalette::Base, Qt::white);
+        _d->ui->lineEdit_capStation2->setReadOnly(false);
+        _d->ui->lineEdit_coefAntenna2->setReadOnly(false);
+      } else {
+        palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
+                                              QWidget::backgroundRole()));
+        _d->ui->lineEdit_capStation2->setText(QString::number(_d->_c->setSPower(
+            _d->_c->d.spec
+                .stat[_d->ui->comboBox_rrsStation2->currentText()][0])));
+        _d->ui->lineEdit_coefAntenna2->setText(QString::number(_d->_c->setSCoef(
+            _d->_c->d.spec
+                .stat[_d->ui->comboBox_rrsStation2->currentText()][1])));
+        _d->ui->lineEdit_capStation2->setReadOnly(true);
+        _d->ui->lineEdit_coefAntenna2->setReadOnly(true);
+        for (auto it :
+             _d->_c->d.spec.j[_d->ui->comboBox_rrsStation2->currentText()]
+                 .keys())
+          _d->ui->comboBox_jobStation2->addItem(it);
+      }
+      _d->ui->lineEdit_capStation2->setPalette(*palette);
+      _d->ui->lineEdit_coefAntenna2->setPalette(*palette);
+      delete palette;
     }
-    _d->ui->lineEdit_capStation2->setPalette(*palette);
-//    _d->ui->lineEdit_sensStation2->setPalette(*palette);
-    _d->ui->lineEdit_coefAntenna2->setPalette(*palette);
+  });
+
+  connect(_d->ui->comboBox_jobStation1, &QComboBox::currentTextChanged, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      QPalette *palette = new QPalette();
+      if (_d->ui->comboBox_jobStation1->currentIndex() <= 0) {
+        palette->setColor(QPalette::Base, Qt::white);
+        _d->ui->lineEdit_sensStation1->setReadOnly(false);
+      } else {
+        palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
+                                              QWidget::backgroundRole()));
+        _d->ui->lineEdit_sensStation1->setText(
+            QString::number(_d->_c->setFSensetivity(
+                _d->_c->d.spec
+                    .j[_d->ui->comboBox_rrsStation1->currentText()]
+                      [_d->ui->comboBox_jobStation1->currentText()])));
+        _d->ui->lineEdit_sensStation1->setReadOnly(true);
+      }
+      _d->ui->lineEdit_sensStation1->setPalette(*palette);
+      delete palette;
+    }
+  });
+
+  connect(_d->ui->comboBox_jobStation2, &QComboBox::currentTextChanged, [&]() {
+    if (_d->ui->customplot_1->graphCount() >= 5) {
+      QPalette *palette = new QPalette();
+      if (_d->ui->comboBox_jobStation2->currentIndex() <= 0) {
+        palette->setColor(QPalette::Base, Qt::white);
+        _d->ui->lineEdit_sensStation2->setReadOnly(false);
+      } else {
+        palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
+                                              QWidget::backgroundRole()));
+        _d->ui->lineEdit_sensStation2->setText(QString::number(
+            _d->_c->d.spec.j[_d->ui->comboBox_rrsStation2->currentText()]
+                            [_d->ui->comboBox_jobStation2->currentText()]));
+        _d->ui->lineEdit_sensStation2->setReadOnly(true);
+      }
+      _d->ui->lineEdit_sensStation2->setPalette(*palette);
+      delete palette;
+    }
   });
 
   connect(_d->ui->lineEdit_capStation1, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5)
       _d->_c->setFPower(_d->ui->lineEdit_capStation1->text().toDouble());
-    }
   });
 
   connect(_d->ui->lineEdit_capStation2, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5)
       _d->_c->setSPower(_d->ui->lineEdit_capStation2->text().toDouble());
-    }
   });
 
   connect(_d->ui->lineEdit_sensStation1, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5)
       _d->_c->setFSensetivity(_d->ui->lineEdit_sensStation1->text().toDouble());
-    }
   });
 
   connect(_d->ui->lineEdit_sensStation2, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5)
       _d->_c->setSSensetivity(_d->ui->lineEdit_sensStation2->text().toDouble());
-    }
   });
 
   connect(_d->ui->lineEdit_coefAntenna1, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5)
       _d->_c->setFCoef(_d->ui->lineEdit_coefAntenna1->text().toDouble());
-    }
   });
 
   connect(_d->ui->lineEdit_coefAntenna2, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_d->ui->customplot_1->graphCount() >= 5)
       _d->_c->setSCoef(_d->ui->lineEdit_coefAntenna2->text().toDouble());
-    }
   });
 
   connect(_d->ui->lineEdit_gradient, &QLineEdit::textEdited, [&]() {
@@ -322,7 +358,7 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
     _d->line->setPen(QPen(QColor(Qt::gray)));
     _d->line->start->setCoords(x, 0);
     _d->line->end->setCoords(x, 10000);
-//    _d->ui->customplot_1
+    //    _d->ui->customplot_1
     _d->ui->customplot_1->replot();
   }
 }

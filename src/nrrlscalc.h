@@ -52,8 +52,8 @@ namespace Const {
  * Константы для расчета
  */
 struct Data {
-  double g_standard = -8e-08;  ///< Вертикальный градиент индекса
-                               ///< преломления в Приземной части тропосферы
+  double g_standard = 0;  ///< Вертикальный градиент индекса
+                          ///< преломления в Приземной части тропосферы
   double lambda = 0;       ///< Длина волны
   double area_length = 0;  ///< Длина рассматриваемого участка (в метрах)
   const double radius = 6.37e+06;  ///< Действительный радиус Земли (в метрах)
@@ -73,9 +73,9 @@ struct Data {
   QPair<double, double> s = {0, 0};  ///< Чувствительность
 
   const QMap<QString, QVector<double>> stat = {
-      {QObject::tr("Р-419МЦ"), {48, 0, 10}}};
+      {QObject::tr("Р-419МЦ"), {48, 10}}};
 
-  const QMap<QString, QVector<QPair<QString, double>>> j = {
+  QMap<QString, QMap<QString, double>> j = {
       {QObject::tr("Р-419МЦ"),
        {{QObject::tr("68/136"), 4},
         {QObject::tr("85/170"), 7},
@@ -288,14 +288,14 @@ class Core {
   void setFreq(double f);
   void setFHeight(double h);
   void setSHeight(double h);
-  void setFCoef(double c);
-  void setSCoef(double c);
+  double setFCoef(double c);
+  double setSCoef(double c);
   void setFFeedAtten(double f);
   void setSFeedAtten(double f);
-  void setFPower(double p);
-  void setSPower(double p);
-  void setFSensetivity(double s);
-  void setSSensetivity(double s);
+  double setFPower(double p);
+  double setSPower(double p);
+  double setFSensetivity(double s);
+  double setSSensetivity(double s);
   void setGradient(double g);
   void setTemperature(double t);
 

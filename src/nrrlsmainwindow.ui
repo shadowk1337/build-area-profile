@@ -301,7 +301,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Чувствительность, мкВ:</string>
+             <string>Чувствительность, дБмкВ:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -706,7 +706,7 @@
              </font>
             </property>
             <property name="text">
-             <string>Чувствительность, мкВ:</string>
+             <string>Чувствительность, дБмкВ:</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -946,7 +946,7 @@
         <x>340</x>
         <y>10</y>
         <width>321</width>
-        <height>161</height>
+        <height>181</height>
        </rect>
       </property>
       <property name="font">
@@ -1017,13 +1017,26 @@
         </item>
        </layout>
       </widget>
+      <widget class="QPushButton" name="pushButton_changeWidget">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>150</y>
+         <width>221</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Диаграмма уровней передачи</string>
+       </property>
+      </widget>
       <widget class="QGroupBox" name="groupBox_4">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>50</y>
          <width>301</width>
-         <height>71</height>
+         <height>91</height>
         </rect>
        </property>
        <property name="font">
@@ -1041,7 +1054,7 @@
           <x>10</x>
           <y>20</y>
           <width>281</width>
-          <height>48</height>
+          <height>56</height>
          </rect>
         </property>
         <layout class="QVBoxLayout" name="verticalLayout">
@@ -1128,7 +1141,8 @@
               </font>
              </property>
              <property name="text">
-              <string>Градиент диэл. проницаемости, e-8 1/м:</string>
+              <string>Градиент диэлектрической
+ проницаемости, e-8 1/м:</string>
              </property>
             </widget>
            </item>
@@ -1142,7 +1156,7 @@
              </property>
              <property name="maximumSize">
               <size>
-               <width>40</width>
+               <width>70</width>
                <height>20</height>
               </size>
              </property>
@@ -1159,19 +1173,6 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QPushButton" name="pushButton_changeWidget">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>130</y>
-         <width>221</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Диаграмма уровней передачи</string>
-       </property>
-      </widget>
      </widget>
      <widget class="QGroupBox" name="groupBox_6">
       <property name="geometry">
@@ -1179,7 +1180,7 @@
         <x>680</x>
         <y>10</y>
         <width>321</width>
-        <height>101</height>
+        <height>161</height>
        </rect>
       </property>
       <property name="font">
@@ -1197,7 +1198,7 @@
          <x>20</x>
          <y>20</y>
          <width>281</width>
-         <height>72</height>
+         <height>104</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_data">
@@ -1205,13 +1206,62 @@
          <number>2</number>
         </property>
         <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_18">
+          <item>
+           <widget class="QLabel" name="label_atten">
+            <property name="font">
+             <font>
+              <family>FreeSans</family>
+              <pointsize>9</pointsize>
+             </font>
+            </property>
+            <property name="text">
+             <string>Допустимая величина
+ затухания на рельефе</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_attenValue">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>90</width>
+              <height>20</height>
+             </size>
+            </property>
+            <property name="frameShape">
+             <enum>QFrame::StyledPanel</enum>
+            </property>
+            <property name="frameShadow">
+             <enum>QFrame::Sunken</enum>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
          <layout class="QHBoxLayout" name="horizontalLayout_7">
           <item>
            <widget class="QLabel" name="label_interval">
             <property name="font">
              <font>
               <family>FreeSans</family>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1242,9 +1292,9 @@
             <property name="font">
              <font>
               <family>FreeSans</family>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="frameShape">
@@ -1270,7 +1320,7 @@
             <property name="font">
              <font>
               <family>FreeSans</family>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1301,9 +1351,9 @@
             <property name="font">
              <font>
               <family>FreeSans</family>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="frameShape">
@@ -1329,7 +1379,7 @@
             <property name="font">
              <font>
               <family>FreeSans</family>
-              <pointsize>10</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="text">
@@ -1360,9 +1410,10 @@
             <property name="font">
              <font>
               <family>FreeSans</family>
-              <pointsize>10</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
              </font>
             </property>
             <property name="frameShape">

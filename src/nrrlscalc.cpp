@@ -319,6 +319,25 @@ class Item : public Calc::Item {
 
 }  // namespace Air
 
+namespace Acceptable {
+
+/**
+ * Составляющая расчета. Расчет допустимой велиины затухания на рельефе
+ */
+class Item : public Calc::Item {
+ public:
+  QSHDEF(Item);
+  Item(const Data::WeakPtr &data) : Calc::Item(data) {}
+
+ public:
+  bool exec() override;
+
+ private:
+  QSharedPointer<Calc::Data> data = _data.toStrongRef();
+};
+
+}  // namespace Acceptable
+
 }  // namespace Atten
 
 namespace Median {
@@ -430,6 +449,7 @@ Item::Item(const Data::WeakPtr &data) : Master::Item(data) {
             qMakePair(Atten::Land::Item::Ptr::create(_data), 1),
             qMakePair(Atten::Free::Item::Ptr::create(_data), 1),
             qMakePair(Atten::Air::Item::Ptr::create(_data), 1),
+            qMakePair(Atten::Acceptable::Item::Ptr::create(_data), 0),
             qMakePair(Median::Item::Ptr::create(_data), 1),
             qMakePair(Diagram::Item::Ptr::create(_data), 1)};
 }
@@ -551,8 +571,6 @@ void Item::paramFill(void) {
 namespace Profile {
 
 bool Axes::exec() {
-  double window_add_height = .02 * cp->width();
-
   cp->xAxis->setVisible(1);
   cp->xAxis2->setVisible(1);
   cp->yAxis->setVisible(1);
@@ -570,19 +588,11 @@ bool Axes::exec() {
   QVector<double> heights;
   coords.y(heights);
 
-  double h_max = *std::max_element(heights.begin(), heights.end());
-  double y_max =  ///< Высота видимости графика
-      std::max(h_max, std::max(coords.b_y() + data->tower.f.second,
-                               coords.e_y() + data->tower.s.second)) +
-      window_add_height;
-
-  cp->yAxis->setRange(0, y_max, Qt::AlignLeft);
   cp->yAxis->setSubTickLength(0);
   cp->yAxis->setTickLengthIn(0);
   cp->yAxis->setTickLengthOut(3);
   cp->yAxis->grid()->setVisible(false);
   cp->yAxis2->setSubTickLength(0);
-  cp->yAxis2->setRange(0, y_max);
   cp->yAxis2->setTickLengthIn(0);
   cp->yAxis2->setTickLengthOut(3);
 
@@ -638,6 +648,17 @@ bool Earth::exec() {
   int i = 0;
   for (auto jt = coords.begin(); jt != coords.end(); ++jt, ++i)
     jt.value() = h[i];
+
+  double h_max = *std::max_element(h.begin(), h.end());
+  double max_graph_height =
+      std::max(h_max, std::max(coords.b_y() + data->tower.f.second,
+                               coords.e_y() + data->tower.s.second));
+  double window_add_height = .2 * max_graph_height;
+  double y_max =  ///< Высота видимости графика
+      max_graph_height + window_add_height;
+
+  cp->yAxis->setRange(0, y_max, Qt::AlignLeft);
+  cp->yAxis2->setRange(0, y_max);
 
   x.clear(), y.clear();
 
@@ -1007,6 +1028,7 @@ double Closed::_atten(double param) {
 bool Free::Item::exec() {
   data->ws = 122 + 20 * log10((data->constant.area_length / 1e+3) /
                               (data->constant.lambda * 1e+2));
+
   if (!_data) return false;
   return true;
 }
@@ -1023,6 +1045,19 @@ bool Air::Item::exec() {
   data->wa = data->constant.area_length / 1000.0 *
              ((1 - (data->constant.temperature - 15) * .01) * gamma_oxygen +
               (1 - (data->constant.temperature - 15) * .06) * gamma_water);
+
+  if (!_data) return false;
+  return true;
+}
+
+bool Acceptable::Item::exec() {
+  double to_uv = qPow(10.0, data->spec.s.first / 20.0);
+  ostream << data->spec.s.first << ' ';
+  ostream << to_uv << ' ';
+
+  double to_dbvt = 10 * log10(qPow(to_uv * 1e-6, 2) / 50);
+  ostream << to_dbvt << ' ';
+
   if (!_data) return false;
   return true;
 }
@@ -1040,6 +1075,7 @@ bool Item::exec() {
   data->p.second = data->spec.p.second - data->tower.wf.second +
                    data->tower.c.second - data->wp - data->ws - data->wa +
                    data->tower.c.first - data->tower.wf.first;
+
   if (!_data) return false;
   return true;
 }
@@ -1159,21 +1195,39 @@ void Core::setFHeight(double h) { _data->tower.f.second = h; }
 
 void Core::setSHeight(double h) { _data->tower.s.second = h; }
 
-void Core::setFCoef(double c) { _data->tower.c.first = c; }
+double Core::setFCoef(double c) {
+  _data->tower.c.first = c;
+  return c;
+}
 
-void Core::setSCoef(double c) { _data->tower.c.second = c; }
+double Core::setSCoef(double c) {
+  _data->tower.c.second = c;
+  return c;
+}
 
 void Core::setFFeedAtten(double f) { _data->tower.wf.first = f; }
 
 void Core::setSFeedAtten(double f) { _data->tower.wf.second = f; }
 
-void Core::setFPower(double p) { _data->spec.p.first = p; }
+double Core::setFPower(double p) {
+  _data->spec.p.first = p;
+  return p;
+}
 
-void Core::setSPower(double p) { _data->spec.p.second = p; }
+double Core::setSPower(double p) {
+  _data->spec.p.second = p;
+  return p;
+}
 
-void Core::setFSensetivity(double s) { _data->spec.s.first = s; }
+double Core::setFSensetivity(double s) {
+  _data->spec.s.first = s;
+  return s;
+}
 
-void Core::setSSensetivity(double s) { _data->spec.s.second = s; }
+double Core::setSSensetivity(double s) {
+  _data->spec.s.second = s;
+  return s;
+}
 
 void Core::setGradient(double g) { _data->constant.g_standard = g * 1e-08; }
 
