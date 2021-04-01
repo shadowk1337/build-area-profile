@@ -36,6 +36,10 @@ class NRrlsMainWindow : public QMainWindow {
   QPushButton *fileDial, *changeWidget;
 
  private slots:
+  void setFile(bool checked);
+  void changeHeight();
+  void changeRrsSpec(const QString &Stext);
+  void changeSens(const QString &text);
   void onMouseMove(QMouseEvent *event);
 };
 

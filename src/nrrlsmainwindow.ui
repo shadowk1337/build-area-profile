@@ -1550,7 +1550,7 @@
      <x>0</x>
      <y>0</y>
      <width>1360</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="font">
@@ -1563,8 +1563,8 @@
      <rect>
       <x>431</x>
       <y>135</y>
-      <width>229</width>
-      <height>148</height>
+      <width>223</width>
+      <height>142</height>
      </rect>
     </property>
     <property name="font">
