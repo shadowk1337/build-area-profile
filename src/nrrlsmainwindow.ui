@@ -122,6 +122,8 @@
        <font>
         <family>FreeSans</family>
         <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="title">
@@ -206,6 +208,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
            </widget>
@@ -216,6 +220,14 @@
          <layout class="QHBoxLayout" name="horizontalLayout_16">
           <item>
            <widget class="QLabel" name="label_job">
+            <property name="font">
+             <font>
+              <family>FreeSans</family>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Режим работы:</string>
             </property>
@@ -235,6 +247,14 @@
               <height>20</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <family>FreeSans</family>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
            </widget>
           </item>
          </layout>
@@ -247,6 +267,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -281,6 +303,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -298,6 +322,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -326,6 +352,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -356,6 +384,8 @@
         <font>
          <family>FreeSans</family>
          <pointsize>9</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="title">
@@ -425,6 +455,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -448,6 +480,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -473,6 +507,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -490,6 +526,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -515,6 +553,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -527,7 +567,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QPushButton" name="pushButton">
+      <widget class="QPushButton" name="pushButton_addStation1">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -535,6 +575,14 @@
          <width>221</width>
          <height>21</height>
         </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>FreeSans</family>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
        </property>
        <property name="text">
         <string>Дополнительно</string>
@@ -554,6 +602,8 @@
        <font>
         <family>FreeSans</family>
         <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="title">
@@ -583,6 +633,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -611,6 +663,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
            </widget>
@@ -621,6 +675,14 @@
          <layout class="QHBoxLayout" name="horizontalLayout_17">
           <item>
            <widget class="QLabel" name="label">
+            <property name="font">
+             <font>
+              <family>FreeSans</family>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
             <property name="text">
              <string>Режим работы:</string>
             </property>
@@ -646,6 +708,14 @@
               <height>20</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <family>FreeSans</family>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+             </font>
+            </property>
            </widget>
           </item>
          </layout>
@@ -658,6 +728,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -686,6 +758,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -703,6 +777,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -731,6 +807,8 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
              </font>
             </property>
             <property name="text">
@@ -755,6 +833,8 @@
         <font>
          <family>FreeSans</family>
          <pointsize>9</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="title">
@@ -784,6 +864,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="frameShape">
@@ -824,6 +906,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -847,6 +931,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -872,6 +958,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -889,6 +977,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -914,6 +1004,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -926,7 +1018,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="QPushButton" name="pushButton_2">
+      <widget class="QPushButton" name="pushButton_addStation2">
        <property name="geometry">
         <rect>
          <x>40</x>
@@ -934,6 +1026,14 @@
          <width>221</width>
          <height>21</height>
         </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>FreeSans</family>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
        </property>
        <property name="text">
         <string>Дополнительно</string>
@@ -946,13 +1046,15 @@
         <x>340</x>
         <y>10</y>
         <width>321</width>
-        <height>181</height>
+        <height>151</height>
        </rect>
       </property>
       <property name="font">
        <font>
         <family>FreeSans</family>
         <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
        </font>
       </property>
       <property name="title">
@@ -977,6 +1079,8 @@
            <font>
             <family>FreeSans</family>
             <pointsize>10</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -1008,6 +1112,8 @@
            <font>
             <family>FreeSans</family>
             <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -1016,19 +1122,6 @@
          </widget>
         </item>
        </layout>
-      </widget>
-      <widget class="QPushButton" name="pushButton_changeWidget">
-       <property name="geometry">
-        <rect>
-         <x>50</x>
-         <y>150</y>
-         <width>221</width>
-         <height>21</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>Диаграмма уровней передачи</string>
-       </property>
       </widget>
       <widget class="QGroupBox" name="groupBox_4">
        <property name="geometry">
@@ -1043,6 +1136,8 @@
         <font>
          <family>FreeSans</family>
          <pointsize>9</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
         </font>
        </property>
        <property name="title">
@@ -1115,6 +1210,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -1138,6 +1235,8 @@
               <font>
                <family>FreeSans</family>
                <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
               </font>
              </property>
              <property name="text">
@@ -1160,6 +1259,14 @@
                <height>20</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <family>FreeSans</family>
+               <pointsize>9</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="text">
               <string>0</string>
              </property>
@@ -1180,13 +1287,16 @@
         <x>680</x>
         <y>10</y>
         <width>321</width>
-        <height>161</height>
+        <height>191</height>
        </rect>
       </property>
       <property name="font">
        <font>
         <family>FreeSans</family>
         <pointsize>9</pointsize>
+        <weight>75</weight>
+        <bold>true</bold>
+        <kerning>true</kerning>
        </font>
       </property>
       <property name="title">
@@ -1213,6 +1323,9 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+              <kerning>true</kerning>
              </font>
             </property>
             <property name="text">
@@ -1238,6 +1351,15 @@
               <height>20</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <family>FreeSans</family>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+              <kerning>true</kerning>
+             </font>
+            </property>
             <property name="frameShape">
              <enum>QFrame::StyledPanel</enum>
             </property>
@@ -1262,6 +1384,9 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+              <kerning>true</kerning>
              </font>
             </property>
             <property name="text">
@@ -1287,6 +1412,15 @@
               <height>20</height>
              </size>
             </property>
+            <property name="font">
+             <font>
+              <family>FreeSans</family>
+              <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+              <kerning>true</kerning>
+             </font>
+            </property>
             <property name="frameShape">
              <enum>QFrame::StyledPanel</enum>
             </property>
@@ -1311,6 +1445,9 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+              <kerning>true</kerning>
              </font>
             </property>
             <property name="text">
@@ -1344,6 +1481,7 @@
               <pointsize>9</pointsize>
               <weight>50</weight>
               <bold>false</bold>
+              <kerning>true</kerning>
              </font>
             </property>
             <property name="frameShape">
@@ -1370,6 +1508,9 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+              <kerning>true</kerning>
              </font>
             </property>
             <property name="text">
@@ -1403,6 +1544,7 @@
               <pointsize>9</pointsize>
               <weight>50</weight>
               <bold>false</bold>
+              <kerning>true</kerning>
              </font>
             </property>
             <property name="frameShape">
@@ -1429,6 +1571,9 @@
              <font>
               <family>FreeSans</family>
               <pointsize>9</pointsize>
+              <weight>50</weight>
+              <bold>false</bold>
+              <kerning>true</kerning>
              </font>
             </property>
             <property name="text">
@@ -1463,6 +1608,7 @@
               <weight>50</weight>
               <italic>false</italic>
               <bold>false</bold>
+              <kerning>true</kerning>
              </font>
             </property>
             <property name="frameShape">
@@ -1482,6 +1628,28 @@
          </layout>
         </item>
        </layout>
+      </widget>
+      <widget class="QPushButton" name="pushButton_changeWidget">
+       <property name="geometry">
+        <rect>
+         <x>50</x>
+         <y>162</y>
+         <width>221</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>FreeSans</family>
+         <pointsize>9</pointsize>
+         <weight>50</weight>
+         <bold>false</bold>
+         <kerning>true</kerning>
+        </font>
+       </property>
+       <property name="text">
+        <string>Диаграмма уровней передачи</string>
+       </property>
       </widget>
      </widget>
     </widget>

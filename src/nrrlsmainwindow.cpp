@@ -1,6 +1,4 @@
 #include <QFileDialog>
-#include <QtCore>
-#include <QtWidgets>
 
 #include "nrrlscalc.h"
 #include "nrrlslogcategory.h"
@@ -63,9 +61,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->action_fileOpen, &QAction::triggered, this,
           &NRrlsMainWindow::setFile);
-
-  connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
-          &NRrlsMainWindow::onMouseMove);
 
   connect(_d->ui->action_fileReplot, &QAction::triggered, this, [&]() {
     exec();
@@ -187,6 +182,16 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->lineEdit_feederAntenna2, &QLineEdit::editingFinished, [&]() {
     _d->_c->setSFeedAtten(_d->ui->lineEdit_feederAntenna2->text().toDouble());
   });
+
+  connect(_d->ui->pushButton_addStation1, &QPushButton::clicked, this,
+          &NRrlsMainWindow::openFirstStation);
+
+  connect(_d->ui->customplot_1, &QCustomPlot::mouseDoubleClick, this,
+          &NRrlsMainWindow::onCustomPlotClicked);
+
+  connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
+          &NRrlsMainWindow::onMouseMove);
+
 }
 
 NRrlsMainWindow::~NRrlsMainWindow() {
@@ -333,33 +338,35 @@ void NRrlsMainWindow::changeSens(const QString &text) {
 
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
+    const double coef = _d->_c->xRange() / _d->_c->yRange();
+    const double h = .02 * _d->_c->yRange();
     QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
+
     double xa = customplot_1->xAxis->pixelToCoord(event->pos().x());
+
     if (_d->line != nullptr) delete _d->line;
     _d->line = new QCPItemLine(_d->ui->customplot_1);
-    _d->line->setPen(QPen(QColor(Qt::gray)));
-    _d->line->start->setCoords(xa, 0);
-    _d->line->end->setCoords(xa, 10000);
+    _d->line->setPen(QPen(QColor(Qt::darkMagenta)));
+    _d->line->start->setCoords(_d->_c->coordX(xa) - coef * h,
+                               _d->_c->coordY(xa));
+    _d->line->end->setCoords(_d->_c->coordX(xa) + coef * h, _d->_c->coordY(xa));
 
-    // TODO: сделать бегающую точку
     if (_d->l != nullptr) delete _d->l;
     _d->l = new QCPItemLine(_d->ui->customplot_1);
-    _d->l->setPen(QPen(QColor(Qt::red), 10));
-    _d->l->start->setCoords(0, 0);
-    auto m = _d->_c->d.param.coords.toMap();
-    //    for (auto it : m)
-    //      std::cout << it.first << ' ';
-    _d->l->end->setCoords(m.lower_bound(xa)->first, m.lower_bound(xa)->second);
-
-    //    std::cout << _d->_c->d.param.coords.lowerBound(xa * 1000).key() << "
-    //    "; QCPCurve *c =
-    //        new QCPCurve(_d->ui->customplot_1->xAxis,
-    //        _d->ui->customplot_2->yAxis);
-    //    c->setPen(QPen(Qt::blue));
-    //    QVector<double> x, y;
-    //    x = {0, _d->_c->d.param.coords.lowerBound(xa).key()},
-    //    y = {0, _d->_c->d.param.coords.lowerBound(xa).value()};
-    //    c->setData(x, y);
+    _d->l->setPen(QPen(QColor(Qt::darkMagenta)));
+    _d->l->start->setCoords(_d->_c->coordX(xa), _d->_c->coordY(xa) - h);
+    _d->l->end->setCoords(_d->_c->coordX(xa), _d->_c->coordY(xa) + h);
     _d->ui->customplot_1->replot();
   }
+}
+
+void NRrlsMainWindow::openFirstStation() {
+  if (_d->ui->customplot_1->graphCount() >= 5) {
+    _f = new FirstStationWindow();
+    _f->show();
+  }
+}
+
+void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
+  std::cout << " h";
 }

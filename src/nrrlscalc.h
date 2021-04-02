@@ -142,7 +142,7 @@ struct Data {
 
     std::map<double, double> toMap(void) const { return _coords.toStdMap(); }
 
-    int size() { return _coords.size(); }
+    QMap<double, double> M(void) const { return _coords; }
 
     QMap<double, double>::const_iterator lowerBound(double key) const {
       return _coords.lowerBound(key);
@@ -151,8 +151,10 @@ struct Data {
     double &operator[](double x) { return _coords[x]; }
 
    private:
-    QMap<double, double> _coords;  ///< Координаты
+    QMap<double, double> _coords;  ///< Координаты высотного профиля
   } coords;
+  QMap<double, double> coordsAndEarth;  ///< Координаты высотного профиля с
+                                        ///< учетом земной поверхности
   QPair<double, double> los;  ///< Уравнение линии прямой видимости (ЛПВ)
   QMap<double, double> h_null;  ///< Относительные просветы
   QMap<double, double> H_null;  ///< Критические просветы
@@ -288,18 +290,31 @@ class Core {
  public:
   virtual bool exec();
   void setFreq(double f);
+
   void setFHeight(double h);
   void setSHeight(double h);
+
   double setFCoef(double c);
   double setSCoef(double c);
+
   void setFFeedAtten(double f);
   void setSFeedAtten(double f);
+
   double setFPower(double p);
   double setSPower(double p);
+
   double setFSensetivity(double s);
   double setSSensetivity(double s);
+
   void setGradient(double g);
+
   void setTemperature(double t);
+
+  double coordX(double c);
+  double coordY(double c);
+
+  double xRange();
+  double yRange();
 
  public:
   Data d;

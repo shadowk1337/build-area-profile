@@ -543,8 +543,9 @@ bool Item::exec() {
     }
     count++;
     line.replace(",", ".");
-    coords[line.section(";", l, l).toDouble()] =
-        line.section(";", h, h).toDouble();
+    data->param.coordsAndEarth[line.section(";", l, l).toDouble()] =
+        coords[line.section(";", l, l).toDouble()] =
+            line.section(";", h, h).toDouble();
   }
   file.close();
   if (!count) {
@@ -610,10 +611,9 @@ bool Axes::exec() {
 }
 
 bool Earth::exec() {
-  QVector<double> x, y, h;
+  QVector<double> x, y;
   x.reserve(data->param.count);
   y.reserve(data->param.count);
-  h.reserve(data->param.count);
 
   bool first = true;
   double move_graph_up_value;
@@ -638,17 +638,18 @@ bool Earth::exec() {
   QPen pen(QColor("#014506"), 2);
   Etc::setGraph(cp, 0, x, y, pen, QObject::tr("Уровень моря"));
 
-  coords.y(h);
+  auto jt = data->param.coordsAndEarth.begin();
+  for (int i = 0; jt != data->param.coordsAndEarth.end() && i < y.size();
+       ++i, ++jt)
+    jt.value() += y[i];
 
-  for (int i = 0; i < h.size() && i < y.size(); ++i) h[i] += y[i];
+  QVector<double> h;
+  h.reserve(data->param.count);
+  foreach (auto i, data->param.coordsAndEarth.values())
+    h.push_back(i);
 
   pen = QPen(QColor("#137ea8"), 2);
   Etc::setGraph(cp, 1, x, h, pen, QObject::tr("Высотный профиль"));
-
-  // Обновление словаря координат
-  int i = 0;
-  for (auto jt = coords.begin(); jt != coords.end(); ++jt, ++i)
-    jt.value() = h[i];
 
   double h_max = *std::max_element(h.begin(), h.end());
   double max_graph_height =
@@ -670,7 +671,8 @@ bool Earth::exec() {
 }
 
 void Earth::paramFill() {
-  LOOP_START(coords.begin(), coords.end(), it);
+  LOOP_START(data->param.coordsAndEarth.begin(),
+             data->param.coordsAndEarth.end(), it);
   data->param.H[it.key()] =
       data->param.los.first * it.key() + data->param.los.second - it.value();
   data->param.H_null[it.key()] = HNull(it.key());
@@ -686,7 +688,8 @@ bool Fresnel::exec() {
   y.reserve(data->param.count);
 
   coords.x(x);
-  LOOP_START(coords.begin(), coords.end(), i);
+  LOOP_START(data->param.coordsAndEarth.begin(),
+             data->param.coordsAndEarth.end(), i);
   y.push_back((-data->param.H_null[i.key()]) + data->param.los.first * i.key() +
               data->param.los.second);
   LOOP_END;
@@ -1061,7 +1064,7 @@ bool Acceptable::Item::exec() {
   data->mainWindow->label_attenValue->setText(
       QString::number(qAbs(to_dbvt - data->p.first + data->ws + data->wa)));
   data->mainWindow->label_attenValue_2->setText(QString::number(data->wp));
-  ostream << qAbs(to_dbvt - data->p.first + data->ws + data->wa) << ' ';
+  //  ostream << qAbs(to_dbvt - data->p.first + data->ws + data->wa) << ' ';
 
   if (!_data) return false;
   return true;
@@ -1237,6 +1240,22 @@ double Core::setSSensetivity(double s) {
 void Core::setGradient(double g) { _data->constant.g_standard = g * 1e-08; }
 
 void Core::setTemperature(double t) { _data->constant.temperature = t; }
+
+double Core::coordX(double c) {
+  return _data->param.coordsAndEarth.lowerBound(c).key();
+}
+
+double Core::coordY(double c) {
+  return _data->param.coordsAndEarth.lowerBound(c).value();
+}
+
+double Core::xRange() {
+  return _data->mainWindow->customplot_1->xAxis->range().size();
+}
+
+double Core::yRange() {
+  return _data->mainWindow->customplot_1->yAxis->range().size();
+}
 
 }  // namespace Calc
 

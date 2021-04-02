@@ -1,12 +1,10 @@
 #ifndef NRRLSMMAINWINDOW_H
 #define NRRLSMMAINWINDOW_H
 
-#include <QComboBox>
-#include <QHBoxLayout>
-#include <QLineEdit>
-#include <QMainWindow>
-#include <QPushButton>
-#include <QStackedWidget>
+#include <QtCore>
+#include <QtWidgets>
+
+#include "firststationwindow.h"
 
 /**
  * Главное окно
@@ -16,6 +14,7 @@ class NRrlsMainWindow : public QMainWindow {
 
  public:
   NRrlsMainWindow(const QVariantMap &options, QWidget *parent = nullptr);
+
   ~NRrlsMainWindow();
 
   void init();
@@ -32,8 +31,7 @@ class NRrlsMainWindow : public QMainWindow {
  private:
   struct Private;
   Private *const _d;
-  QHBoxLayout *la;
-  QPushButton *fileDial, *changeWidget;
+  FirstStationWindow *_f;
 
  private slots:
   void setFile(bool checked);
@@ -41,6 +39,12 @@ class NRrlsMainWindow : public QMainWindow {
   void changeRrsSpec(const QString &Stext);
   void changeSens(const QString &text);
   void onMouseMove(QMouseEvent *event);
+
+private slots:
+  void onCustomPlotClicked(QMouseEvent *event);
+
+ private slots:
+  void openFirstStation();
 };
 
 #endif  // NRRLSMMAINWINDOW_H
