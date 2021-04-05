@@ -1,4 +1,3 @@
-#QT += sql
 QT += widgets                       \
       core                          \
       printsupport

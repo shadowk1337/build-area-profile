@@ -14,11 +14,12 @@ class CoordsWindow : public QMainWindow {
   explicit CoordsWindow(QWidget *parent = nullptr);
   ~CoordsWindow();
 
- private:
-  Ui::CoordsWindow *ui;
+ public:
+  void init(double n, double l, double r);
 
  private:
   struct Private;
+  Private *const _d;
 };
 
 #endif  // COORDSWINDOW_H

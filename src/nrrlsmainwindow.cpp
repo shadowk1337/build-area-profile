@@ -356,27 +356,25 @@ void NRrlsMainWindow::openSecondStation() {
 
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
-    QTimer *t = new QTimer();
-    t->singleShot(1, _d->ui->customplot_1, SLOT(onCustomPlotClicked()));
-
     const double coef = _d->_c->xRange() / _d->_c->yRange();
     const double h = .02 * _d->_c->yRange();
     QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
 
-    double xa = customplot_1->xAxis->pixelToCoord(event->pos().x());
+    _xa = customplot_1->xAxis->pixelToCoord(event->pos().x());
 
     if (_d->line != nullptr) delete _d->line;
     _d->line = new QCPItemLine(_d->ui->customplot_1);
     _d->line->setPen(QPen(QColor(Qt::darkMagenta)));
-    _d->line->start->setCoords(_d->_c->coordX(xa) - coef * h,
-                               _d->_c->coordY(xa));
-    _d->line->end->setCoords(_d->_c->coordX(xa) + coef * h, _d->_c->coordY(xa));
+    _d->line->start->setCoords(_d->_c->coordX(_xa) - coef * h,
+                               _d->_c->coordY(_xa));
+    _d->line->end->setCoords(_d->_c->coordX(_xa) + coef * h,
+                             _d->_c->coordY(_xa));
 
     if (_d->l != nullptr) delete _d->l;
     _d->l = new QCPItemLine(_d->ui->customplot_1);
     _d->l->setPen(QPen(QColor(Qt::darkMagenta)));
-    _d->l->start->setCoords(_d->_c->coordX(xa), _d->_c->coordY(xa) - h);
-    _d->l->end->setCoords(_d->_c->coordX(xa), _d->_c->coordY(xa) + h);
+    _d->l->start->setCoords(_d->_c->coordX(_xa), _d->_c->coordY(_xa) - h);
+    _d->l->end->setCoords(_d->_c->coordX(_xa), _d->_c->coordY(_xa) + h);
     _d->ui->customplot_1->replot();
   }
 }
@@ -385,7 +383,10 @@ void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
     _c = new CoordsWindow();
     _c->setGeometry(event->pos().x(), event->pos().y(), 320, 450);
-
+    _c->init(_d->_c->d.param.coords.lowerBound(_xa).key(),
+             _d->_c->d.param.coords.lowerBound(_xa).key(),
+             _d->_c->d.constant.area_length -
+                 _d->_c->d.param.coords.lowerBound(_xa).key());
     _c->show();
   }
 }

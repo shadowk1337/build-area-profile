@@ -33,9 +33,10 @@ class NRrlsMainWindow : public QMainWindow {
  private:
   struct Private;
   Private *const _d;
-  FirstStationWindow *_f;
-  SecondStationWindow *_s;
-  CoordsWindow *_c;
+  FirstStationWindow *_f;   ///< Окно РРС1
+  SecondStationWindow *_s;  ///< Окно РРС2
+  CoordsWindow *_c;         ///< Окно координат
+  double _xa;  ///< Абсцисса перекрестия на графике
 
  private slots:
   void setFile(bool checked);

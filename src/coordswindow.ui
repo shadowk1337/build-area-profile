@@ -103,7 +103,7 @@
         <item>
          <widget class="QLabel" name="label_3">
           <property name="text">
-           <string>Слева, км</string>
+           <string>Слева, м</string>
           </property>
          </widget>
         </item>
@@ -139,7 +139,7 @@
         <item>
          <widget class="QLabel" name="label_4">
           <property name="text">
-           <string>Справа, км</string>
+           <string>Справа, м</string>
           </property>
          </widget>
         </item>
