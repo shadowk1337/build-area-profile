@@ -21,6 +21,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   _d->ui = new Ui::NRrlsMainWindow;
   _d->ui->setupUi(this);
 
+  //  setMouseTracking(true);
+
   setSettings(options);
   setMouseTracking(true);
 
@@ -85,7 +87,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->action_4, &QAction::triggered, this,
           [&]() { QApplication::exit(); });
 
-  connect(_d->ui->lineEdit_freq, &QLineEdit::textEdited, [&]() {
+  connect(_d->ui->lineEdit_freq, &QLineEdit::editingFinished, [&]() {
     freq = _d->ui->lineEdit_freq->text().toDouble();
     if (_d->ui->customplot_1->graphCount() >= 5) {
       _d->_c->setFreq(freq);
@@ -186,12 +188,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->pushButton_addStation1, &QPushButton::clicked, this,
           &NRrlsMainWindow::openFirstStation);
 
+  connect(_d->ui->pushButton_addStation2, &QPushButton::clicked, this,
+          &NRrlsMainWindow::openSecondStation);
+
   connect(_d->ui->customplot_1, &QCustomPlot::mouseDoubleClick, this,
           &NRrlsMainWindow::onCustomPlotClicked);
 
   connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
-
 }
 
 NRrlsMainWindow::~NRrlsMainWindow() {
@@ -336,8 +340,25 @@ void NRrlsMainWindow::changeSens(const QString &text) {
   }
 }
 
+void NRrlsMainWindow::openFirstStation() {
+  if (_d->ui->customplot_1->graphCount() >= 5) {
+    _f = new FirstStationWindow();
+    _f->show();
+  }
+}
+
+void NRrlsMainWindow::openSecondStation() {
+  if (_d->ui->customplot_1->graphCount() >= 5) {
+    _s = new SecondStationWindow();
+    _s->show();
+  }
+}
+
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
+    QTimer *t = new QTimer();
+    t->singleShot(1, _d->ui->customplot_1, SLOT(onCustomPlotClicked()));
+
     const double coef = _d->_c->xRange() / _d->_c->yRange();
     const double h = .02 * _d->_c->yRange();
     QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
@@ -360,13 +381,11 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   }
 }
 
-void NRrlsMainWindow::openFirstStation() {
-  if (_d->ui->customplot_1->graphCount() >= 5) {
-    _f = new FirstStationWindow();
-    _f->show();
-  }
-}
-
 void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
-  std::cout << " h";
+  if (_d->ui->customplot_1->graphCount() >= 5) {
+    _c = new CoordsWindow();
+    _c->setGeometry(event->pos().x(), event->pos().y(), 320, 450);
+
+    _c->show();
+  }
 }

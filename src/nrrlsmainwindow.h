@@ -4,7 +4,9 @@
 #include <QtCore>
 #include <QtWidgets>
 
+#include "coordswindow.h"
 #include "firststationwindow.h"
+#include "secondstationwindow.h"
 
 /**
  * Главное окно
@@ -32,6 +34,8 @@ class NRrlsMainWindow : public QMainWindow {
   struct Private;
   Private *const _d;
   FirstStationWindow *_f;
+  SecondStationWindow *_s;
+  CoordsWindow *_c;
 
  private slots:
   void setFile(bool checked);
@@ -40,11 +44,12 @@ class NRrlsMainWindow : public QMainWindow {
   void changeSens(const QString &text);
   void onMouseMove(QMouseEvent *event);
 
-private slots:
+ private slots:
   void onCustomPlotClicked(QMouseEvent *event);
 
  private slots:
   void openFirstStation();
+  void openSecondStation();
 };
 
 #endif  // NRRLSMMAINWINDOW_H

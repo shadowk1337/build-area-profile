@@ -579,8 +579,8 @@ bool Axes::exec() {
   cp->yAxis2->setVisible(1);
 
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-  //  cp->setInteractions(QCP::iSelectPlottables | QCP::iRangeDrag |
-  //                      QCP::iRangeZoom);
+//    cp->setInteractions(QCP::iSelectPlottables | QCP::iRangeDrag |
+//                        QCP::iRangeZoom);
 
   for (double i = 0; i < data->constant.area_length; i += 1000) {
     QString str = QString::number(static_cast<int>(i) / 1000);
