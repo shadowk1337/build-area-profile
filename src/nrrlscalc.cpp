@@ -396,8 +396,8 @@ class Setup : public Diagram::Item {
   bool exec() override;
 
  private:
-  void fstStation(const QVector<double> &x);
-  void sndStation(const QVector<double> &x);
+  void draw(QCustomPlot *cp, double sp, double wf, double c1, double c2,
+            double p);
 };
 
 }  // namespace Diagram
@@ -579,8 +579,8 @@ bool Axes::exec() {
   cp->yAxis2->setVisible(1);
 
   QSharedPointer<QCPAxisTickerText> textTicker(new QCPAxisTickerText);
-//    cp->setInteractions(QCP::iSelectPlottables | QCP::iRangeDrag |
-//                        QCP::iRangeZoom);
+  //    cp->setInteractions(QCP::iSelectPlottables | QCP::iRangeDrag |
+  //                        QCP::iRangeZoom);
 
   for (double i = 0; i < data->constant.area_length; i += 1000) {
     QString str = QString::number(static_cast<int>(i) / 1000);
@@ -749,7 +749,8 @@ bool Interval::Item::exec() {
       data->mainWindow->label_intervalType->setText(QObject::tr("Открытый"));
       break;
     case (2):
-      data->mainWindow->label_intervalType->setText(QObject::tr("Полуоткрыт."));
+      data->mainWindow->label_intervalType->setText(
+          QObject::tr("Полуоткрытый"));
       break;
     case (3):
       data->mainWindow->label_intervalType->setText(QObject::tr("Закрытый"));
@@ -782,16 +783,18 @@ QPair<int, int> Opened::_findPointOfIntersection(void) {
       coords.startY() - data->tower.f.second;
   auto pair = strLineEquation(coords.startX(), oppositendY_coord, coords.endX(),
                               data->tower.s.second + coords.endY());
-  //  QCPItemLine *line = new QCPItemLine(data->mainWindow->customplot_1);
-  //  line->start->setCoords(coords.startX(), oppositendY_coord);
-  //  line->end->setCoords(coords.endX(),
-  //                       data->tower.reciever.second + coords.endY());
+  QCPItemLine *line = new QCPItemLine(data->mainWindow->customplot_1);
+  line->start->setCoords(coords.startX(), oppositendY_coord);
+  line->end->setCoords(coords.endX(), data->tower.s.second + coords.endY());
+
   double inters_x;  ///< Индекс наивысшей точки пересечения высотного
   ///< профиля и прямой, проведенной из точки приемника к точке, зеркальной
   ///< передатчику
+  ///
   double inters_y;  ///< Ордината точки пересечения
   // Поиск точки пересечения, если их несколько, то берется
   // последняя в цикле точка
+
   LOOP_START(std::next(coords.begin()), std::prev(coords.end()), it);
   auto y_coord = pair.first * it.key() + pair.second;
   if (it != coords.begin())
@@ -801,6 +804,7 @@ QPair<int, int> Opened::_findPointOfIntersection(void) {
       inters_x = it.key();
     }
   LOOP_END;
+  std::cerr << inters_x << ' ' << inters_y << '\n';
   return {inters_x, inters_y};
 }
 
@@ -1061,11 +1065,12 @@ bool Acceptable::Item::exec() {
   double to_uv = qPow(10.0, data->spec.s.first / 20.0);
 
   double to_dbvt = 10 * log10(qPow(to_uv * 1e-6, 2) / 50);
-  data->mainWindow->label_attenValue->setText(
-      QString::number(qAbs(to_dbvt - data->p.first + data->ws + data->wa)));
+  double at = qAbs(to_dbvt - data->p.first + data->ws + data->wa);
+  data->mainWindow->label_attenValue->setText(QString::number(at));
   data->mainWindow->label_attenValue_2->setText(QString::number(data->wp));
-  //  ostream << qAbs(to_dbvt - data->p.first + data->ws + data->wa) << ' ';
-
+  data->mainWindow->label_concValue->setText(at < data->wp
+                                                 ? QObject::tr("Связи не будет")
+                                                 : QObject::tr("Связь будет"));
   if (!_data) return false;
   return true;
 }
@@ -1112,149 +1117,105 @@ bool Axes::exec() {
 }
 
 bool Setup::exec() {
-  QVector<double> x(6);
+  draw(cp1, data->spec.p.first, data->tower.wf.first, data->tower.c.first,
+       data->tower.c.second, data->p.first);
 
-  x[0] = 0, x[2] = x[1] = .1 * data->constant.area_length;
-  x[4] = x[3] = x[2] + data->constant.area_length;
-  x[5] = x[4] + .1 * data->constant.area_length;
-
-  fstStation(x);
-  sndStation(x);
+  draw(cp2, data->spec.p.second, data->tower.wf.second, data->tower.c.second,
+       data->tower.c.first, data->p.second);
 
   if (!_data) return false;
   return true;
 }
 
-void Setup::fstStation(const QVector<double> &x) {
-  QVector<double> y(6);
+void Setup::draw(QCustomPlot *cp, double sp, double wf, double c1, double c2,
+                 double p) {
+  QVector<double> x(6), y(6);
 
-  y[0] = data->spec.p.first;
-  y[1] = y[0] - data->tower.wf.first;
-  y[2] = y[1] + data->tower.c.first;
+  x[0] = 0, x[2] = x[1] = .1 * data->constant.area_length;
+  x[4] = x[3] = x[2] + data->constant.area_length;
+  x[5] = x[4] + .1 * data->constant.area_length;
+
+  y[0] = sp;
+  y[1] = y[0] - wf;
+  y[2] = y[1] + c1;
   y[3] = y[2] - data->ws;
-  y[4] = y[3] + data->tower.c.second;
-  y[5] = data->p.first + data->wa + data->wp;
+  y[4] = y[3] + c2;
+  y[5] = p + data->wa + data->wp;
 
-  cp1->clearGraphs();
-  cp1->addGraph();
-  cp1->graph(0)->setPen(QPen(Qt::blue, 2));
-  cp1->graph(0)->addData(x, y);
+  cp->clearGraphs();
+  cp->addGraph();
+  cp->graph(0)->setPen(QPen(Qt::blue, 2));
+  cp->graph(0)->addData(x, y);
 
-  y[3] -= data->wp, y[4] = y[3] + data->tower.c.second, y[5] -= data->wp;
-  cp1->addGraph();
-  cp1->graph(1)->setPen(QPen(Qt::red, 2));
-  cp1->graph(1)->addData(x, y);
+  y[3] -= data->wp, y[4] = y[3] + c2, y[5] -= data->wp;
+  cp->addGraph();
+  cp->graph(1)->setPen(QPen(Qt::red, 2));
+  cp->graph(1)->addData(x, y);
 
-  y[3] -= data->wa, y[4] = y[3] + data->tower.c.second, y[5] = data->p.first;
-  cp1->addGraph();
-  cp1->graph(2)->setPen(QPen(Qt::black, 2));
-  cp1->graph(2)->setPen(QPen(Qt::DashLine));
-  cp1->graph(2)->addData(x, y);
-  cp1->rescaleAxes();
-  cp1->yAxis2->rescale();
-}
-
-void Setup::sndStation(const QVector<double> &x) {
-  QVector<double> y(6);
-
-  y[0] = data->spec.p.second;
-  y[1] = y[0] - data->tower.wf.second;
-  y[2] = y[1] + data->tower.c.second;
-  y[3] = y[2] - data->ws;
-  y[4] = y[3] + data->tower.c.first;
-  y[5] = data->p.second + data->wa + data->wp;
-
-  cp2->clearGraphs();
-  cp2->addGraph();
-  cp2->graph(0)->setPen(QPen(Qt::blue, 2));
-  cp2->graph(0)->addData(x, y);
-
-  y[3] -= data->wp, y[4] = y[3] + data->tower.c.first, y[5] -= data->wp;
-  cp2->addGraph();
-  cp2->graph(1)->setPen(QPen(Qt::red, 2));
-  cp2->graph(1)->addData(x, y);
-
-  y[3] -= data->wa, y[4] = y[3] + data->tower.c.first, y[5] = data->p.second;
-  cp2->addGraph();
-  cp2->graph(2)->setPen(QPen(Qt::black, 2));
-  cp2->graph(2)->setPen(QPen(Qt::DashLine));
-  cp2->graph(2)->addData(x, y);
-  cp2->rescaleAxes();
-  cp2->yAxis2->rescale();
+  y[3] -= data->wa, y[4] = y[3] + c2, y[5] = p;
+  cp->addGraph();
+  cp->graph(2)->setPen(QPen(Qt::black, 2));
+  cp->graph(2)->setPen(QPen(Qt::DashLine));
+  cp->graph(2)->addData(x, y);
+  cp->rescaleAxes();
+  cp->yAxis2->rescale();
 }
 
 }  // namespace Diagram
 
 Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
-  _data = QSharedPointer<Data>::create();
-  _data->mainWindow = m;
-  _data->filename = filename;
-  _main = Main::Item::Ptr::create(_data);
+  data = QSharedPointer<Data>::create();
+  data->mainWindow = m;
+  data->filename = filename;
+  _main = Main::Item::Ptr::create(data);
 }
 
 bool Core::exec() { return _main->exec(); }
 
 void Core::setFreq(double f) {
-  _data->spec.f = f;
-  _data->constant.lambda = (double)3e+8 / (f * 1e+6);
+  data->spec.f = f;
+  data->constant.lambda = (double)3e+8 / (f * 1e+6);
 }
 
-void Core::setFHeight(double h) { _data->tower.f.second = h; }
+void Core::setFHeight(double h) { data->tower.f.second = h; }
 
-void Core::setSHeight(double h) { _data->tower.s.second = h; }
+void Core::setSHeight(double h) { data->tower.s.second = h; }
 
-double Core::setFCoef(double c) {
-  _data->tower.c.first = c;
+double Core::setCoef(double &to, double c) {
+  to = c;
   return c;
 }
 
-double Core::setSCoef(double c) {
-  _data->tower.c.second = c;
-  return c;
-}
+void Core::setFeedAtten(double &to, double f) { to = f; }
 
-void Core::setFFeedAtten(double f) { _data->tower.wf.first = f; }
-
-void Core::setSFeedAtten(double f) { _data->tower.wf.second = f; }
-
-double Core::setFPower(double p) {
-  _data->spec.p.first = p;
+double Core::setPower(double &to, double p) {
+  to = p;
   return p;
 }
 
-double Core::setSPower(double p) {
-  _data->spec.p.second = p;
-  return p;
-}
-
-double Core::setFSensetivity(double s) {
-  _data->spec.s.first = s;
+double Core::setSensitivity(double &to, double s) {
+  to = s;
   return s;
 }
 
-double Core::setSSensetivity(double s) {
-  _data->spec.s.second = s;
-  return s;
-}
+void Core::setGradient(double g) { data->constant.g_standard = g * 1e-08; }
 
-void Core::setGradient(double g) { _data->constant.g_standard = g * 1e-08; }
-
-void Core::setTemperature(double t) { _data->constant.temperature = t; }
+void Core::setTemperature(double t) { data->constant.temperature = t; }
 
 double Core::coordX(double c) {
-  return _data->param.coordsAndEarth.lowerBound(c).key();
+  return data->param.coordsAndEarth.lowerBound(c).key();
 }
 
 double Core::coordY(double c) {
-  return _data->param.coordsAndEarth.lowerBound(c).value();
+  return data->param.coordsAndEarth.lowerBound(c).value();
 }
 
 double Core::xRange() {
-  return _data->mainWindow->customplot_1->xAxis->range().size();
+  return data->mainWindow->customplot_1->xAxis->range().size();
 }
 
 double Core::yRange() {
-  return _data->mainWindow->customplot_1->yAxis->range().size();
+  return data->mainWindow->customplot_1->yAxis->range().size();
 }
 
 }  // namespace Calc

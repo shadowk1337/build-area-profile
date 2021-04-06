@@ -11,7 +11,7 @@ struct NRrlsMainWindow::Private {
 
   Ui::NRrlsMainWindow *ui = nullptr;
   QSharedPointer<NRrls::Calc::Core> _c;
-  QCPItemLine *line = nullptr, *l = nullptr;
+  QCPItemLine *h_line = nullptr, *v_line = nullptr;
 };
 
 double freq, h1, h2;
@@ -21,7 +21,11 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   _d->ui = new Ui::NRrlsMainWindow;
   _d->ui->setupUi(this);
 
-  //  setMouseTracking(true);
+  setWindowTitle(tr("РРЛС"));
+  int w = 1360;
+  int h = 768;
+  const QRect &r = qApp->desktop()->screen()->rect();
+  setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
 
   setSettings(options);
   setMouseTracking(true);
@@ -47,12 +51,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   _d->ui->customplot_3->plotLayout()->insertRow(0);
   _d->ui->customplot_3->plotLayout()->addElement(0, 0, title);
 
-  setWindowTitle(tr("РРЛС"));
-  int w = 1360;
-  int h = 768;
-  const QRect &r = qApp->desktop()->screen()->rect();
-  setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
-
   _d->ui->comboBox_rrsStation1->addItem(tr("Выбрать станцию"));
   _d->ui->comboBox_rrsStation2->addItem(tr("Выбрать станцию"));
   _d->ui->comboBox_rrsStation1->addItem(tr("Р-419МЦ"));
@@ -68,6 +66,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     exec();
     _d->ui->customplot_1->replot();
     _d->ui->customplot_2->replot();
+    _d->ui->customplot_3->replot();
   });
 
   connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
@@ -115,32 +114,38 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->lineEdit_capStation1, &QLineEdit::editingFinished, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5)
-      _d->_c->setFPower(_d->ui->lineEdit_capStation1->text().toDouble());
+      _d->_c->setPower(_d->_c->data->spec.p.first,
+                       _d->ui->lineEdit_capStation1->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_capStation2, &QLineEdit::editingFinished, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5)
-      _d->_c->setSPower(_d->ui->lineEdit_capStation2->text().toDouble());
+      _d->_c->setPower(_d->_c->data->spec.p.second,
+                       _d->ui->lineEdit_capStation2->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_sensStation1, &QLineEdit::editingFinished, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5)
-      _d->_c->setFSensetivity(_d->ui->lineEdit_sensStation1->text().toDouble());
+      _d->_c->setSensitivity(_d->_c->data->spec.s.first,
+                             _d->ui->lineEdit_sensStation1->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_sensStation2, &QLineEdit::editingFinished, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5)
-      _d->_c->setSSensetivity(_d->ui->lineEdit_sensStation2->text().toDouble());
+      _d->_c->setSensitivity(_d->_c->data->spec.s.second,
+                             _d->ui->lineEdit_sensStation2->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_coefAntenna1, &QLineEdit::editingFinished, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5)
-      _d->_c->setFCoef(_d->ui->lineEdit_coefAntenna1->text().toDouble());
+      _d->_c->setCoef(_d->_c->data->tower.c.first,
+                      _d->ui->lineEdit_coefAntenna1->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_coefAntenna2, &QLineEdit::editingFinished, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5)
-      _d->_c->setSCoef(_d->ui->lineEdit_coefAntenna2->text().toDouble());
+      _d->_c->setCoef(_d->_c->data->tower.c.second,
+                      _d->ui->lineEdit_coefAntenna2->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_gradient, &QLineEdit::editingFinished, [&]() {
@@ -152,14 +157,22 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->pushButton_changeWidget, &QPushButton::clicked, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5) {
-      _d->_c->setFCoef(_d->ui->lineEdit_coefAntenna1->text().toDouble());
-      _d->_c->setSCoef(_d->ui->lineEdit_coefAntenna2->text().toDouble());
-      _d->_c->setFFeedAtten(_d->ui->lineEdit_feederAntenna1->text().toDouble());
-      _d->_c->setSFeedAtten(_d->ui->lineEdit_feederAntenna2->text().toDouble());
-      _d->_c->setFPower(_d->ui->lineEdit_capStation1->text().toDouble());
-      _d->_c->setSPower(_d->ui->lineEdit_capStation2->text().toDouble());
-      _d->_c->setFSensetivity(_d->ui->lineEdit_sensStation1->text().toDouble());
-      _d->_c->setSSensetivity(_d->ui->lineEdit_sensStation2->text().toDouble());
+      _d->_c->setCoef(_d->_c->data->tower.c.first,
+                      _d->ui->lineEdit_coefAntenna1->text().toDouble());
+      _d->_c->setCoef(_d->_c->data->tower.c.second,
+                      _d->ui->lineEdit_coefAntenna2->text().toDouble());
+      _d->_c->setFeedAtten(_d->_c->data->tower.wf.first,
+                           _d->ui->lineEdit_feederAntenna1->text().toDouble());
+      _d->_c->setFeedAtten(_d->_c->data->tower.wf.second,
+                           _d->ui->lineEdit_feederAntenna2->text().toDouble());
+      _d->_c->setPower(_d->_c->data->spec.p.first,
+                       _d->ui->lineEdit_capStation1->text().toDouble());
+      _d->_c->setPower(_d->_c->data->spec.p.second,
+                       _d->ui->lineEdit_capStation2->text().toDouble());
+      _d->_c->setSensitivity(_d->_c->data->spec.s.first,
+                             _d->ui->lineEdit_sensStation1->text().toDouble());
+      _d->_c->setSensitivity(_d->_c->data->spec.s.second,
+                             _d->ui->lineEdit_sensStation2->text().toDouble());
       _d->_c->setGradient(_d->ui->lineEdit_gradient->text().toDouble());
       _d->_c->setTemperature(_d->ui->lineEdit_temperature->text().toDouble());
       _d->ui->stackwidget->setCurrentIndex(1);
@@ -178,11 +191,13 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   });
 
   connect(_d->ui->lineEdit_feederAntenna1, &QLineEdit::editingFinished, [&]() {
-    _d->_c->setFFeedAtten(_d->ui->lineEdit_feederAntenna1->text().toDouble());
+    _d->_c->setFeedAtten(_d->_c->data->tower.wf.first,
+                         _d->ui->lineEdit_feederAntenna1->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_feederAntenna2, &QLineEdit::editingFinished, [&]() {
-    _d->_c->setSFeedAtten(_d->ui->lineEdit_feederAntenna2->text().toDouble());
+    _d->_c->setFeedAtten(_d->_c->data->tower.wf.second,
+                         _d->ui->lineEdit_feederAntenna2->text().toDouble());
   });
 
   connect(_d->ui->pushButton_addStation1, &QPushButton::clicked, this,
@@ -200,7 +215,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
 NRrlsMainWindow::~NRrlsMainWindow() {
   delete _d->ui;
-  delete _d->line;
+  delete _d->h_line;
+  delete _d->v_line;
   delete _d;
 }
 
@@ -294,15 +310,19 @@ void NRrlsMainWindow::changeRrsSpec(const QString &text) {
                                             QWidget::backgroundRole()));
       ca->setText(QString::number(
           (c == _d->ui->comboBox_rrsStation1)
-              ? _d->_c->setFPower(_d->_c->d.spec.stat[text][0])
-              : _d->_c->setSPower(_d->_c->d.spec.stat[text][0])));
+              ? _d->_c->setPower(_d->_c->data->spec.p.first,
+                                 _d->_c->data->spec.stat[text][0])
+              : _d->_c->setPower(_d->_c->data->spec.p.second,
+                                 _d->_c->data->spec.stat[text][0])));
       co->setText(QString::number(
           (c == _d->ui->comboBox_rrsStation1)
-              ? _d->_c->setFPower(_d->_c->d.spec.stat[text][1])
-              : _d->_c->setSPower(_d->_c->d.spec.stat[text][1])));
+              ? _d->_c->setPower(_d->_c->data->spec.p.first,
+                                 _d->_c->data->spec.stat[text][1])
+              : _d->_c->setPower(_d->_c->data->spec.p.second,
+                                 _d->_c->data->spec.stat[text][1])));
       ca->setReadOnly(true);
       co->setReadOnly(true);
-      for (const auto &it : _d->_c->d.spec.j[text].keys()) j->addItem(it);
+      for (const auto &it : _d->_c->data->spec.j[text].keys()) j->addItem(it);
     }
 
     ca->setPalette(*palette);
@@ -312,6 +332,7 @@ void NRrlsMainWindow::changeRrsSpec(const QString &text) {
   }
 }
 
+// TODO: доделать
 void NRrlsMainWindow::changeSens(const QString &text) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
     QComboBox *c = qobject_cast<QComboBox *>(sender());
@@ -329,8 +350,8 @@ void NRrlsMainWindow::changeSens(const QString &text) {
     } else {
       palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
                                             QWidget::backgroundRole()));
-      s->setText(QString::number(
-          _d->_c->setFSensetivity(_d->_c->d.spec.j[r->currentText()][text])));
+      //      s->setText(QString::number(_d->_c->setFSensetivity(
+      //          _d->_c->data->spec.j[r->currentText()][text])));
       s->setReadOnly(true);
     }
 
@@ -357,24 +378,28 @@ void NRrlsMainWindow::openSecondStation() {
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
     const double coef = _d->_c->xRange() / _d->_c->yRange();
-    const double h = .02 * _d->_c->yRange();
+    const double h = .03 * _d->_c->yRange();  ///< Высота перекрестия
+
     QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
 
     _xa = customplot_1->xAxis->pixelToCoord(event->pos().x());
 
-    if (_d->line != nullptr) delete _d->line;
-    _d->line = new QCPItemLine(_d->ui->customplot_1);
-    _d->line->setPen(QPen(QColor(Qt::darkMagenta)));
-    _d->line->start->setCoords(_d->_c->coordX(_xa) - coef * h,
-                               _d->_c->coordY(_xa));
-    _d->line->end->setCoords(_d->_c->coordX(_xa) + coef * h,
-                             _d->_c->coordY(_xa));
+    if (_d->h_line != nullptr) delete _d->h_line;
 
-    if (_d->l != nullptr) delete _d->l;
-    _d->l = new QCPItemLine(_d->ui->customplot_1);
-    _d->l->setPen(QPen(QColor(Qt::darkMagenta)));
-    _d->l->start->setCoords(_d->_c->coordX(_xa), _d->_c->coordY(_xa) - h);
-    _d->l->end->setCoords(_d->_c->coordX(_xa), _d->_c->coordY(_xa) + h);
+    _d->h_line = new QCPItemLine(_d->ui->customplot_1);
+    _d->h_line->setPen(QPen(QColor(Qt::darkMagenta)));
+    _d->h_line->start->setCoords(_d->_c->coordX(_xa) - coef * h,
+                                 _d->_c->coordY(_xa));
+    _d->h_line->end->setCoords(_d->_c->coordX(_xa) + coef * h,
+                               _d->_c->coordY(_xa));
+
+    if (_d->v_line != nullptr) delete _d->v_line;
+
+    _d->v_line = new QCPItemLine(_d->ui->customplot_1);
+    _d->v_line->setPen(QPen(QColor(Qt::darkMagenta)));
+    _d->v_line->start->setCoords(_d->_c->coordX(_xa), _d->_c->coordY(_xa) - h);
+    _d->v_line->end->setCoords(_d->_c->coordX(_xa), _d->_c->coordY(_xa) + h);
+
     _d->ui->customplot_1->replot();
   }
 }
@@ -382,11 +407,22 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
 void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
     _c = new CoordsWindow();
-    _c->setGeometry(event->pos().x(), event->pos().y(), 320, 450);
-    _c->init(_d->_c->d.param.coords.lowerBound(_xa).key(),
-             _d->_c->d.param.coords.lowerBound(_xa).key(),
-             _d->_c->d.constant.area_length -
-                 _d->_c->d.param.coords.lowerBound(_xa).key());
+    _c->setGeometry(NRrlsMainWindow::x() + event->pos().x(),
+                    NRrlsMainWindow::y() + event->pos().y(), _c->width(),
+                    _c->height());
+
+    _c->init(0, _d->_c->data->param.coords.lowerBound(_xa).key(),
+             _d->_c->data->constant.area_length -
+                 _d->_c->data->param.coords.lowerBound(_xa).key(),
+             _d->_c->data->param.los.first *
+                     _d->_c->data->param.coords.lowerBound(_xa).key() +
+                 _d->_c->data->param.los.second,
+             _d->_c->data->param.coords.lowerBound(_xa).value(),
+             _d->_c->data->param.coordsAndEarth.lowerBound(_xa).value() -
+                 _d->_c->data->param.coords.lowerBound(_xa).value(),
+             _d->_c->data->param.H.lowerBound(_xa).value(),
+             _d->_c->data->param.H_null.lowerBound(_xa).value());
+
     _c->show();
   }
 }

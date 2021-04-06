@@ -292,19 +292,16 @@ class Core {
   void setFreq(double f);
 
   void setFHeight(double h);
+
   void setSHeight(double h);
 
-  double setFCoef(double c);
-  double setSCoef(double c);
+  double setCoef(double &to, double c);
 
-  void setFFeedAtten(double f);
-  void setSFeedAtten(double f);
+  void setFeedAtten(double &to, double f);
 
-  double setFPower(double p);
-  double setSPower(double p);
+  double setPower(double &to, double p);
 
-  double setFSensetivity(double s);
-  double setSSensetivity(double s);
+  double setSensitivity(double &to, double s);
 
   void setGradient(double g);
 
@@ -317,10 +314,9 @@ class Core {
   double yRange();
 
  public:
-  Data d;
+  Data::Ptr data;
 
  private:
-  Data::Ptr _data;
   QCustomPlot *_cp;
   Main::Item::Ptr _main;
 };
