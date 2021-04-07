@@ -21,6 +21,7 @@ SOURCES +=                          \
     ../src/firststationwindow.cpp   \
     ../src/secondstationwindow.cpp  \
     ../src/coordswindow.cpp         \
+    ../src/diagramwindow.cpp        \
     ../src/nrrlslogcategory.cpp     \
     ../src/nrrlscalc.cpp            \
     ../qcustomplot/qcustomplot.cpp
@@ -30,6 +31,7 @@ HEADERS +=                          \
     ../src/firststationwindow.h     \
     ../src/secondstationwindow.h    \
     ../src/coordswindow.h           \
+    ../src/diagramwindow.h          \
     ../src/nrrlslogcategory.h       \
     ../src/nrrlscalc.h              \
     ../qcustomplot/qcustomplot.h
@@ -38,4 +40,5 @@ FORMS +=                            \
     ../src/nrrlsmainwindow.ui       \
     ../src/firststationwindow.ui    \
     ../src/secondstationwindow.ui   \
-    ../src/coordswindow.ui
+    ../src/coordswindow.ui          \
+    ../src/diagramwindow.ui

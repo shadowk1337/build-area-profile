@@ -13,13 +13,12 @@ CoordsWindow::CoordsWindow(QWidget *parent)
 
   setWindowTitle(tr("Информация"));
   int w = 320;
-  int h = 360;
+  int h = 310;
   setFixedSize(w, h);
 }
 
-void CoordsWindow::init(double n, double l, double r, double hl, double hv,
+void CoordsWindow::init(double l, double r, double hl, double hv,
                         double he, double h, double hn) {
-  _d->ui->label_2->setText(QString::number(n));
   _d->ui->label_5->setText(QString::number(l));
   _d->ui->label_6->setText(QString::number(r));
   _d->ui->label_8->setText(QString::number(hl));

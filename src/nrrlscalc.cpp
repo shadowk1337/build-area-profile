@@ -1098,19 +1098,7 @@ bool Item::exec() {
 namespace Diagram {
 
 bool Axes::exec() {
-  cp1->yAxis->setVisible(true);
-  cp1->yAxis2->setVisible(true);
-  cp1->yAxis->setTickLength(0);
-  cp1->yAxis2->setTickLength(0);
-  cp1->yAxis->setSubTickLength(0);
-  cp1->yAxis2->setSubTickLength(0);
 
-  cp2->yAxis->setVisible(true);
-  cp2->yAxis2->setVisible(true);
-  cp2->yAxis->setTickLength(0);
-  cp2->yAxis2->setTickLength(0);
-  cp2->yAxis->setSubTickLength(0);
-  cp2->yAxis2->setSubTickLength(0);
 
   if (!_data) return false;
   return true;

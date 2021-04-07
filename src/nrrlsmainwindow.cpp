@@ -19,6 +19,11 @@ double freq, h1, h2;
 NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     : QMainWindow(parent), _d(new Private) {
   _d->ui = new Ui::NRrlsMainWindow;
+  _f = new FirstStationWindow();
+  _s = new SecondStationWindow();
+  _c = new CoordsWindow();
+  _di = new DiagramWindow();
+
   _d->ui->setupUi(this);
 
   setWindowTitle(tr("РРЛС"));
@@ -32,24 +37,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   _d->ui->customplot_1->xAxis->setVisible(0);
   _d->ui->customplot_1->yAxis->setVisible(0);
-  _d->ui->customplot_2->xAxis->setVisible(0);
-  _d->ui->customplot_2->yAxis->setVisible(0);
-  _d->ui->customplot_3->xAxis->setVisible(0);
-  _d->ui->customplot_3->yAxis->setVisible(0);
-
-  QCPTextElement *title = new QCPTextElement(_d->ui->customplot_2);
-  title->setText(
-      tr("Диаграмма уровней распределения сигнала на интервале РРС1 - РРС2"));
-  title->setFont(QFont("FreeSans", 10, QFont::Bold));
-  _d->ui->customplot_2->plotLayout()->insertRow(0);
-  _d->ui->customplot_2->plotLayout()->addElement(0, 0, title);
-
-  title = new QCPTextElement(_d->ui->customplot_3);
-  title->setText(
-      tr("Диаграмма уровней распределения сигнала на интервале РРС2 - РРС1"));
-  title->setFont(QFont("FreeSans", 10, QFont::Bold));
-  _d->ui->customplot_3->plotLayout()->insertRow(0);
-  _d->ui->customplot_3->plotLayout()->addElement(0, 0, title);
 
   _d->ui->comboBox_rrsStation1->addItem(tr("Выбрать станцию"));
   _d->ui->comboBox_rrsStation2->addItem(tr("Выбрать станцию"));
@@ -65,8 +52,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->action_fileReplot, &QAction::triggered, this, [&]() {
     exec();
     _d->ui->customplot_1->replot();
-    _d->ui->customplot_2->replot();
-    _d->ui->customplot_3->replot();
+    //    _di->customplot_2->replot();
+    //    _d->ui->customplot_3->replot();
   });
 
   connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
@@ -155,27 +142,13 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     }
   });
 
-  connect(_d->ui->pushButton_changeWidget, &QPushButton::clicked, [&]() {
+  connect(_d->ui->pushButton_diagram, &QPushButton::clicked, [&]() {
     if (_d->ui->customplot_1->graphCount() >= 5) {
-      _d->_c->setCoef(_d->_c->data->tower.c.first,
-                      _d->ui->lineEdit_coefAntenna1->text().toDouble());
-      _d->_c->setCoef(_d->_c->data->tower.c.second,
-                      _d->ui->lineEdit_coefAntenna2->text().toDouble());
-      _d->_c->setFeedAtten(_d->_c->data->tower.wf.first,
-                           _d->ui->lineEdit_feederAntenna1->text().toDouble());
-      _d->_c->setFeedAtten(_d->_c->data->tower.wf.second,
-                           _d->ui->lineEdit_feederAntenna2->text().toDouble());
-      _d->_c->setPower(_d->_c->data->spec.p.first,
-                       _d->ui->lineEdit_capStation1->text().toDouble());
-      _d->_c->setPower(_d->_c->data->spec.p.second,
-                       _d->ui->lineEdit_capStation2->text().toDouble());
-      _d->_c->setSensitivity(_d->_c->data->spec.s.first,
-                             _d->ui->lineEdit_sensStation1->text().toDouble());
-      _d->_c->setSensitivity(_d->_c->data->spec.s.second,
-                             _d->ui->lineEdit_sensStation2->text().toDouble());
-      _d->_c->setGradient(_d->ui->lineEdit_gradient->text().toDouble());
-      _d->_c->setTemperature(_d->ui->lineEdit_temperature->text().toDouble());
-      _d->ui->stackwidget->setCurrentIndex(1);
+      if (_di != nullptr) delete _di;
+      _di = new DiagramWindow();
+
+      //      _d->ui->stackwidget->setCurrentIndex(1);
+      _di->show();
       exec();
     }
   });
@@ -217,6 +190,10 @@ NRrlsMainWindow::~NRrlsMainWindow() {
   delete _d->ui;
   delete _d->h_line;
   delete _d->v_line;
+  delete _f;
+  delete _s;
+  delete _c;
+  delete _di;
   delete _d;
 }
 
@@ -260,6 +237,7 @@ void NRrlsMainWindow::setFile(bool checked) {
   QString temp = in->getOpenFileName(this, tr("Открыть файл"), "", "*.csv");
   if (!temp.isEmpty()) {
     _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
+
     _d->ui->lineEdit_freq->setText(QString::number(1000));
     _d->ui->lineEdit_station1->setText(QString::number(20));
     _d->ui->lineEdit_station2->setText(QString::number(20));
@@ -290,12 +268,12 @@ void NRrlsMainWindow::changeRrsSpec(const QString &text) {
     QComboBox *j = (c == _d->ui->comboBox_rrsStation1)
                        ? _d->ui->comboBox_jobStation1
                        : _d->ui->comboBox_jobStation2;
-    QLineEdit *ca = (c == _d->ui->comboBox_rrsStation1)
-                        ? _d->ui->lineEdit_capStation1
-                        : _d->ui->lineEdit_capStation2,
-              *co = (c == _d->ui->comboBox_rrsStation1)
-                        ? _d->ui->lineEdit_coefAntenna1
-                        : _d->ui->lineEdit_coefAntenna2;
+    QLineEdit *capacity = (c == _d->ui->comboBox_rrsStation1)
+                              ? _d->ui->lineEdit_capStation1
+                              : _d->ui->lineEdit_capStation2,
+              *coef = (c == _d->ui->comboBox_rrsStation1)
+                          ? _d->ui->lineEdit_coefAntenna1
+                          : _d->ui->lineEdit_coefAntenna2;
     QPalette *palette = new QPalette();
 
     j->clear();
@@ -303,30 +281,30 @@ void NRrlsMainWindow::changeRrsSpec(const QString &text) {
 
     if (c->currentIndex() <= 0) {
       palette->setColor(QPalette::Base, Qt::white);
-      ca->setReadOnly(false);
-      co->setReadOnly(false);
+      capacity->setReadOnly(false);
+      coef->setReadOnly(false);
     } else {
       palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
                                             QWidget::backgroundRole()));
-      ca->setText(QString::number(
+      capacity->setText(QString::number(
           (c == _d->ui->comboBox_rrsStation1)
               ? _d->_c->setPower(_d->_c->data->spec.p.first,
                                  _d->_c->data->spec.stat[text][0])
               : _d->_c->setPower(_d->_c->data->spec.p.second,
                                  _d->_c->data->spec.stat[text][0])));
-      co->setText(QString::number(
+      coef->setText(QString::number(
           (c == _d->ui->comboBox_rrsStation1)
-              ? _d->_c->setPower(_d->_c->data->spec.p.first,
-                                 _d->_c->data->spec.stat[text][1])
-              : _d->_c->setPower(_d->_c->data->spec.p.second,
-                                 _d->_c->data->spec.stat[text][1])));
-      ca->setReadOnly(true);
-      co->setReadOnly(true);
+              ? _d->_c->setCoef(_d->_c->data->tower.c.first,
+                                _d->_c->data->spec.stat[text][1])
+              : _d->_c->setCoef(_d->_c->data->tower.c.second,
+                                _d->_c->data->spec.stat[text][1])));
+      capacity->setReadOnly(true);
+      coef->setReadOnly(true);
       for (const auto &it : _d->_c->data->spec.j[text].keys()) j->addItem(it);
     }
 
-    ca->setPalette(*palette);
-    co->setPalette(*palette);
+    capacity->setPalette(*palette);
+    coef->setPalette(*palette);
     delete palette;
     exec();
   }
@@ -363,6 +341,7 @@ void NRrlsMainWindow::changeSens(const QString &text) {
 
 void NRrlsMainWindow::openFirstStation() {
   if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_f != nullptr) delete _f;
     _f = new FirstStationWindow();
     _f->show();
   }
@@ -370,6 +349,7 @@ void NRrlsMainWindow::openFirstStation() {
 
 void NRrlsMainWindow::openSecondStation() {
   if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_c != nullptr) delete _c;
     _s = new SecondStationWindow();
     _s->show();
   }
@@ -378,7 +358,7 @@ void NRrlsMainWindow::openSecondStation() {
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
     const double coef = _d->_c->xRange() / _d->_c->yRange();
-    const double h = .03 * _d->_c->yRange();  ///< Высота перекрестия
+    const double h = .02 * _d->_c->yRange();  ///< Высота перекрестия
 
     QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
 
@@ -406,17 +386,21 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
 
 void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
   if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_c != nullptr) delete _c;
+
     _c = new CoordsWindow();
     _c->setGeometry(NRrlsMainWindow::x() + event->pos().x(),
                     NRrlsMainWindow::y() + event->pos().y(), _c->width(),
                     _c->height());
 
-    _c->init(0, _d->_c->data->param.coords.lowerBound(_xa).key(),
+    _c->init(_d->_c->data->param.coords.lowerBound(_xa).key(),
              _d->_c->data->constant.area_length -
                  _d->_c->data->param.coords.lowerBound(_xa).key(),
              _d->_c->data->param.los.first *
                      _d->_c->data->param.coords.lowerBound(_xa).key() +
-                 _d->_c->data->param.los.second,
+                 _d->_c->data->param.los.second -
+                 (_d->_c->data->param.coordsAndEarth.lowerBound(_xa).value() -
+                  _d->_c->data->param.coords.lowerBound(_xa).value()),
              _d->_c->data->param.coords.lowerBound(_xa).value(),
              _d->_c->data->param.coordsAndEarth.lowerBound(_xa).value() -
                  _d->_c->data->param.coords.lowerBound(_xa).value(),

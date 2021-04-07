@@ -5,6 +5,7 @@
 #include <QtWidgets>
 
 #include "coordswindow.h"
+#include "diagramwindow.h"
 #include "firststationwindow.h"
 #include "secondstationwindow.h"
 
@@ -36,6 +37,7 @@ class NRrlsMainWindow : public QMainWindow {
   FirstStationWindow *_f;   ///< Окно РРС1
   SecondStationWindow *_s;  ///< Окно РРС2
   CoordsWindow *_c;         ///< Окно координат
+  DiagramWindow *_di;       ///<  Окно диграммы
   double _xa;  ///< Абсцисса перекрестия на графике
 
  private slots:

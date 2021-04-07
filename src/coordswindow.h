@@ -15,7 +15,7 @@ class CoordsWindow : public QMainWindow {
   ~CoordsWindow();
 
  public:
-  void init(double n, double l, double r, double hl, double hv, double he,
+  void init(double l, double r, double hl, double hv, double he,
             double h, double hn);
 
  private:

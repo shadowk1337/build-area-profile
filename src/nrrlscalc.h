@@ -12,7 +12,11 @@
 #include <utility>
 #include "qcustomplot.h"
 
+#include "ui_coordswindow.h"
+#include "ui_diagramwindow.h"
+#include "ui_firststationwindow.h"
 #include "ui_nrrlsmainwindow.h"
+#include "ui_secondstationwindow.h"
 
 #define C(x) sgn(x) * log10(1 + qAbs(x) / 10)
 
@@ -177,6 +181,8 @@ struct Data {
   Towers::Data tower;   ///< Параметры антенн
 
   Ui::NRrlsMainWindow *mainWindow;
+  Ui::DiagramWindow *diagramWindow;
+
   QString filename;
   int interval_type;  ///< Тип интервала: 1-Открытый, 2-Полуоткрытый,
                       ///< 3-Закрытый
