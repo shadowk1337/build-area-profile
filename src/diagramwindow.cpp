@@ -5,7 +5,7 @@ DiagramWindow::DiagramWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::DiagramWindow) {
   ui->setupUi(this);
 
-  setWindowTitle(tr("Диаграммы уровней распределения"));
+  setWindowTitle(tr("Диаграммы уровней передачи"));
   int w = 1170;
   int h = 430;
   setFixedSize(w, h);
@@ -48,19 +48,19 @@ void DiagramWindow::exec() {
 
 void DiagramWindow::setupGraph() {
   ui->customplot_1->yAxis->setVisible(true);
-  ui->customplot_1->yAxis2->setVisible(true);
   ui->customplot_1->yAxis->setTickLength(0);
   ui->customplot_1->yAxis->setLabel(QObject::tr("P, дБ"));
-  ui->customplot_1->yAxis2->setTickLength(0);
   ui->customplot_1->yAxis->setSubTickLength(0);
+  ui->customplot_1->yAxis2->setVisible(true);
+  ui->customplot_1->yAxis2->setTickLength(0);
   ui->customplot_1->yAxis2->setSubTickLength(0);
 
   ui->customplot_2->yAxis->setVisible(true);
-  ui->customplot_2->yAxis2->setVisible(true);
   ui->customplot_2->yAxis->setTickLength(0);
   ui->customplot_2->yAxis->setLabel(QObject::tr("P, дБ"));
-  ui->customplot_2->yAxis2->setTickLength(0);
   ui->customplot_2->yAxis->setSubTickLength(0);
+  ui->customplot_2->yAxis2->setVisible(true);
+  ui->customplot_2->yAxis2->setTickLength(0);
   ui->customplot_2->yAxis2->setSubTickLength(0);
 }
 
