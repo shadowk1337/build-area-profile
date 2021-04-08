@@ -4,7 +4,7 @@
 #include "nrrlslogcategory.h"
 #include "nrrlsmainwindow.h"
 
-inline int parse(int h) { return h = (h > 100) ? 100 : (h < 0) ? 0 : h; }
+inline int parse(int h) { return (h > 100) ? 100 : (h < 1) ? 1 : h; }
 
 struct NRrlsMainWindow::Private {
   Private() {}
@@ -35,8 +35,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   setSettings(options);
   setMouseTracking(true);
 
-  _d->ui->customplot_1->xAxis->setVisible(0);
-  _d->ui->customplot_1->yAxis->setVisible(0);
+  _d->ui->customplot->xAxis->setVisible(0);
+  _d->ui->customplot->yAxis->setVisible(0);
 
   _d->ui->comboBox_rrsStation1->addItem(tr("Выбрать станцию"));
   _d->ui->comboBox_rrsStation2->addItem(tr("Выбрать станцию"));
@@ -51,21 +51,19 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->action_fileReplot, &QAction::triggered, this, [&]() {
     exec();
-    _d->ui->customplot_1->replot();
-    //    _di->customplot_2->replot();
-    //    _d->ui->customplot_3->replot();
+    _d->ui->customplot->replot();
   });
 
   connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
     if (_d->ui->action_13->text() == "Скрыть нижнюю панель") {
       _d->ui->action_13->setText(tr("Показать нижнюю панель"));
       _d->ui->frame_hider->hide();
-      _d->ui->customplot_1->resize(1341, 731);
+      _d->ui->customplot->resize(1341, 731);
       _d->ui->frame->resize(1341, 731);
     } else {
       _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
       _d->ui->frame_hider->show();
-      _d->ui->customplot_1->resize(1341, 441);
+      _d->ui->customplot->resize(1341, 441);
       _d->ui->frame->resize(1341, 441);
     }
   });
@@ -75,7 +73,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->lineEdit_freq, &QLineEdit::editingFinished, [&]() {
     freq = _d->ui->lineEdit_freq->text().toDouble();
-    if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setFreq(freq);
       exec();
     }
@@ -100,62 +98,60 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
           &NRrlsMainWindow::changeSens);
 
   connect(_d->ui->lineEdit_capStation1, &QLineEdit::editingFinished, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5)
+    if (_d->ui->customplot->graphCount() >= 5)
       _d->_c->setPower(_d->_c->data->spec.p.first,
                        _d->ui->lineEdit_capStation1->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_capStation2, &QLineEdit::editingFinished, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5)
+    if (_d->ui->customplot->graphCount() >= 5)
       _d->_c->setPower(_d->_c->data->spec.p.second,
                        _d->ui->lineEdit_capStation2->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_sensStation1, &QLineEdit::editingFinished, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5)
+    if (_d->ui->customplot->graphCount() >= 5)
       _d->_c->setSensitivity(_d->_c->data->spec.s.first,
                              _d->ui->lineEdit_sensStation1->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_sensStation2, &QLineEdit::editingFinished, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5)
+    if (_d->ui->customplot->graphCount() >= 5)
       _d->_c->setSensitivity(_d->_c->data->spec.s.second,
                              _d->ui->lineEdit_sensStation2->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_coefAntenna1, &QLineEdit::editingFinished, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5)
+    if (_d->ui->customplot->graphCount() >= 5)
       _d->_c->setCoef(_d->_c->data->tower.c.first,
                       _d->ui->lineEdit_coefAntenna1->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_coefAntenna2, &QLineEdit::editingFinished, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5)
+    if (_d->ui->customplot->graphCount() >= 5)
       _d->_c->setCoef(_d->_c->data->tower.c.second,
                       _d->ui->lineEdit_coefAntenna2->text().toDouble());
   });
 
   connect(_d->ui->lineEdit_gradient, &QLineEdit::editingFinished, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
+    if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setGradient(_d->ui->lineEdit_gradient->text().toDouble());
       exec();
     }
   });
 
   connect(_d->ui->pushButton_diagram, &QPushButton::clicked, [&]() {
-    if (_d->ui->customplot_1->graphCount() >= 5) {
-      if (_di != nullptr) delete _di;
+    if (_d->ui->customplot->graphCount() >= 5) {
+      if (_di != nullptr)
+        delete _di;
       _di = new DiagramWindow();
 
-      //      _d->ui->stackwidget->setCurrentIndex(1);
-      _di->show();
       exec();
-    }
-  });
 
-  connect(_d->ui->pushButton_backWidget, &QPushButton::clicked, [&]() {
-    _d->ui->stackwidget->setCurrentIndex(0);
-    exec();
+      _di->init(_d->_c);
+      _di->exec();
+      _di->show();
+    }
   });
 
   connect(_d->ui->lineEdit_temperature, &QLineEdit::editingFinished, [&]() {
@@ -179,10 +175,10 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->pushButton_addStation2, &QPushButton::clicked, this,
           &NRrlsMainWindow::openSecondStation);
 
-  connect(_d->ui->customplot_1, &QCustomPlot::mouseDoubleClick, this,
+  connect(_d->ui->customplot, &QCustomPlot::mouseDoubleClick, this,
           &NRrlsMainWindow::onCustomPlotClicked);
 
-  connect(_d->ui->customplot_1, &QCustomPlot::mouseMove, this,
+  connect(_d->ui->customplot, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
 }
 
@@ -252,10 +248,10 @@ void NRrlsMainWindow::setFile(bool checked) {
 }
 
 void NRrlsMainWindow::changeHeight() {
-  if (_d->ui->customplot_1->graphCount() >= 5) {
+  if (_d->ui->customplot->graphCount() >= 5) {
     QLineEdit *l = qobject_cast<QLineEdit *>(sender());
     double h = parse(l->text().toInt());
-    (h > 0) ? l->setText(QString::number(h)) : l->setText("0");
+    (h > 1) ? l->setText(QString::number(h)) : l->setText("1");
     (l == _d->ui->lineEdit_station1) ? _d->_c->setFHeight(h)
                                      : _d->_c->setSHeight(h);
     exec();
@@ -263,7 +259,7 @@ void NRrlsMainWindow::changeHeight() {
 }
 
 void NRrlsMainWindow::changeRrsSpec(const QString &text) {
-  if (_d->ui->customplot_1->graphCount() >= 5) {
+  if (_d->ui->customplot->graphCount() >= 5) {
     QComboBox *c = qobject_cast<QComboBox *>(sender());
     QComboBox *j = (c == _d->ui->comboBox_rrsStation1)
                        ? _d->ui->comboBox_jobStation1
@@ -286,21 +282,18 @@ void NRrlsMainWindow::changeRrsSpec(const QString &text) {
     } else {
       palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
                                             QWidget::backgroundRole()));
-      capacity->setText(QString::number(
-          (c == _d->ui->comboBox_rrsStation1)
-              ? _d->_c->setPower(_d->_c->data->spec.p.first,
-                                 _d->_c->data->spec.stat[text][0])
-              : _d->_c->setPower(_d->_c->data->spec.p.second,
-                                 _d->_c->data->spec.stat[text][0])));
-      coef->setText(QString::number(
-          (c == _d->ui->comboBox_rrsStation1)
-              ? _d->_c->setCoef(_d->_c->data->tower.c.first,
-                                _d->_c->data->spec.stat[text][1])
-              : _d->_c->setCoef(_d->_c->data->tower.c.second,
-                                _d->_c->data->spec.stat[text][1])));
+      capacity->setText(QString::number(_d->_c->setPower(
+          (c == _d->ui->comboBox_rrsStation1) ? _d->_c->data->spec.p.first
+                                              : _d->_c->data->spec.p.second,
+          _d->_c->data->spec.stat[text][0])));
+      coef->setText(QString::number(_d->_c->setCoef(
+          (c == _d->ui->comboBox_rrsStation1) ? _d->_c->data->tower.c.first
+                                              : _d->_c->data->tower.c.second,
+          _d->_c->data->spec.stat[text][1])));
       capacity->setReadOnly(true);
       coef->setReadOnly(true);
-      for (const auto &it : _d->_c->data->spec.j[text].keys()) j->addItem(it);
+      for (const auto &it : _d->_c->data->spec.j[text].keys())
+        j->addItem(it);
     }
 
     capacity->setPalette(*palette);
@@ -312,7 +305,7 @@ void NRrlsMainWindow::changeRrsSpec(const QString &text) {
 
 // TODO: доделать
 void NRrlsMainWindow::changeSens(const QString &text) {
-  if (_d->ui->customplot_1->graphCount() >= 5) {
+  if (_d->ui->customplot->graphCount() >= 5) {
     QComboBox *c = qobject_cast<QComboBox *>(sender());
     QComboBox *r = (c == _d->ui->comboBox_jobStation1)
                        ? _d->ui->comboBox_rrsStation1
@@ -328,8 +321,10 @@ void NRrlsMainWindow::changeSens(const QString &text) {
     } else {
       palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
                                             QWidget::backgroundRole()));
-      //      s->setText(QString::number(_d->_c->setFSensetivity(
-      //          _d->_c->data->spec.j[r->currentText()][text])));
+      s->setText(QString::number(_d->_c->setSensitivity(
+          (c == _d->ui->comboBox_rrsStation1) ? _d->_c->data->spec.s.first
+                                              : _d->_c->data->spec.s.second,
+          _d->_c->data->spec.j[r->currentText()][text])));
       s->setReadOnly(true);
     }
 
@@ -340,53 +335,58 @@ void NRrlsMainWindow::changeSens(const QString &text) {
 }
 
 void NRrlsMainWindow::openFirstStation() {
-  if (_d->ui->customplot_1->graphCount() >= 5) {
-    if (_f != nullptr) delete _f;
+  if (_d->ui->customplot->graphCount() >= 5) {
+    if (_f != nullptr)
+      delete _f;
     _f = new FirstStationWindow();
     _f->show();
   }
 }
 
 void NRrlsMainWindow::openSecondStation() {
-  if (_d->ui->customplot_1->graphCount() >= 5) {
-    if (_c != nullptr) delete _c;
+  if (_d->ui->customplot->graphCount() >= 5) {
+    if (_c != nullptr)
+      delete _c;
     _s = new SecondStationWindow();
     _s->show();
   }
 }
 
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
-  if (_d->ui->customplot_1->graphCount() >= 5) {
+  if (_d->ui->customplot->graphCount() >= 5) {
     const double coef = _d->_c->xRange() / _d->_c->yRange();
-    const double h = .02 * _d->_c->yRange();  ///< Высота перекрестия
+    const double h = .02 * _d->_c->yRange(); ///< Высота перекрестия
 
-    QCustomPlot *customplot_1 = qobject_cast<QCustomPlot *>(sender());
+    QCustomPlot *customplot = qobject_cast<QCustomPlot *>(sender());
 
-    _xa = customplot_1->xAxis->pixelToCoord(event->pos().x());
+    _xa = customplot->xAxis->pixelToCoord(event->pos().x());
 
-    if (_d->h_line != nullptr) delete _d->h_line;
+    if (_d->h_line != nullptr)
+      delete _d->h_line;
 
-    _d->h_line = new QCPItemLine(_d->ui->customplot_1);
+    _d->h_line = new QCPItemLine(_d->ui->customplot);
     _d->h_line->setPen(QPen(QColor(Qt::darkMagenta)));
     _d->h_line->start->setCoords(_d->_c->coordX(_xa) - coef * h,
                                  _d->_c->coordY(_xa));
     _d->h_line->end->setCoords(_d->_c->coordX(_xa) + coef * h,
                                _d->_c->coordY(_xa));
 
-    if (_d->v_line != nullptr) delete _d->v_line;
+    if (_d->v_line != nullptr)
+      delete _d->v_line;
 
-    _d->v_line = new QCPItemLine(_d->ui->customplot_1);
+    _d->v_line = new QCPItemLine(_d->ui->customplot);
     _d->v_line->setPen(QPen(QColor(Qt::darkMagenta)));
     _d->v_line->start->setCoords(_d->_c->coordX(_xa), _d->_c->coordY(_xa) - h);
     _d->v_line->end->setCoords(_d->_c->coordX(_xa), _d->_c->coordY(_xa) + h);
 
-    _d->ui->customplot_1->replot();
+    _d->ui->customplot->replot();
   }
 }
 
 void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
-  if (_d->ui->customplot_1->graphCount() >= 5) {
-    if (_c != nullptr) delete _c;
+  if (_d->ui->customplot->graphCount() >= 5) {
+    if (_c != nullptr)
+      delete _c;
 
     _c = new CoordsWindow();
     _c->setGeometry(NRrlsMainWindow::x() + event->pos().x(),

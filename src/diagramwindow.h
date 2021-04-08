@@ -1,6 +1,7 @@
 #ifndef DIAGRAMWINDOW_H
 #define DIAGRAMWINDOW_H
 
+#include "nrrlscalc.h"
 #include <QMainWindow>
 
 namespace Ui {
@@ -10,20 +11,27 @@ class DiagramWindow;
 class DiagramWindow : public QMainWindow {
   Q_OBJECT
 
- public:
+public:
   explicit DiagramWindow(QWidget *parent = nullptr);
   ~DiagramWindow();
 
+  // Заполнение структуры данными
+  void init(QSharedPointer<NRrls::Calc::Core> c);
+
   void exec();
 
- private:
+private:
+  // Настройка графика
   void setupGraph();
 
- private:
+private:
+  void drawGraph(QCustomPlot *cp, double sp, double wf, double c1, double c2,
+                 double p);
+
   Ui::DiagramWindow *ui;
 
- private:
-//  double _
+private:
+  QSharedPointer<NRrls::Calc::Core> _c;
 };
 
-#endif  // DIAGRAMWINDOW_H
+#endif // DIAGRAMWINDOW_H

@@ -27,6 +27,8 @@
      <font>
       <family>FreeSans</family>
       <pointsize>9</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="title">
@@ -49,6 +51,14 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QLabel" name="label_3">
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="text">
            <string>Слева, м:</string>
           </property>
@@ -68,6 +78,14 @@
             <height>20</height>
            </size>
           </property>
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -85,6 +103,14 @@
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QLabel" name="label_4">
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="text">
            <string>Справа, м:</string>
           </property>
@@ -103,6 +129,14 @@
             <width>90</width>
             <height>20</height>
            </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
           </property>
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
@@ -133,6 +167,8 @@
      <font>
       <family>FreeSans</family>
       <pointsize>9</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="title">
@@ -155,6 +191,14 @@
        <layout class="QHBoxLayout" name="horizontalLayout_4">
         <item>
          <widget class="QLabel" name="label_7">
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="text">
            <string>Линии прямой видимости, м:</string>
           </property>
@@ -174,6 +218,14 @@
             <height>20</height>
            </size>
           </property>
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -191,6 +243,14 @@
        <layout class="QHBoxLayout" name="horizontalLayout_5">
         <item>
          <widget class="QLabel" name="label_9">
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="text">
            <string>Высотного профиля, м:</string>
           </property>
@@ -210,6 +270,14 @@
             <height>20</height>
            </size>
           </property>
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
           </property>
@@ -227,6 +295,14 @@
        <layout class="QHBoxLayout" name="horizontalLayout_6">
         <item>
          <widget class="QLabel" name="label_11">
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
+          </property>
           <property name="text">
            <string>Земной поверхности, м:</string>
           </property>
@@ -245,6 +321,14 @@
             <width>90</width>
             <height>20</height>
            </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>FreeSans</family>
+            <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
+           </font>
           </property>
           <property name="frameShape">
            <enum>QFrame::StyledPanel</enum>
@@ -275,6 +359,8 @@
      <font>
       <family>FreeSans</family>
       <pointsize>9</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
      </font>
     </property>
     <property name="title">
@@ -304,6 +390,8 @@
            <font>
             <family>FreeSans</family>
             <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -329,6 +417,8 @@
            <font>
             <family>FreeSans</family>
             <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="frameShape">
@@ -355,6 +445,8 @@
            <font>
             <family>FreeSans</family>
             <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="text">
@@ -380,6 +472,8 @@
            <font>
             <family>FreeSans</family>
             <pointsize>9</pointsize>
+            <weight>50</weight>
+            <bold>false</bold>
            </font>
           </property>
           <property name="frameShape">
