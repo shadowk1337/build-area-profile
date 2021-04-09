@@ -142,8 +142,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->pushButton_diagram, &QPushButton::clicked, [&]() {
     if (_d->ui->customplot->graphCount() >= 5) {
-      if (_di != nullptr)
-        delete _di;
+      if (_di != nullptr) delete _di;
       _di = new DiagramWindow();
 
       exec();
@@ -292,8 +291,7 @@ void NRrlsMainWindow::changeRrsSpec(const QString &text) {
           _d->_c->data->spec.stat[text][1])));
       capacity->setReadOnly(true);
       coef->setReadOnly(true);
-      for (const auto &it : _d->_c->data->spec.j[text].keys())
-        j->addItem(it);
+      for (const auto &it : _d->_c->data->spec.j[text].keys()) j->addItem(it);
     }
 
     capacity->setPalette(*palette);
@@ -325,6 +323,7 @@ void NRrlsMainWindow::changeSens(const QString &text) {
           (c == _d->ui->comboBox_rrsStation1) ? _d->_c->data->spec.s.first
                                               : _d->_c->data->spec.s.second,
           _d->_c->data->spec.j[r->currentText()][text])));
+      std::cerr << _d->_c->data->spec.s.first << ' ';
       s->setReadOnly(true);
     }
 
@@ -336,8 +335,7 @@ void NRrlsMainWindow::changeSens(const QString &text) {
 
 void NRrlsMainWindow::openFirstStation() {
   if (_d->ui->customplot->graphCount() >= 5) {
-    if (_f != nullptr)
-      delete _f;
+    if (_f != nullptr) delete _f;
     _f = new FirstStationWindow();
     _f->show();
   }
@@ -345,8 +343,7 @@ void NRrlsMainWindow::openFirstStation() {
 
 void NRrlsMainWindow::openSecondStation() {
   if (_d->ui->customplot->graphCount() >= 5) {
-    if (_c != nullptr)
-      delete _c;
+    if (_c != nullptr) delete _c;
     _s = new SecondStationWindow();
     _s->show();
   }
@@ -355,14 +352,13 @@ void NRrlsMainWindow::openSecondStation() {
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot->graphCount() >= 5) {
     const double coef = _d->_c->xRange() / _d->_c->yRange();
-    const double h = .02 * _d->_c->yRange(); ///< Высота перекрестия
+    const double h = .02 * _d->_c->yRange();  ///< Высота перекрестия
 
     QCustomPlot *customplot = qobject_cast<QCustomPlot *>(sender());
 
     _xa = customplot->xAxis->pixelToCoord(event->pos().x());
 
-    if (_d->h_line != nullptr)
-      delete _d->h_line;
+    if (_d->h_line != nullptr) delete _d->h_line;
 
     _d->h_line = new QCPItemLine(_d->ui->customplot);
     _d->h_line->setPen(QPen(QColor(Qt::darkMagenta)));
@@ -371,8 +367,7 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
     _d->h_line->end->setCoords(_d->_c->coordX(_xa) + coef * h,
                                _d->_c->coordY(_xa));
 
-    if (_d->v_line != nullptr)
-      delete _d->v_line;
+    if (_d->v_line != nullptr) delete _d->v_line;
 
     _d->v_line = new QCPItemLine(_d->ui->customplot);
     _d->v_line->setPen(QPen(QColor(Qt::darkMagenta)));
@@ -385,8 +380,7 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
 
 void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
   if (_d->ui->customplot->graphCount() >= 5) {
-    if (_c != nullptr)
-      delete _c;
+    if (_c != nullptr) delete _c;
 
     _c = new CoordsWindow();
     _c->setGeometry(NRrlsMainWindow::x() + event->pos().x(),

@@ -84,7 +84,7 @@ struct Data {
   QPair<double, double> s = {0, 0};  ///< Чувствительность
 
   const QMap<QString, QVector<double>> stat = {
-      {QObject::tr("Р-419МЦ"), {48, 10}}};
+      {QObject::tr("Р-419МЦ"), {16.812, 10}}};
 
   QMap<QString, QMap<QString, double>> j = {
       {QObject::tr("Р-419МЦ"),

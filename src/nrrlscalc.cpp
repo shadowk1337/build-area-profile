@@ -135,10 +135,10 @@ class Item : public Calc::Item {
  protected:
   /**
    * Функция проверки касательности прямой к высотному профилю
-   * @param a       - y = a * x + b
-   * @param b       - y = a * x + b
-   * @param start   - начальный индекс рассматриваемого интервала
-   * @param end     - конечный индекс рассматриваемого интервала
+   * @param a         - y = a * x + b
+   * @param b         - y = a * x + b
+   * @param start     - начальный индекс рассматриваемого интервала
+   * @param end       - конечный индекс рассматриваемого интервала
    * @return Будет ли прямая касательной
    */
   bool _isTangent(double a, double b, double start, double end) const;
@@ -170,20 +170,25 @@ class Opened : public Land::Item {
 
   /**
    * Функция аппроксимации плоскостью
-   * @param start   - Индекс начальной точки участка отражения
-   * @param end     - Индекс конечной точки участка отражения
+   * @param start     - Индекс начальной точки участка отражения
+   * @param end       - Индекс конечной точки участка отражения
    */
   double _planeApproximation(QPair<int, int> intersec);
 
   /**
    * Функция аппроксимации сферой
-   * @param begin   - Индекс начальной точки участка отражения
-   * @param end     - Индекс конечной точки участка отражения
+   * @param begin     - Индекс начальной точки участка отражения
+   * @param end       - Индекс конечной точки участка отражения
    */
   double _sphereApproximation(iter begin, iter end);
 
  private:
-  double _attentuationPlane(double phi_null, double delta_h);
+  /**
+   * Функция расчета затухания на открытом интервале
+   * @param phi_null  - коэффициент отражения
+   * @param p         - относительный просвет в точке отражения
+   */
+  inline double _atten(double phi_null, double p);
 };
 
 /**
@@ -200,8 +205,8 @@ class SemiOpened : public Land::Item {
  private:
   /**
    * Функция нахождения затеняющего препятствия
-   * @return Пара .first
-   *                - индекс препятствия .second - величина минимального
+   * @return Пара .first  - индекс препятствия
+   *              .second - величина минимального
    * просвета
    */
   QPair<double, double> _shadingObstacle(void) const;
@@ -725,7 +730,8 @@ bool Opened::exec() {
   double p =  ///< Относительный просвет в точке отражения
       qSqrt(6 * delta_r * data->constant.lambda);
 
-  //  double v =  ///<
+  //  data->wp =
+  //  _atten(data->constant.reflection_coef.lowerBound(data->constant.lambda));
 
   if (!_data) return false;
   return true;
@@ -773,10 +779,9 @@ double Opened::_sphereApproximation(iter begin, iter end) {
   return data->param.h_null.lowerBound(min_h.key()).value();
 }
 
-double Opened::_attentuationPlane(double phi_null, double delta_h) {
-  return -10 *
-         log10(1 + qPow(phi_null, 2) -
-               2 * qPow(phi_null, 2) * qCos(M_PI / 3 * delta_h * delta_h));
+double Opened::_atten(double phi_null, double p) {
+  return -10 * log10(1 + qPow(phi_null, 2) -
+                     2 * qPow(phi_null, 2) * qCos(2 * M_PI * (p * p) / 3));
 }  // Конец реализации расчета затухания на открытом интервале
 
 // Составляющая расчета. Реализация расчета затухания на полуоткрытом интервале
@@ -1007,6 +1012,7 @@ bool Air::Item::exec() {
 bool Acceptable::Item::exec() {
   double to_uv = qPow(10.0, data->spec.s.first / 20.0);
 
+  //  std::cerr << to_uv << ' ';
   double to_dbvt = 10 * log10(qPow(to_uv * 1e-6, 2) / 50);
   double at = qAbs(to_dbvt - data->p.first + data->ws + data->wa);
   data->mainWindow->label_attenValue->setText(QString::number(at));
