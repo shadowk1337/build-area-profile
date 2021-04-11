@@ -268,7 +268,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Мощность, дБВт:</string>
+            <string>Мощность, Вт:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -729,7 +729,7 @@
             </font>
            </property>
            <property name="text">
-            <string>Мощность, дБВт:</string>
+            <string>Мощность, Вт:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -1237,7 +1237,7 @@
             </property>
             <property name="text">
              <string>Градиент диэлектрической
- проницаемости, e-8 1/м:</string>
+ проницаемости, 10^-8 1/м:</string>
             </property>
            </widget>
           </item>
@@ -1283,7 +1283,7 @@
        <x>680</x>
        <y>10</y>
        <width>321</width>
-       <height>191</height>
+       <height>241</height>
       </rect>
      </property>
      <property name="font">
@@ -1303,8 +1303,8 @@
        <rect>
         <x>20</x>
         <y>20</y>
-        <width>281</width>
-        <height>136</height>
+        <width>285</width>
+        <height>184</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout_data">
@@ -1326,7 +1326,7 @@
            </property>
            <property name="text">
             <string>Допустимая величина
- затухания на рельефе, дБ</string>
+затухания на рельефе, дБ:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -1386,8 +1386,8 @@
             </font>
            </property>
            <property name="text">
-            <string>Величина затухания
- на рельефе, дБ</string>
+            <string>Величина затухания 
+на рельефе, дБ:</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -1434,9 +1434,9 @@
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_7">
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
          <item>
-          <widget class="QLabel" name="label_interval">
+          <widget class="QLabel" name="label_2">
            <property name="font">
             <font>
              <family>FreeSans</family>
@@ -1447,21 +1447,16 @@
             </font>
            </property>
            <property name="text">
-            <string>Тип интервала: </string>
+            <string>Величина затухания 
+в свободном пространстве, дБ:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_intervalType">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>20</verstretch>
-            </sizepolicy>
-           </property>
+          <widget class="QLabel" name="label_attenValue_3">
            <property name="minimumSize">
             <size>
-             <width>0</width>
+             <width>90</width>
              <height>20</height>
             </size>
            </property>
@@ -1489,17 +1484,14 @@
            <property name="text">
             <string/>
            </property>
-           <property name="alignment">
-            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-           </property>
           </widget>
          </item>
         </layout>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_8">
+        <layout class="QHBoxLayout" name="horizontalLayout_20">
          <item>
-          <widget class="QLabel" name="label_connProbability">
+          <widget class="QLabel" name="label_3">
            <property name="font">
             <font>
              <family>FreeSans</family>
@@ -1510,14 +1502,69 @@
             </font>
            </property>
            <property name="text">
-            <string>Вероятность связи, %:</string>
+            <string>Величина затухания
+в газах, дБ:</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label_connProbabilityValue">
+          <widget class="QLabel" name="label_attenValue_4">
+           <property name="minimumSize">
+            <size>
+             <width>90</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>90</width>
+             <height>20</height>
+            </size>
+           </property>
+           <property name="font">
+            <font>
+             <family>FreeSans</family>
+             <pointsize>9</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+             <kerning>true</kerning>
+            </font>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::StyledPanel</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="text">
+            <string/>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLabel" name="label_interval">
+           <property name="font">
+            <font>
+             <family>FreeSans</family>
+             <pointsize>9</pointsize>
+             <weight>50</weight>
+             <bold>false</bold>
+             <kerning>true</kerning>
+            </font>
+           </property>
+           <property name="text">
+            <string>Тип интервала: </string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_intervalType">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
              <horstretch>0</horstretch>
              <verstretch>20</verstretch>
             </sizepolicy>
@@ -1593,7 +1640,7 @@
            </property>
            <property name="maximumSize">
             <size>
-             <width>90</width>
+             <width>100</width>
              <height>20</height>
             </size>
            </property>
@@ -1601,9 +1648,9 @@
             <font>
              <family>FreeSans</family>
              <pointsize>9</pointsize>
-             <weight>50</weight>
+             <weight>75</weight>
              <italic>false</italic>
-             <bold>false</bold>
+             <bold>true</bold>
              <kerning>true</kerning>
             </font>
            </property>
@@ -1629,7 +1676,7 @@
       <property name="geometry">
        <rect>
         <x>50</x>
-        <y>162</y>
+        <y>210</y>
         <width>221</width>
         <height>21</height>
        </rect>
@@ -1656,7 +1703,7 @@
      <x>0</x>
      <y>0</y>
      <width>1360</width>
-     <height>22</height>
+     <height>19</height>
     </rect>
    </property>
    <property name="font">
@@ -1669,8 +1716,8 @@
      <rect>
       <x>431</x>
       <y>135</y>
-      <width>223</width>
-      <height>142</height>
+      <width>229</width>
+      <height>148</height>
      </rect>
     </property>
     <property name="font">

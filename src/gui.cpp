@@ -8,7 +8,7 @@
 namespace NRrls {
 
 class Options {
- public:
+public:
   Options() { _data["config"] = qApp->applicationDirPath() + "/conf/rrls.ini"; }
 
   QVariantMap data() { return _data; }
@@ -23,8 +23,10 @@ class Options {
         showHelp();
         return false;
       }
-      if (read(t, {"config", "c"}, it)) continue;
-      if (read(t, {"level", "L"}, it)) continue;
+      if (read(t, {"config", "c"}, it))
+        continue;
+      if (read(t, {"level", "L"}, it))
+        continue;
     }
     return true;
   }
@@ -41,7 +43,7 @@ class Options {
     stream << QString(tmp).arg("РРЛС").arg(qAppName());
   }
 
- private:
+private:
   bool read(const QString &value, const QStringList &name,
             QStringListIterator &it) {
     const QString &l = name.at(0);
@@ -55,26 +57,26 @@ class Options {
     return false;
   }
 
- private:
+private:
   int _error = 0;
   QVariantMap _data;
 };
 
-}  // namespace NRrls
+} // namespace NRrls
 
 int main(int argc, char *argv[]) {
   QApplication app(argc, argv);
   QApplication::setOrganizationName("Niissu");
   QApplication::setOrganizationDomain("niissu.ru");
 
-  //    if (QStyleFactory::keys().contains("Windows")) {
-  //      QPalette palette;
-  //      palette.setColor(QPalette::Button, QColor("#d4cfc9"));
-  //      palette.setColor(QPalette::Window, QColor("#d4cfc9"));
-  //      app.setPalette(palette);
-  //      app.setStyleSheet("QLabel { background-color : #d4cfc9;}");
-  //      app.setStyle(QStyleFactory::create("Windows"));
-  //    }
+  //  if (QStyleFactory::keys().contains("Windows")) {
+  //    QPalette palette;
+  //    palette.setColor(QPalette::Button, QColor("#d4cfc9"));
+  //    palette.setColor(QPalette::Window, QColor("#d4cfc9"));
+  //    app.setPalette(palette);
+  //    app.setStyleSheet("QLabel { background-color : #d4cfc9;}");
+  //    app.setStyle(QStyleFactory::create("Windows"));
+  //  }
 
   NRrls::Options options;
   if (!options.init(app.arguments())) {
