@@ -8,7 +8,8 @@ DiagramWindow::DiagramWindow(QWidget *parent)
   setWindowTitle(tr("Диаграммы уровней передачи"));
   int w = 1380;
   int h = 430;
-  setFixedSize(w, h);
+  const QRect &r = QGuiApplication::primaryScreen()->availableGeometry();
+  setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
 
   ui->customplot_1->xAxis->setVisible(0);
   ui->customplot_1->yAxis->setVisible(0);
@@ -65,6 +66,8 @@ void DiagramWindow::setupGraph() {
 
 void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
                               double c2, double log_p, double p, double s) {
+  _c->data->gr->changePlot(cp);
+
   QVector<double> x(6), y(6);
   QSharedPointer<QCPAxisTickerText> textTicker_l(new QCPAxisTickerText),
       textTicker_r(new QCPAxisTickerText);
@@ -86,9 +89,8 @@ void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
   textTicker_r->addTick(y[2], QString(tr("%1дБ")).arg(sp - wf + c1, 6, 'd', 2));
 
   cp->clearGraphs();
-  cp->addGraph();
-  cp->graph(0)->setPen(QPen(Qt::blue, 2));
-  cp->graph(0)->addData(x, y);
+  _c->data->gr->draw(x, y, QPen(Qt::blue, 2));
+
   textTicker_l->addTick(y[5], tr("P2'"));
   textTicker_l->addTick(y[3], tr("Wсв"));
   textTicker_r->addTick(
@@ -98,31 +100,31 @@ void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
       y[3], QString(tr("%1дБ")).arg(sp - wf + c1 - _c->data->ws, 6, 'd', 2));
 
   y[3] -= C(_c->data->wp), y[4] = y[3] + C(c2), y[5] -= C(_c->data->wp);
-  cp->addGraph();
-  cp->graph(1)->setPen(QPen(Qt::red, 2));
-  cp->graph(1)->addData(x, y);
+  _c->data->gr->draw(x, y, QPen(Qt::red, 2));
+
   textTicker_l->addTick(y[5], tr("P2"));
   textTicker_l->addTick(y[4], QString(tr("G2")));
   textTicker_l->addTick(y[3], QString(tr("Wсв + Wр")));
-  textTicker_r->addTick(y[5], QString(tr("%1дБ")).arg(p + _c->data->wa, 6, 'd', 2));
+  textTicker_r->addTick(y[5],
+                        QString(tr("%1дБ")).arg(p + _c->data->wa, 6, 'd', 2));
   textTicker_r->addTick(
-      y[4],
-      QString(tr("%1дБ")).arg(p + _c->data->wa + _c->data->tower.wf.second, 6, 'd', 2));
+      y[4], QString(tr("%1дБ"))
+                .arg(p + _c->data->wa + _c->data->tower.wf.second, 6, 'd', 2));
   textTicker_r->addTick(
-      y[3], QString(tr("%1дБ"))
-                .arg(p + _c->data->wa + _c->data->tower.wf.second - c2, 6, 'd', 2));
+      y[3],
+      QString(tr("%1дБ"))
+          .arg(p + _c->data->wa + _c->data->tower.wf.second - c2, 6, 'd', 2));
 
   y[3] -= qAbs(log_p - C(s)), y[4] = y[3] + C(c2),
                               y[5] = log_p - qAbs(log_p - C(s));
-  cp->addGraph();
-  cp->graph(2)->setPen(QPen(Qt::black, 2));
-  cp->graph(2)->setPen(QPen(Qt::DashLine));
-  cp->graph(2)->addData(x, y);
+  _c->data->gr->draw(x, y, QPen(Qt::black, 2, Qt::DashLine));
+
   textTicker_l->addTick(y[5], tr("Pпор"));
   textTicker_l->addTick(y[3], tr("Wсв + Wр + Wз"));
   textTicker_r->addTick(y[5], QString(tr("%1дБ")).arg(p, 6, 'd', 2));
   textTicker_r->addTick(
-      y[3], QString(tr("%1дБ")).arg(p + _c->data->tower.wf.second - c2, 6, 'd', 2));
+      y[3],
+      QString(tr("%1дБ")).arg(p + _c->data->tower.wf.second - c2, 6, 'd', 2));
 
   cp->yAxis->setTicker(textTicker_l);
   cp->yAxis2->setTicker(textTicker_r);

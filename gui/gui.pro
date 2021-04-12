@@ -16,6 +16,7 @@ INCLUDEPATH +=                      \
     ../qcustomplot
 
 SOURCES +=                          \
+    ../src/graphpainter.cpp         \
     ../src/gui.cpp                  \
     ../src/nrrlsmainwindow.cpp      \
     ../src/firststationwindow.cpp   \
@@ -27,6 +28,7 @@ SOURCES +=                          \
     ../qcustomplot/qcustomplot.cpp
 
 HEADERS +=                          \
+    ../src/graphpainter.h           \
     ../src/nrrlsmainwindow.h        \
     ../src/firststationwindow.h     \
     ../src/secondstationwindow.h    \
