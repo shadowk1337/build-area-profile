@@ -27,10 +27,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   _d->ui->setupUi(this);
 
   setWindowTitle(tr("РРЛС"));
-  int w = 1360;
-  int h = 768;
-  const QRect &r = qApp->desktop()->screen()->rect();
-  setGeometry(qAbs(r.width() - w) / 2, qAbs(r.height() - h) / 2, w, h);
 
   setSettings(options);
   setMouseTracking(true);

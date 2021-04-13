@@ -1,8 +1,8 @@
 #ifndef GRAPHPAINTER_H
 #define GRAPHPAINTER_H
 
-#include "qcustomplot.h"
 #include <iostream>
+#include "qcustomplot.h"
 
 class GraphPainter {
  public:
@@ -10,8 +10,17 @@ class GraphPainter {
 
   void changePlot(QCustomPlot *cp);
 
-  bool draw(const QVector<double> &x, const QVector<double> &y, QPen pen = {},
+  void draw(const QVector<double> &x, const QVector<double> &y, QPen pen = {},
             QString name = QObject::tr("graph"));
+
+  void update(QCustomPlot *cp) {
+    if (_cp == cp)
+      _number = 0;
+    else
+      _data.remove(cp);
+  }
+
+  void updateAll() { _data.clear(); }
 
   GraphPainter() = delete;
   GraphPainter(GraphPainter const &) = delete;
@@ -22,7 +31,7 @@ class GraphPainter {
   int _number;
 
  private:
-  QMap<QCustomPlot *, int> _data;
+  static QMap<QCustomPlot *, int> _data;
 };
 
 #endif  // GRAPHPAINTER_H

@@ -345,6 +345,18 @@ class Item : public Calc::Item {
 
 }  // namespace Atten
 
+namespace Etc {
+
+void setGraph(QCustomPlot *cp, int it, const QVector<double> &x,
+              const QVector<double> &y, QPen pen, QString name = "Graph") {
+  cp->addGraph();
+  cp->graph(it)->setData(x, y, true);
+  cp->graph(it)->setPen(pen);
+  cp->graph(it)->setName(name);
+}
+
+}  // namespace Etc
+
 namespace Median {
 
 /**
@@ -406,6 +418,7 @@ bool Item::exec() {
   for (auto &item : _items) {
     if (!item->exec()) return false;
   }
+  _data.toStrongRef()->gr->update(data_m->customplot);
   data_m->customplot->replot();
   return true;
 }
@@ -576,6 +589,7 @@ bool Earth::exec() {
 
   QPen pen(QColor("#014506"), 2);
   data->gr->draw(x, y, pen, QObject::tr("Уровень моря"));
+  data->mainWindow->customplot->graph(0)->setBrush(QColor(12, 80, 250, 70));
 
   auto jt = data->param.coordsAndEarth.begin();
   for (int i = 0; jt != data->param.coordsAndEarth.end() && i < y.size();
@@ -589,6 +603,7 @@ bool Earth::exec() {
 
   pen = QPen(QColor("#137ea8"), 2);
   data->gr->draw(x, h, pen, QObject::tr("Высотный профиль"));
+  data->mainWindow->customplot->graph(1)->setBrush(QColor(130, 70, 14, 70));
 
   double h_max = *std::max_element(h.begin(), h.end());
   double max_graph_height =
@@ -634,7 +649,7 @@ bool Fresnel::exec() {
   LOOP_END;
 
   QPen pen(Qt::red, 2);
-  data->gr->draw(x, y, pen, QObject::tr("Зона Френеля"));
+  data->gr->draw(x, y, pen);
 
   auto it = x.begin();
   LOOP_START(y.begin(), y.end(), i);
@@ -643,7 +658,6 @@ bool Fresnel::exec() {
   LOOP_END;
 
   data->gr->draw(x, y, pen);
-
   x.clear(), y.clear();
 
   if (!_data) return false;
@@ -686,13 +700,23 @@ bool Interval::Item::exec() {
   switch (data->interval_type) {
     case (1):
       data->mainWindow->label_intervalType->setText(QObject::tr("Открытый"));
+      data->mainWindow->customplot->graph(3)->setChannelFillGraph(
+          data->mainWindow->customplot->graph(2));
+      data->mainWindow->customplot->graph(3)->setBrush(QColor(50, 255, 50, 50));
       break;
     case (2):
       data->mainWindow->label_intervalType->setText(
           QObject::tr("Полуоткрытый"));
+      data->mainWindow->customplot->graph(3)->setChannelFillGraph(
+          data->mainWindow->customplot->graph(2));
+      data->mainWindow->customplot->graph(3)->setBrush(
+          QColor(241, 245, 20, 50));
       break;
     case (3):
       data->mainWindow->label_intervalType->setText(QObject::tr("Закрытый"));
+      data->mainWindow->customplot->graph(3)->setChannelFillGraph(
+          data->mainWindow->customplot->graph(2));
+      data->mainWindow->customplot->graph(3)->setBrush(QColor(255, 50, 50, 50));
       break;
   }
   if (!_data) return false;
