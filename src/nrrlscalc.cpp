@@ -66,9 +66,16 @@ class Earth : public Profile::Item {
   Earth(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
  public:
-  virtual bool exec() override;
+  bool exec() override;
 
  private:
+  void drawHeightProfile(const QVector<double> &x, const QVector<double> &y);
+
+  void drawGrid(const QVector<double> &x, const QVector<double> &y,
+                double maxHeight);
+
+  void adjustHeight(double maxHeight);
+
   void paramFill();
 };
 
@@ -113,6 +120,9 @@ class Item : public Calc::Item {
 
  protected:
   QSharedPointer<NRrls::Calc::Data> data = _data.toStrongRef();
+
+ private:
+  void colourArea(int r, int g, int b, int a);
 };
 
 }  // namespace Interval
@@ -230,7 +240,8 @@ class SemiOpened : public Land::Item {
 class Closed : public Land::Item {
  public:
   QSHDEF(Closed);
-  typedef QList<QPair<double, double>> Peaks;
+  using Peaks = QList<QPair<double, double>>;
+
   Closed(const Data::WeakPtr &data) : Land::Item(data) {}
 
  public:
@@ -415,10 +426,11 @@ Item::Item(const Data::WeakPtr &data) : Master::Item(data) {
 bool Item::exec() {
   auto data_m = _data.toStrongRef()->mainWindow;
   data_m->customplot->clearGraphs();
+  _data.toStrongRef()->gr =
+      QSharedPointer<GraphPainter>::create(data_m->customplot);
   for (auto &item : _items) {
     if (!item->exec()) return false;
   }
-  _data.toStrongRef()->gr->update(data_m->customplot);
   data_m->customplot->replot();
   return true;
 }
@@ -588,9 +600,21 @@ bool Earth::exec() {
   }
 
   QPen pen(QColor("#014506"), 2);
-  data->gr->draw(x, y, pen, QObject::tr("Уровень моря"));
-  data->mainWindow->customplot->graph(0)->setBrush(QColor(12, 80, 250, 70));
+  data->gr->draw(x, y, QObject::tr("Уровень моря"), pen,
+                 QColor(12, 80, 255, 70));
 
+  drawHeightProfile(x, y);
+
+  x.clear(), y.clear();
+
+  paramFill();
+
+  if (!_data) return false;
+  return true;
+}
+
+void Earth::drawHeightProfile(const QVector<double> &x,
+                              const QVector<double> &y) {
   auto jt = data->param.coordsAndEarth.begin();
   for (int i = 0; jt != data->param.coordsAndEarth.end() && i < y.size();
        ++i, ++jt)
@@ -601,27 +625,40 @@ bool Earth::exec() {
   foreach (auto i, data->param.coordsAndEarth.values())
     h.push_back(i);
 
-  pen = QPen(QColor("#137ea8"), 2);
-  data->gr->draw(x, h, pen, QObject::tr("Высотный профиль"));
-  data->mainWindow->customplot->graph(1)->setBrush(QColor(130, 70, 14, 70));
+  data->gr->draw(x, h, QObject::tr("Высотный профиль"),
+                 QPen(QColor("#137ea8"), 2), QColor(130, 70, 14, 70));
 
-  double h_max = *std::max_element(h.begin(), h.end());
+  //  data->mainWindow->customplot->graph(1)->setBrush(
+  //      QGradient(QGradient::Warflame));
+
+  double maxHeight = *std::max_element(h.begin(), h.end());
+
+  adjustHeight(maxHeight);
+
+  drawGrid(x, y, maxHeight);
+}
+
+void Earth::adjustHeight(double maxHeight) {
   double max_graph_height =
-      std::max(h_max, std::max(coords.startY() + data->tower.f.second,
-                               coords.endY() + data->tower.s.second));
+      std::max(maxHeight, std::max(coords.startY() + data->tower.f.second,
+                                   coords.endY() + data->tower.s.second));
   double window_add_height = .2 * max_graph_height;
   double y_max =  ///< Высота видимости графика
       max_graph_height + window_add_height;
 
   cp->yAxis->setRange(0, y_max, Qt::AlignLeft);
   cp->yAxis2->setRange(0, y_max);
+}
 
-  x.clear(), y.clear();
+void Earth::drawGrid(const QVector<double> &x, const QVector<double> &y,
+                     double maxHeight) {
+  auto f_y = y;
 
-  paramFill();
-
-  if (!_data) return false;
-  return true;
+  for (double i = 0; i < 10; ++i) {
+    for (auto it = f_y.begin(); it != f_y.end(); ++it)
+      *it += .1 * (maxHeight + 100);
+    data->gr->draw(x, f_y, "", QPen(Qt::gray, 1, Qt::DotLine));
+  }
 }
 
 void Earth::paramFill() {
@@ -649,7 +686,8 @@ bool Fresnel::exec() {
   LOOP_END;
 
   QPen pen(Qt::red, 2);
-  data->gr->draw(x, y, pen);
+  data->fr_up_idx = data->gr->getNumber();
+  data->gr->draw(x, y, QObject::tr("Зона Френеля, верхняя дуга"), pen);
 
   auto it = x.begin();
   LOOP_START(y.begin(), y.end(), i);
@@ -657,7 +695,8 @@ bool Fresnel::exec() {
   it = (it != x.end()) ? std::next(it) : std::prev(x.end());
   LOOP_END;
 
-  data->gr->draw(x, y, pen);
+  data->fr_dw_idx = data->gr->getNumber();
+  data->gr->draw(x, y, QObject::tr("Зона Френеля, нижняя дуга"), pen);
   x.clear(), y.clear();
 
   if (!_data) return false;
@@ -674,7 +713,7 @@ bool Los::exec() {
     y.push_back(data->param.los.first * it + data->param.los.second);
 
   QPen pen(QColor("#d6ba06"), 2);
-  data->gr->draw(x, y, pen, QObject::tr("Линия прямой видимости"));
+  data->gr->draw(x, y, QObject::tr("Линия прямой видимости"), pen);
 
   x.clear(), y.clear();
 
@@ -700,27 +739,34 @@ bool Interval::Item::exec() {
   switch (data->interval_type) {
     case (1):
       data->mainWindow->label_intervalType->setText(QObject::tr("Открытый"));
-      data->mainWindow->customplot->graph(3)->setChannelFillGraph(
-          data->mainWindow->customplot->graph(2));
-      data->mainWindow->customplot->graph(3)->setBrush(QColor(50, 255, 50, 50));
+      colourArea(50, 255, 50, 30);
       break;
     case (2):
       data->mainWindow->label_intervalType->setText(
           QObject::tr("Полуоткрытый"));
-      data->mainWindow->customplot->graph(3)->setChannelFillGraph(
-          data->mainWindow->customplot->graph(2));
-      data->mainWindow->customplot->graph(3)->setBrush(
-          QColor(241, 245, 20, 50));
+      colourArea(241, 245, 20, 30);
       break;
     case (3):
       data->mainWindow->label_intervalType->setText(QObject::tr("Закрытый"));
-      data->mainWindow->customplot->graph(3)->setChannelFillGraph(
-          data->mainWindow->customplot->graph(2));
-      data->mainWindow->customplot->graph(3)->setBrush(QColor(255, 50, 50, 50));
+      colourArea(255, 50, 50, 30);
       break;
   }
   if (!_data) return false;
   return true;
+}
+
+void Interval::Item::colourArea(int r, int g, int b, int a) {
+  data->mainWindow->customplot->graph(data->fr_up_idx)
+      ->setChannelFillGraph(
+          data->mainWindow->customplot->graph(data->fr_dw_idx));
+  data->mainWindow->customplot->graph(data->fr_up_idx)
+      ->setBrush(QColor(r, g, b, a));
+  data->mainWindow->label_intervalType->setStyleSheet(
+      QString("QLabel {background-color: rgba(%1, %2, %3, %4);}")
+          .arg(r)
+          .arg(g)
+          .arg(b)
+          .arg(a));
 }
 
 namespace Atten {
@@ -981,6 +1027,7 @@ double Closed::_reliefTangentStraightLines(const Peaks &p) {
               : *(it + 1);
   diffraction_param += _tangent(*it, left, right);
   LOOP_END;
+
   return diffraction_param;
 }
 
@@ -1120,7 +1167,6 @@ bool Item::exec() {
 Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
   data = QSharedPointer<Data>::create();
   data->mainWindow = m;
-  data->gr = QSharedPointer<GraphPainter>::create(m->customplot);
   data->filename = filename;
   _main = Main::Item::Ptr::create(data);
 }

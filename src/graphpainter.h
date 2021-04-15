@@ -6,32 +6,31 @@
 
 class GraphPainter {
  public:
+  using Attribute = QMap<int, QPair<QPen, QBrush>>;
+
   explicit GraphPainter(QCustomPlot *cp);
 
-  void changePlot(QCustomPlot *cp);
+  ~GraphPainter();
 
-  void draw(const QVector<double> &x, const QVector<double> &y, QPen pen = {},
-            QString name = QObject::tr("graph"));
+  void draw(const QVector<double> &x, const QVector<double> &y,
+            const QString &name, QPen pen = {}, QBrush brush = {});
 
-  void update(QCustomPlot *cp) {
-    if (_cp == cp)
-      _number = 0;
-    else
-      _data.remove(cp);
-  }
+  int getNumber() const;
 
-  void updateAll() { _data.clear(); }
+  static void update(QCustomPlot *cp);
+
+  static void updateAll();
 
   GraphPainter() = delete;
   GraphPainter(GraphPainter const &) = delete;
   GraphPainter &operator=(GraphPainter const &) = delete;
 
  private:
-  QCustomPlot *_cp;
-  int _number;
+  static QCustomPlot *_cp;
+  static int _number;
 
  private:
-  static QMap<QCustomPlot *, int> _data;
+  static QMap<QCustomPlot *, Attribute> _data;
 };
 
 #endif  // GRAPHPAINTER_H

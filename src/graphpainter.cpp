@@ -1,22 +1,38 @@
 #include "graphpainter.h"
 
-QMap<QCustomPlot *, int> GraphPainter::_data;
+QCustomPlot *GraphPainter::_cp;
 
-GraphPainter::GraphPainter(QCustomPlot *cp) : _cp(cp), _number(0) {
-  _data[cp] = 0;
-}
+int GraphPainter::_number;
 
-void GraphPainter::changePlot(QCustomPlot *cp) {
-  if (!_data.contains(cp)) _data[cp] = 0;
+QMap<QCustomPlot *, QMap<int, QPair<QPen, QBrush>>> GraphPainter::_data;
+
+GraphPainter::GraphPainter(QCustomPlot *cp) {
   _cp = cp;
-  _number = 0;
+  _number = _data[cp].size();
 }
+
+GraphPainter::~GraphPainter() { update(_cp); }
 
 void GraphPainter::draw(const QVector<double> &x, const QVector<double> &y,
-                        QPen pen, QString name) {
+                        const QString &name, QPen pen, QBrush brush) {
   _cp->addGraph();
-  _cp->graph(_number)->setPen(pen);
   _cp->graph(_number)->setName(name);
+  _cp->graph(_number)->setPen(pen);
+  _cp->graph(_number)->setBrush(brush);
   _cp->graph(_number)->setData(x, y);
-  _number++, _data[_cp]++;
+  _number++;
+}
+
+int GraphPainter::getNumber() const { return _number; }
+
+void GraphPainter::update(QCustomPlot *cp) {
+  if (_cp == cp) {
+    _number = 0;
+    if (!_data[cp].empty()) _data[cp].clear();
+  } else
+    _data.remove(cp);
+}
+
+void GraphPainter::updateAll() {
+  if (!_data.empty()) _data.clear();
 }

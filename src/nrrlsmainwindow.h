@@ -15,7 +15,7 @@
 class NRrlsMainWindow : public QMainWindow {
   Q_OBJECT
 
-public:
+ public:
   NRrlsMainWindow(const QVariantMap &options, QWidget *parent = nullptr);
 
   ~NRrlsMainWindow();
@@ -25,34 +25,36 @@ public:
   void saveSettings();
   void restoreSettings();
 
-private:
+ private:
   void exec();
   void setSettings(const QVariantMap &options);
   void setWidgets();
   void setDebugLevel(int level);
 
-private:
+ private:
   struct Private;
   Private *const _d;
-  FirstStationWindow *_f;  ///< Окно РРС1
-  SecondStationWindow *_s; ///< Окно РРС2
-  CoordsWindow *_c;        ///< Окно координат
-  DiagramWindow *_di;      ///<  Окно диграммы
-  double _xa; ///< Абсцисса перекрестия на графике
+  FirstStationWindow *_f;   ///< Окно РРС1
+  SecondStationWindow *_s;  ///< Окно РРС2
+  CoordsWindow *_c;         ///< Окно координат
+  DiagramWindow *_di;       ///<  Окно диграммы
+  double _xa;  ///< Абсцисса перекрестия на графике
 
-private slots:
+ private slots:
   void onSetFile(bool checked);
   void onChangeHeight(const QString &text);
   void onChangeRrsSpec(const QString &Stext);
   void onChangeSens(const QString &text);
   void onMouseMove(QMouseEvent *event);
 
-private slots:
+ private slots:
   void onCustomPlotClicked(QMouseEvent *event);
+  void onPlottableClicked(QCPAbstractPlottable *plottable, int dataIndex,
+                          QMouseEvent *event);
 
-private slots:
+ private slots:
   void onOpenFirstStation();
   void onOpenSecondStation();
 };
 
-#endif // NRRLSMMAINWINDOW_H
+#endif  // NRRLSMMAINWINDOW_H

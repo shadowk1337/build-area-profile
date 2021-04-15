@@ -171,7 +171,7 @@ struct Data {
   QMap<double, double> h_null;  ///< Относительные просветы
   QMap<double, double> H_null;  ///< Критические просветы
   QMap<double, double> H;  ///< Расстояние между ЛПВ и линией профиля местности
-  size_t  count;  ///< Количество точек разбиения
+  size_t count;  ///< Количество точек разбиения
 };
 
 }  // namespace Profile
@@ -191,6 +191,8 @@ struct Data {
   Ui::NRrlsMainWindow *mainWindow;
 
   QSharedPointer<GraphPainter> gr;
+
+  int fr_up_idx, fr_dw_idx;  ///< Индексы графиков зоны Френеля
 
   QString filename;
   int interval_type;  ///< Тип интервала: 1-Открытый, 2-Полуоткрытый,

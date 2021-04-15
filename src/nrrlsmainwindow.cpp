@@ -54,20 +54,23 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->action_13->text() == "Скрыть нижнюю панель") {
       _d->ui->action_13->setText(tr("Показать нижнюю панель"));
       _d->ui->frame_hider->hide();
-      _d->ui->customplot->resize(1341, 731);
-      _d->ui->frame->resize(1341, 731);
     } else {
       _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
       _d->ui->frame_hider->show();
-      _d->ui->customplot->resize(1341, 441);
-      _d->ui->frame->resize(1341, 441);
     }
   });
 
   connect(_d->ui->action_4, &QAction::triggered, this, [&]() { qApp->exit(); });
 
-  connect(_d->ui->action_10, &QAction::triggered, this,
-          [&]() { NRrlsMainWindow::showFullScreen(); });
+  connect(_d->ui->action_10, &QAction::triggered, this, [&]() {
+    if (NRrlsMainWindow::isFullScreen()) {
+      _d->ui->action_10->setText(tr("Полноэкранный режим"));
+      NRrlsMainWindow::showNormal();
+    } else {
+      _d->ui->action_10->setText(tr("Оконный режим"));
+      NRrlsMainWindow::showFullScreen();
+    }
+  });
 
   connect(_d->ui->action_11, &QAction::triggered, this, [&]() {
     QPixmap pixmap(_d->ui->customplot->rect().size());
@@ -204,6 +207,9 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->customplot, &QCustomPlot::mouseDoubleClick, this,
           &NRrlsMainWindow::onCustomPlotClicked);
+
+  connect(_d->ui->customplot, &QCustomPlot::plottableClick, this,
+          &NRrlsMainWindow::onPlottableClicked);
 
   connect(_d->ui->customplot, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
@@ -438,4 +444,10 @@ void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
 
     _c->show();
   }
+}
+
+void NRrlsMainWindow::onPlottableClicked(QCPAbstractPlottable *plottable,
+                                         int dataIndex, QMouseEvent *event) {
+  plottable->setPen(QColor(Qt::black));
+  _d->_c->data->mainWindow->customplot->replot();
 }

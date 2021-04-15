@@ -66,7 +66,7 @@ void DiagramWindow::setupGraph() {
 
 void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
                               double c2, double log_p, double p, double s) {
-  _c->data->gr->changePlot(cp);
+  QSharedPointer<GraphPainter> gr = QSharedPointer<GraphPainter>::create(cp);
 
   QVector<double> x(6), y(6);
   QSharedPointer<QCPAxisTickerText> textTicker_l(new QCPAxisTickerText),
@@ -89,7 +89,7 @@ void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
   textTicker_r->addTick(y[2], QString(tr("%1дБ")).arg(sp - wf + c1, 6, 'd', 2));
 
   cp->clearGraphs();
-  _c->data->gr->draw(x, y, QPen(Qt::blue, 2));
+  _c->data->gr->draw(x, y, "", QPen(Qt::blue, 2));
 
   textTicker_l->addTick(y[5], tr("P2'"));
   textTicker_l->addTick(y[3], tr("Wсв"));
@@ -100,7 +100,7 @@ void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
       y[3], QString(tr("%1дБ")).arg(sp - wf + c1 - _c->data->ws, 6, 'd', 2));
 
   y[3] -= C(_c->data->wp), y[4] = y[3] + C(c2), y[5] -= C(_c->data->wp);
-  _c->data->gr->draw(x, y, QPen(Qt::red, 2));
+  _c->data->gr->draw(x, y, "", QPen(Qt::red, 2));
 
   textTicker_l->addTick(y[5], tr("P2"));
   textTicker_l->addTick(y[4], QString(tr("G2")));
@@ -117,7 +117,7 @@ void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
 
   y[3] -= qAbs(log_p - C(s)), y[4] = y[3] + C(c2),
                               y[5] = log_p - qAbs(log_p - C(s));
-  _c->data->gr->draw(x, y, QPen(Qt::black, 2, Qt::DashLine));
+  _c->data->gr->draw(x, y, "", QPen(Qt::black, 2, Qt::DashLine));
 
   textTicker_l->addTick(y[5], tr("Pпор"));
   textTicker_l->addTick(y[3], tr("Wсв + Wр + Wз"));

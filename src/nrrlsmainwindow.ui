@@ -111,6 +111,12 @@
       <layout class="QHBoxLayout" name="horizontalLayout_21">
        <item alignment="Qt::AlignTop">
         <widget class="QGroupBox" name="groupBox_station1">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>284</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <family>FreeSans</family>
@@ -578,6 +584,12 @@
        </item>
        <item alignment="Qt::AlignTop">
         <widget class="QGroupBox" name="groupBox_5">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>166</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <family>FreeSans</family>
@@ -801,6 +813,12 @@
        </item>
        <item alignment="Qt::AlignTop">
         <widget class="QGroupBox" name="groupBox_6">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>245</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <family>FreeSans</family>
@@ -1201,6 +1219,12 @@
        </item>
        <item alignment="Qt::AlignTop">
         <widget class="QGroupBox" name="groupBox_station2">
+         <property name="maximumSize">
+          <size>
+           <width>500</width>
+           <height>284</height>
+          </size>
+         </property>
          <property name="font">
           <font>
            <family>FreeSans</family>
@@ -1714,7 +1738,6 @@
    <addaction name="menu_3"/>
    <addaction name="menu_2"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="action_fileOpen">
    <property name="text">
     <string>Открыть файл с помощью...</string>
