@@ -445,13 +445,13 @@ bool Profile::Item::exec() {
 
 bool Atten::Land::Item::exec() {
   switch (data->interval_type) {
-    case 1:
+    case 1:  // Открытый
       Opened::Ptr::create(_data)->exec();
       break;
-    case 2:
+    case 2:  // Полуоткрытый
       SemiOpened::Ptr::create(_data)->exec();
       break;
-    case 3:
+    case 3:  // Закрытый
       Closed::Ptr::create(_data)->exec();
       break;
     default:
@@ -1129,6 +1129,9 @@ bool Acceptable::Item::exec() {
   data->mainWindow->label_concValue->setText(at < data->wp
                                                  ? QObject::tr("Связи не будет")
                                                  : QObject::tr("Связь будет"));
+  data->mainWindow->label_concValue->setStyleSheet(
+      at < data->wp ? "QLabel { background-color : red; color : white; }"
+                    : "QLabel { background-color : green; color : white; }");
   if (!_data) return false;
   return true;
 }

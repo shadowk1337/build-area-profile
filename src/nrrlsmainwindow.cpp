@@ -33,6 +33,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   _d->ui->customplot->xAxis->setVisible(0);
   _d->ui->customplot->yAxis->setVisible(0);
+  _d->ui->frame_result->setVisible(0);
+  _d->ui->pushButton_apply->setEnabled(0);
 
   _d->ui->comboBox_rrsStation1->addItem(tr("Выбрать станцию"));
   _d->ui->comboBox_rrsStation2->addItem(tr("Выбрать станцию"));
@@ -46,8 +48,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
           &NRrlsMainWindow::onSetFile);
 
   connect(_d->ui->action_fileReplot, &QAction::triggered, this, [&]() {
-    exec();
     _d->ui->customplot->replot();
+    _capacityNotNull();
   });
 
   connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
@@ -58,9 +60,13 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
       _d->ui->frame_hider->show();
     }
+    _capacityNotNull();
   });
 
-  connect(_d->ui->action_4, &QAction::triggered, this, [&]() { qApp->exit(); });
+  connect(_d->ui->action_4, &QAction::triggered, this, [&]() {
+    qApp->exit();
+    _capacityNotNull();
+  });
 
   connect(_d->ui->action_10, &QAction::triggered, this, [&]() {
     if (NRrlsMainWindow::isFullScreen()) {
@@ -70,6 +76,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->ui->action_10->setText(tr("Оконный режим"));
       NRrlsMainWindow::showFullScreen();
     }
+    _capacityNotNull();
   });
 
   connect(_d->ui->action_11, &QAction::triggered, this, [&]() {
@@ -80,13 +87,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
                     .arg(QDate::currentDate().year())
                     .arg(QDate::currentDate().month())
                     .arg(QDate::currentDate().day()));
+    _capacityNotNull();
   });
 
   connect(_d->ui->lineEdit_freq, &QLineEdit::textEdited, [&]() {
     freq = _d->ui->lineEdit_freq->text().toDouble();
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setFreq(freq);
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -112,7 +120,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->spec.p.first,
                        _d->ui->lineEdit_capStation1->text().toDouble());
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -120,7 +128,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->spec.p.second,
                        _d->ui->lineEdit_capStation2->text().toDouble());
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -128,7 +136,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->spec.s.first,
                        _d->ui->lineEdit_sensStation1->text().toDouble());
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -136,7 +144,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->spec.s.second,
                        _d->ui->lineEdit_sensStation2->text().toDouble());
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -144,7 +152,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->tower.c.first,
                        _d->ui->lineEdit_coefAntenna1->text().toDouble());
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -152,7 +160,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->tower.c.second,
                        _d->ui->lineEdit_coefAntenna2->text().toDouble());
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -160,7 +168,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->constant.g_standard,
                        _d->ui->lineEdit_gradient->text().toDouble() * 1e-08);
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -168,8 +176,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       if (_di != nullptr) delete _di;
       _di = new DiagramWindow();
-
-      exec();
+      _capacityNotNull();
 
       _di->init(_d->_c);
       _di->exec();
@@ -180,14 +187,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->lineEdit_temperature, &QLineEdit::textEdited, [&]() {
     _d->_c->setValue(_d->_c->data->constant.temperature,
                      _d->ui->lineEdit_temperature->text().toDouble());
-    exec();
+    _capacityNotNull();
   });
 
   connect(_d->ui->lineEdit_feederAntenna1, &QLineEdit::textEdited, [&]() {
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->tower.wf.first,
                        _d->ui->lineEdit_feederAntenna1->text().toDouble());
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -195,7 +202,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->tower.wf.second,
                        _d->ui->lineEdit_feederAntenna2->text().toDouble());
-      exec();
+      _capacityNotNull();
     }
   });
 
@@ -213,6 +220,20 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->customplot, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
+
+  connect(_d->ui->pushButton_apply, &QPushButton::clicked, this, [&]() {
+    if (_d->ui->customplot->graphCount() >= 5) {
+      if (!_d->_c->data->spec.p.first || !_d->_c->data->spec.p.second) {
+        _d->ui->pushButton_apply->setWhatsThis(
+            tr("Для вывода результатов настройте станции"));
+        _d->ui->frame_result->setVisible(0);
+      } else {
+        exec();
+        _d->ui->pushButton_apply->setEnabled(0);
+        _d->ui->frame_result->setVisible(1);
+      }
+    }
+  });
 }
 
 NRrlsMainWindow::~NRrlsMainWindow() {
@@ -268,6 +289,13 @@ void NRrlsMainWindow::setDebugLevel(int level) {
   QLoggingCategory::setFilterRules(p.join("\n") + "\n");
 }
 
+void NRrlsMainWindow::_capacityNotNull() const {
+  if (!_d->_c->data->spec.p.first || !_d->_c->data->spec.p.second)
+    _d->ui->pushButton_apply->setEnabled(0);
+  else
+    _d->ui->pushButton_apply->setEnabled(1);
+}
+
 void NRrlsMainWindow::onSetFile(bool checked) {
   QFileDialog *in = new QFileDialog(this);
   in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
@@ -284,6 +312,7 @@ void NRrlsMainWindow::onSetFile(bool checked) {
     _d->_c->setValue(_d->_c->data->tower.s.second, 20);
     _d->_c->setValue(_d->_c->data->constant.g_standard, -8 * 1e-8);
     in->hide();
+
     exec();
   }
 }
@@ -296,7 +325,7 @@ void NRrlsMainWindow::onChangeHeight(const QString &text) {
     (l == _d->ui->lineEdit_station1)
         ? _d->_c->setValue(_d->_c->data->tower.f.second, h)
         : _d->_c->setValue(_d->_c->data->tower.s.second, h);
-    exec();
+    _capacityNotNull();
   }
 }
 
@@ -341,7 +370,7 @@ void NRrlsMainWindow::onChangeRrsSpec(const QString &text) {
     coef->setPalette(*palette);
     delete palette;
 
-    exec();
+    _capacityNotNull();
   }
 }
 
@@ -372,7 +401,8 @@ void NRrlsMainWindow::onChangeSens(const QString &text) {
 
     s->setPalette(*palette);
     delete palette;
-    exec();
+
+    _capacityNotNull();
   }
 }
 

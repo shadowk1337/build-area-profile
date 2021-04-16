@@ -8,7 +8,7 @@
 namespace NRrls {
 
 class Options {
-public:
+ public:
   Options() { _data["config"] = qApp->applicationDirPath() + "/conf/rrls.ini"; }
 
   QVariantMap data() { return _data; }
@@ -23,10 +23,8 @@ public:
         showHelp();
         return false;
       }
-      if (read(t, {"config", "c"}, it))
-        continue;
-      if (read(t, {"level", "L"}, it))
-        continue;
+      if (read(t, {"config", "c"}, it)) continue;
+      if (read(t, {"level", "L"}, it)) continue;
     }
     return true;
   }
@@ -43,7 +41,7 @@ public:
     stream << QString(tmp).arg("РРЛС").arg(qAppName());
   }
 
-private:
+ private:
   bool read(const QString &value, const QStringList &name,
             QStringListIterator &it) {
     const QString &l = name.at(0);
@@ -57,12 +55,12 @@ private:
     return false;
   }
 
-private:
+ private:
   int _error = 0;
   QVariantMap _data;
 };
 
-} // namespace NRrls
+}  // namespace NRrls
 
 int main(int argc, char *argv[]) {
   QApplication app(argc, argv);

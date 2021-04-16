@@ -40,6 +40,9 @@ class NRrlsMainWindow : public QMainWindow {
   DiagramWindow *_di;       ///<  Окно диграммы
   double _xa;  ///< Абсцисса перекрестия на графике
 
+ private:
+  void _capacityNotNull() const;
+
  private slots:
   void onSetFile(bool checked);
   void onChangeHeight(const QString &text);
