@@ -33,7 +33,9 @@
 
 #define FIND (c, begin, end, f) find_if_el(c, begin, end, f)
 
-#define C(x) sgn(x) * log10(1 + qAbs(x) / 10)
+#define C(x) (  sgn(x) * log10(1 + qAbs(x) / 10))
+
+#define C_REVERSE(x) (sgn(x) * 10 * (qPow(10, x / sgn(x)) - 1))
 
 template <typename T>
 int sgn(T val) {

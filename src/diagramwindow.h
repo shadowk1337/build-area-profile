@@ -26,7 +26,7 @@ private:
 
 private:
   void drawGraph(QCustomPlot *cp, double sp, double wf1, double c1,
-                 double c2, double log_p, double p, double s);
+                 double c2, double log_p, double s);
 
   Ui::DiagramWindow *ui;
 

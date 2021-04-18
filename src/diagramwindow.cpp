@@ -38,14 +38,15 @@ DiagramWindow::~DiagramWindow() { delete ui; }
 void DiagramWindow::init(QSharedPointer<NRrls::Calc::Core> c) { _c = c; }
 
 void DiagramWindow::exec() {
-  drawGraph(ui->customplot_1, _c->data->spec.p.first, _c->data->tower.wf.first,
-            _c->data->tower.c.first, _c->data->tower.c.second,
-            _c->data->log_p.first, _c->data->p.first, _c->data->spec.s.first);
+  drawGraph(ui->customplot_1, C(_c->data->spec.p.first),
+            C(_c->data->tower.wf.first), C(_c->data->tower.c.first),
+            C(_c->data->tower.c.second), _c->data->log_p.first,
+            C(_c->data->spec.s.first));
 
-  drawGraph(ui->customplot_2, _c->data->spec.p.second,
-            _c->data->tower.wf.second, _c->data->tower.c.second,
-            _c->data->tower.c.first, _c->data->log_p.second, _c->data->p.second,
-            _c->data->spec.s.second);
+  drawGraph(ui->customplot_2, C(_c->data->spec.p.second),
+            C(_c->data->tower.wf.second), C(_c->data->tower.c.second),
+            C(_c->data->tower.c.first), _c->data->log_p.second,
+            C(_c->data->spec.s.second));
 }
 
 void DiagramWindow::setupGraph() {
@@ -65,7 +66,7 @@ void DiagramWindow::setupGraph() {
 }
 
 void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
-                              double c2, double log_p, double p, double s) {
+                              double c2, double log_p, double s) {
   QSharedPointer<GraphPainter> gr = QSharedPointer<GraphPainter>::create(cp);
 
   QVector<double> x(6), y(6);
@@ -76,35 +77,32 @@ void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
   x[4] = x[3] = x[2] + 6;
   x[5] = x[4] + 1;
 
-  y[0] = C(sp);
-  y[1] = y[0] - C(wf);
-  y[2] = y[1] + C(c1);
+  y[0] = sp;
+  y[1] = y[0] - wf;
+  y[2] = y[1] + c1;
   y[3] = y[2] - C(_c->data->ws);
-  y[4] = y[3] + C(c2);
+  y[4] = y[3] + c2;
   y[5] = log_p + C(_c->data->wa) + C(_c->data->wp);
 
-  textTicker_l->addTick(y[0], tr("P1"));
-  textTicker_l->addTick(y[2], tr("G1"));
+  textTicker_r->addTick(y[0], tr("P1"));
 
   cp->clearGraphs();
   _c->data->gr->draw(x, y, "", QPen(Qt::blue, 2));
 
-  textTicker_l->addTick(y[5], tr("P2'"));
-  textTicker_l->addTick(y[3], tr("Wсв"));
+  textTicker_r->addTick(y[5], tr("P2'"));
+  textTicker_r->addTick(y[3], tr("Wсв"));
 
-  y[3] -= C(_c->data->wp), y[4] = y[3] + C(c2), y[5] -= C(_c->data->wp);
+  y[3] -= C(_c->data->wp), y[4] = y[3] + c2, y[5] -= C(_c->data->wp);
   _c->data->gr->draw(x, y, "", QPen(Qt::red, 2));
 
-  textTicker_l->addTick(y[5], tr("P2"));
-  textTicker_l->addTick(y[4], QString(tr("G2")));
-  textTicker_l->addTick(y[3], QString(tr("Wсв + Wр")));
+  textTicker_r->addTick(y[5], tr("P2"));
+  textTicker_r->addTick(y[3], QString(tr("Wсв + Wр")));
 
-  y[3] -= qAbs(log_p - C(s)), y[4] = y[3] + C(c2),
-                              y[5] = log_p - qAbs(log_p - C(s));
+  y[3] -= qAbs(log_p - s), y[4] = y[3] + c2, y[5] = log_p - qAbs(log_p - s);
   _c->data->gr->draw(x, y, "", QPen(Qt::black, 2, Qt::DashLine));
 
-  textTicker_l->addTick(y[5], tr("Pпор"));
-  textTicker_l->addTick(y[3], tr("Wсв + Wр + Wз"));
+  textTicker_r->addTick(y[5], tr("Pпор"));
+  textTicker_r->addTick(y[3], tr("Wсв + Wр + Wз"));
 
   auto max = std::max(y[0], std::max(y[1], y[2]));
   auto min = std::min(y[3], std::min(y[4], y[5]));
@@ -114,7 +112,7 @@ void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
   cp->yAxis2->setRange(min - qAbs(.1 * min), max + qAbs(.1 * max));
 
   for (auto it = min; it < max; it += 0.1 * (max - min)) {
-    textTicker_r->addTick(it, QString::number(it, 'g', 2));
+    textTicker_l->addTick(it, QString::number(C_REVERSE(it), 'g', 2));
   }
 
   cp->yAxis->setTicker(textTicker_l);

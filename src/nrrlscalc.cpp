@@ -12,19 +12,19 @@ namespace Fill {
  * Составляющая расчета. Заполнение данными
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(Calc::Data::WeakPtr &data) : Calc::Item(data) {}
 
- public:
+public:
   bool exec() override;
   void paramFill(void);
 
- private:
+private:
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
 };
 
-}  // namespace Fill
+} // namespace Fill
 
 namespace Profile {
 
@@ -32,14 +32,14 @@ namespace Profile {
  * Составляющая расчета. Построение графика
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Calc::Data::WeakPtr &data) : Calc::Item(data) {}
 
- public:
+public:
   virtual bool exec() override;
 
- protected:
+protected:
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
   QCustomPlot *cp = data->mainWindow->customplot;
   decltype(data->param.coords) coords = data->param.coords;
@@ -49,11 +49,11 @@ class Item : public Calc::Item {
  * Составляющая расчета. Задание осей графика
  */
 class Axes : public Profile::Item {
- public:
+public:
   QSHDEF(Axes);
   Axes(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
- public:
+public:
   bool exec() override;
 };
 
@@ -61,14 +61,14 @@ class Axes : public Profile::Item {
  * Составляющая расчета. Построение земной поверхности
  */
 class Earth : public Profile::Item {
- public:
+public:
   QSHDEF(Earth);
   Earth(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
- public:
+public:
   bool exec() override;
 
- private:
+private:
   void drawHeightProfile(const QVector<double> &x, const QVector<double> &y);
 
   void drawGrid(const QVector<double> &x, const QVector<double> &y,
@@ -83,11 +83,11 @@ class Earth : public Profile::Item {
  * Составляющая расчета. Построение зоны Френеля
  */
 class Fresnel : public Profile::Item {
- public:
+public:
   QSHDEF(Fresnel);
   Fresnel(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
- public:
+public:
   bool exec() override;
 };
 
@@ -95,15 +95,15 @@ class Fresnel : public Profile::Item {
  * Составляющая расчета. Построение ЛПВ
  */
 class Los : public Profile::Item {
- public:
+public:
   QSHDEF(Los);
   Los(const Calc::Data::WeakPtr &data) : Profile::Item(data) {}
 
- public:
+public:
   bool exec() override;
 };
 
-}  // namespace Profile
+} // namespace Profile
 
 namespace Interval {
 
@@ -111,21 +111,21 @@ namespace Interval {
  * Составляющая расчета. Определение интервала
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
- public:
+public:
   bool exec() override;
 
- protected:
+protected:
   QSharedPointer<NRrls::Calc::Data> data = _data.toStrongRef();
 
- private:
+private:
   void colourArea(int r, int g, int b, int a);
 };
 
-}  // namespace Interval
+} // namespace Interval
 
 namespace Atten {
 
@@ -135,14 +135,14 @@ namespace Land {
  * Составляющая расчета. Расчет затухания в рельефе
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
- public:
+public:
   virtual bool exec() override;
 
- protected:
+protected:
   /**
    * Функция проверки касательности прямой к высотному профилю
    * @param a         - y = a * x + b
@@ -161,15 +161,15 @@ class Item : public Calc::Item {
  * Составляющая расчета. Расчет затухания на открытом интервале
  */
 class Opened : public Land::Item {
- public:
+public:
   QSHDEF(Opened);
   using iter = QMap<double, double>::const_iterator;
   Opened(const Data::WeakPtr &data) : Land::Item(data) {}
 
- public:
+public:
   bool exec() override;
 
- private:
+private:
   /**
    * Функция нахождения наивысшей точки пересечения высотного профиля и
    * отрезка, соединяющего приемник и точку, зеркальную передатчику
@@ -194,7 +194,7 @@ class Opened : public Land::Item {
 
   double _relief(iter begin, iter end);
 
- private:
+private:
   /**
    * Функция расчета затухания на открытом интервале
    * @param phi_null  - коэффициент отражения
@@ -207,14 +207,14 @@ class Opened : public Land::Item {
  * Составляющая расчета. Расчет затухания на полуоткрытом интервале
  */
 class SemiOpened : public Land::Item {
- public:
+public:
   QSHDEF(SemiOpened);
   SemiOpened(const Data::WeakPtr &data) : Land::Item(data) {}
 
- public:
+public:
   bool exec() override;
 
- private:
+private:
   /**
    * Функция нахождения затеняющего препятствия
    * @return Пара .first  - индекс препятствия
@@ -225,9 +225,9 @@ class SemiOpened : public Land::Item {
 
   double _tangent(const QPair<double, double> &p);
 
- private:
-  inline QPair<double, double> _pointOfIntersection(
-      QPair<double, double> l, QPair<double, double> r) const;
+private:
+  inline QPair<double, double>
+  _pointOfIntersection(QPair<double, double> l, QPair<double, double> r) const;
 
   inline double _diffractionParam(double h, double d1, double d2) const;
 
@@ -238,16 +238,16 @@ class SemiOpened : public Land::Item {
  * Составляющая расчета. Расчет затухания на закрытом интервале
  */
 class Closed : public Land::Item {
- public:
+public:
   QSHDEF(Closed);
   using Peaks = QList<QPair<double, double>>;
 
   Closed(const Data::WeakPtr &data) : Land::Item(data) {}
 
- public:
+public:
   bool exec() override;
 
- private:
+private:
   /**
    * Функция подсчета препятствий
    * @return Отрезки, содержащие препятствия
@@ -286,16 +286,17 @@ class Closed : public Land::Item {
    */
   double _findlNull(std::pair<int, double> p);
 
- private:
-  inline QPair<double, double> _pointOfIntersection(QPair<double, double> l,
-                                                    QPair<double, double> r);
+private:
+  inline QPair<double, double>
+  _pointOfIntersection(const QPair<double, double> &l,
+                       const QPair<double, double> &r);
 
   inline double _diffractionParam(double h, double d1, double d2);
 
   inline double _atten(double param);
 };
 
-}  // namespace Land
+} // namespace Land
 
 namespace Free {
 
@@ -303,18 +304,18 @@ namespace Free {
  * Составляющая расчета. Расчет затухания в свободном пространстве
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
- public:
+public:
   bool exec() override;
 
- private:
+private:
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
 };
 
-}  // namespace Free
+} // namespace Free
 
 namespace Air {
 
@@ -322,18 +323,18 @@ namespace Air {
  * Составляющая расчета. Расчет затухания в газах атмосферы
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
- public:
+public:
   bool exec() override;
 
- private:
+private:
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
 };
 
-}  // namespace Air
+} // namespace Air
 
 namespace Acceptable {
 
@@ -341,20 +342,20 @@ namespace Acceptable {
  * Составляющая расчета. Расчет допустимой велиины затухания на рельефе
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
- public:
+public:
   bool exec() override;
 
- private:
+private:
   QSharedPointer<Calc::Data> data = _data.toStrongRef();
 };
 
-}  // namespace Acceptable
+} // namespace Acceptable
 
-}  // namespace Atten
+} // namespace Atten
 
 namespace Etc {
 
@@ -366,7 +367,7 @@ void setGraph(QCustomPlot *cp, int it, const QVector<double> &x,
   cp->graph(it)->setName(name);
 }
 
-}  // namespace Etc
+} // namespace Etc
 
 namespace Median {
 
@@ -374,15 +375,15 @@ namespace Median {
  * Составляющая расчета. Расчет медианного уровня сигнала на входе приемника
  */
 class Item : public Calc::Item {
- public:
+public:
   QSHDEF(Item);
   Item(const Data::WeakPtr &data) : Calc::Item(data) {}
 
- public:
+public:
   bool exec() override;
 };
 
-}  // namespace Median
+} // namespace Median
 
 double Item::k(double R) const {
   return R / (_data.toStrongRef()->constant.area_length);
@@ -429,13 +430,14 @@ bool Item::exec() {
   _data.toStrongRef()->gr =
       QSharedPointer<GraphPainter>::create(data_m->customplot);
   for (auto &item : _items) {
-    if (!item->exec()) return false;
+    if (!item->exec())
+      return false;
   }
   data_m->customplot->replot();
   return true;
 }
 
-}  // namespace Main
+} // namespace Main
 
 bool Profile::Item::exec() {
   return (
@@ -445,17 +447,17 @@ bool Profile::Item::exec() {
 
 bool Atten::Land::Item::exec() {
   switch (data->interval_type) {
-    case 1:  // Открытый
-      Opened::Ptr::create(_data)->exec();
-      break;
-    case 2:  // Полуоткрытый
-      SemiOpened::Ptr::create(_data)->exec();
-      break;
-    case 3:  // Закрытый
-      Closed::Ptr::create(_data)->exec();
-      break;
-    default:
-      return false;
+  case 1: // Открытый
+    Opened::Ptr::create(_data)->exec();
+    break;
+  case 2: // Полуоткрытый
+    SemiOpened::Ptr::create(_data)->exec();
+    break;
+  case 3: // Закрытый
+    Closed::Ptr::create(_data)->exec();
+    break;
+  default:
+    return false;
   }
   return true;
 }
@@ -465,7 +467,8 @@ bool Atten::Land::Item::_isTangent(double a, double b, double start,
   for (auto it = data->param.coordsAndEarth.lowerBound(start);
        it != data->param.coordsAndEarth.lowerBound(end);
        it += (end - start >= 0) ? 1 : -1) {
-    if (a * it.key() + b < it.value()) return false;
+    if (a * it.key() + b < it.value())
+      return false;
   }
   return true;
 }
@@ -518,7 +521,8 @@ bool Item::exec() {
   }
   paramFill();
 
-  if (_data.isNull()) return false;
+  if (_data.isNull())
+    return false;
   return true;
 }
 
@@ -532,7 +536,7 @@ void Item::paramFill(void) {
       data->tower.s.first, data->tower.s.second + coords.endY());
 }
 
-}  // namespace Fill
+} // namespace Fill
 
 namespace Profile {
 
@@ -567,10 +571,12 @@ bool Axes::exec() {
   cp->xAxis->setTickLengthOut(3);
   cp->xAxis->setRange(0, data->constant.area_length);
   cp->xAxis2->setTickLength(0);
+  cp->xAxis2->setSubTickLength(0);
   cp->xAxis2->setTickLabels(0);
   cp->xAxis2->setRange(0, data->constant.area_length);
 
-  if (_data.isNull()) return false;
+  if (_data.isNull())
+    return false;
   return true;
 }
 
@@ -609,7 +615,8 @@ bool Earth::exec() {
 
   paramFill();
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
@@ -643,7 +650,7 @@ void Earth::adjustHeight(double maxHeight) {
       std::max(maxHeight, std::max(coords.startY() + data->tower.f.second,
                                    coords.endY() + data->tower.s.second));
   double window_add_height = .2 * max_graph_height;
-  double y_max =  ///< Высота видимости графика
+  double y_max = ///< Высота видимости графика
       max_graph_height + window_add_height;
 
   cp->yAxis->setRange(0, y_max, Qt::AlignLeft);
@@ -699,7 +706,8 @@ bool Fresnel::exec() {
   data->gr->draw(x, y, QObject::tr("Зона Френеля, нижняя дуга"), pen);
   x.clear(), y.clear();
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
@@ -717,11 +725,12 @@ bool Los::exec() {
 
   x.clear(), y.clear();
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
-}  // namespace Profile
+} // namespace Profile
 
 bool Interval::Item::exec() {
   data->interval_type = 0;
@@ -737,21 +746,21 @@ bool Interval::Item::exec() {
   LOOP_END;
 
   switch (data->interval_type) {
-    case (1):
-      data->mainWindow->label_intervalType->setText(QObject::tr("Открытый"));
-      colourArea(50, 255, 50, 30);
-      break;
-    case (2):
-      data->mainWindow->label_intervalType->setText(
-          QObject::tr("Полуоткрытый"));
-      colourArea(241, 245, 20, 30);
-      break;
-    case (3):
-      data->mainWindow->label_intervalType->setText(QObject::tr("Закрытый"));
-      colourArea(255, 50, 50, 30);
-      break;
+  case (1):
+    data->mainWindow->label_intervalType->setText(QObject::tr("Открытый"));
+    colourArea(50, 255, 50, 30);
+    break;
+  case (2):
+    data->mainWindow->label_intervalType->setText(QObject::tr("Полуоткрытый"));
+    colourArea(241, 245, 20, 30);
+    break;
+  case (3):
+    data->mainWindow->label_intervalType->setText(QObject::tr("Закрытый"));
+    colourArea(255, 50, 50, 30);
+    break;
   }
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
@@ -776,19 +785,18 @@ namespace Land {
 
 bool Opened::exec() {
   const auto point = _findPointOfIntersection();
-  double l_null_length =  ///< Длина участка отражения
+  double l_null_length = ///< Длина участка отражения
       lNull(data->param.h_null[point.first], k(point.first));
 
   // Если длина участка отражения <= 1/4 длины всего интервала
-  double delta_r =  ///< Разность хода между прямым и отраженным лучами
+  double delta_r = ///< Разность хода между прямым и отраженным лучами
       (l_null_length <= 0.25 * data->constant.area_length)
           ? _planeApproximation(point)
           : _sphereApproximation(
                 coords.lowerBound(point.first - l_null_length / 2),
-                coords.lowerBound(point.first +
-                                  l_null_length / 2));  // TODO: доделать
+                coords.lowerBound(point.first + l_null_length / 2));
 
-  double p =  ///< Относительный просвет в точке отражения
+  double p = ///< Относительный просвет в точке отражения
       qSqrt(6 * delta_r * data->constant.lambda);
 
   data->wp = _atten(
@@ -797,23 +805,24 @@ bool Opened::exec() {
           data->param.coordsAndEarth.lowerBound(point.first + l_null_length)),
       p);
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
 QPair<int, int> Opened::_findPointOfIntersection(void) {
-  double oppositendY_coord =  ///< Ордината точки, зеркальной к передатчику
-                              ///< относительно высотного профиля
+  double oppositendY_coord = ///< Ордината точки, зеркальной к передатчику
+                             ///< относительно высотного профиля
       coords.startY() - data->tower.f.second;
 
-  auto pair =  ///< Линия, проведенная к зеркальной точке
+  auto pair = ///< Линия, проведенная к зеркальной точке
       strLineEquation(coords.startX(), oppositendY_coord, coords.endX(),
                       data->tower.s.second + coords.endY());
 
-  double inters_x;  ///< Индекс наивысшей точки пересечения высотного
+  double inters_x; ///< Индекс наивысшей точки пересечения высотного
   ///< профиля и прямой, проведенной из точки приемника к точке, зеркальной
   ///< передатчику
-  double inters_y;  ///< Ордината точки пересечения
+  double inters_y; ///< Ордината точки пересечения
 
   // Поиск точки пересечения высотного профиля и линии, проведенной к зеркальной
   // точке. Если точек несколько, то берется последняя в цикле точка
@@ -860,30 +869,30 @@ double Opened::_relief(iter begin, iter end) {
       res = 2;
     delta_h_max = std::max(delta_h_max, delta_h);
   }
-  if (qAbs(delta_h_max) - .1 <= 0) res = 3;
+  if (qAbs(delta_h_max) - .1 <= 0)
+    res = 3;
 
   return res == 0 ? 1
-                  : data->constant.reflection_coef.lowerBound(
-                        data->constant.lambda) ==
-                            data->constant.reflection_coef.end()
-                        ? data->constant.reflection_coef.last()[res - 1]
-                        : data->constant.reflection_coef
-                              .lowerBound(data->constant.lambda)
-                              .value()[res - 1];
+         : data->constant.reflection_coef.lowerBound(data->constant.lambda) ==
+                 data->constant.reflection_coef.end()
+             ? data->constant.reflection_coef.last()[res - 1]
+             : data->constant.reflection_coef.lowerBound(data->constant.lambda)
+                   .value()[res - 1];
 }
 
 double Opened::_atten(double phi_null, double p) {
   return -10 * log10(1 + qPow(phi_null, 2) -
                      2 * qPow(phi_null, 2) * qCos(2 * M_PI * (p * p) / 3));
-}  // Конец реализации расчета затухания на открытом интервале
+} // Конец реализации расчета затухания на открытом интервале
 
 // Составляющая расчета. Реализация расчета затухания на полуоткрытом интервале
 
 bool SemiOpened::exec() {
-  auto shad = _shadingObstacle();  ///< Координаты затеняющего препятствия
+  auto shad = _shadingObstacle(); ///< Координаты затеняющего препятствия
   data->wp = _atten(_tangent(shad));
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
@@ -906,19 +915,20 @@ double SemiOpened::_tangent(const QPair<double, double> &p) {
       strLineEquation(coords.endX(), coords.endY(), p.first, p.second);
 
   auto poi = _pointOfIntersection(line_l, line_r);
-  double h =  ///< Возвышение препятствия над ЛПВ
+  double h = ///< Возвышение препятствия над ЛПВ
       poi.second - data->param.los.first * poi.first - data->param.los.second;
-  double d1 =  ///< Расстояние от левого конца трассы интервала до препятствия
+  double d1 = ///< Расстояние от левого конца трассы интервала до препятствия
       qSqrt(qPow(poi.second - coords.startY(), 2) +
             qPow(poi.first - coords.startX(), 2));
-  double d2 =  ///< Расстояние от правого конца трассы интервала до препятствия
+  double d2 = ///< Расстояние от правого конца трассы интервала до препятствия
       qSqrt(qPow(poi.second - coords.endY(), 2) +
             qPow(poi.first - coords.endX(), 2));
   return _diffractionParam(h, d1, d2);
 }
 
-QPair<double, double> SemiOpened::_pointOfIntersection(
-    QPair<double, double> l, QPair<double, double> r) const {
+QPair<double, double>
+SemiOpened::_pointOfIntersection(QPair<double, double> l,
+                                 QPair<double, double> r) const {
   double x = (r.second - l.second) / (l.first - r.first);
   double y = l.first * x + l.second;
   return {x, y};
@@ -941,9 +951,11 @@ double SemiOpened::_atten(double param) const {
 
 bool Closed::exec() {
   Peaks l = _countPeaks();
+
   data->wp = _atten(_reliefTangentStraightLines(l));
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
@@ -965,15 +977,17 @@ auto Closed::_countPeaks() -> Peaks {
     v.push_back(qMakePair(p, it.key()));
   }
   LOOP_END;
-  _approx(v);  // Аппроксимация нескольких участков одним
+
+  _approx(v); // Аппроксимация нескольких участков одним
+
   return v;
-}  // namespace Calc
+} // namespace Calc
 
 void Closed::_approx(Peaks &v) {
-  auto coord = coords.toMap();
+  auto coord = data->param.coordsAndEarth.toStdMap();
 
   LOOP_START(v.begin(), v.end() - 1, it);
-  auto r1 =  ///< Расстояние до вершины первого препятствия
+  auto r1 = ///< Расстояние до вершины первого препятствия
       std::distance(coord.begin(),
                     std::max_element(std::next(coord.begin(), it->first),
                                      std::next(coord.begin(), it->second),
@@ -981,7 +995,8 @@ void Closed::_approx(Peaks &v) {
                                         const std::pair<int, int> &p2) {
                                        return p1.second < p2.second;
                                      }));
-  auto r2 =  ///< Расстояние до вершины второго препятствия
+
+  auto r2 = ///< Расстояние до вершины второго препятствия
       std::distance(
           coord.begin(),
           std::max_element(
@@ -1002,16 +1017,18 @@ void Closed::_approx(Peaks &v) {
 }
 
 double Closed::_reliefTangentStraightLines(const Peaks &p) {
-  QPair<double, double> left,  ///< Координаты высшей точки левого препятствия
-      right;  ///< Координаты высшей точки правого препятствия
+  QPair<double, double> left, ///< Координаты высшей точки левого препятствия
+      right; ///< Координаты высшей точки правого препятствия
   Peaks peaks;
   double diffraction_param = 0;
+  auto coord = data->param.coordsAndEarth;
 
   // Находим для каждого препятствия координаты его высшей точки
   for (auto &it : qAsConst(p)) {
     double max_x = -1, max_y = -1;
     for (auto i = it.first; i <= it.second; ++i) {
-      if (max_y < coords[i]) max_y = coords[i], max_x = i;
+      if (max_y < coord[i])
+        max_y = coord[i], max_x = i;
     }
     peaks.push_back({max_x, max_y});
   }
@@ -1040,7 +1057,8 @@ double Closed::_tangent(const QPair<double, double> &p,
   for (auto it = (data->param.coordsAndEarth.lowerBound(left.first) + 1);
        it != data->param.coordsAndEarth.end(); ++it) {
     line_l = strLineEquation(left.first, left.second, it.key(), it.value());
-    if (_isTangent(line_l.first, line_l.second, it.key(), coords.endX())) break;
+    if (_isTangent(line_l.first, line_l.second, it.key(), coords.endX()))
+      break;
   }
 
   // Поиск касательной со стороны правого препятствия
@@ -1052,19 +1070,31 @@ double Closed::_tangent(const QPair<double, double> &p,
   }
 
   auto poi = _pointOfIntersection(line_l, line_r);
-  double h =  ///< Возвышение препятствия над ЛПВ
-      poi.second - data->param.los.first * poi.first - data->param.los.second;
-  double d1 =  ///< Расстояние от левого конца трассы интервала до препятствия
-      qSqrt(qPow(poi.second - left.second, 2) +
-            qPow(poi.first - left.first, 2));
-  double d2 =  ///< Расстояние от правого конца трассы интервала до препятствия
-      qSqrt(qPow(poi.second - right.second, 2) +
-            qPow(poi.first - right.first, 2));
-  return _diffractionParam(h, d1, d2);
+
+  if (poi != QPair<double, double>(0, 0)) {
+    double h = ///< Возвышение препятствия над ЛПВ
+        poi.second - data->param.los.first * poi.first - data->param.los.second;
+
+    double d1 = ///< Расстояние от левого конца трассы интервала до препятствия
+        qSqrt(qPow(poi.second - left.second, 2) +
+              qPow(poi.first - left.first, 2));
+
+    double d2 = ///< Расстояние от правого конца трассы интервала до препятствия
+        qSqrt(qPow(poi.second - right.second, 2) +
+              qPow(poi.first - right.first, 2));
+    return _diffractionParam(h, d1, d2);
+  } else
+    return 0;
 }
 
-QPair<double, double> Closed::_pointOfIntersection(QPair<double, double> l,
-                                                   QPair<double, double> r) {
+QPair<double, double>
+Closed::_pointOfIntersection(const QPair<double, double> &l,
+                             const QPair<double, double> &r) {
+
+  // Если уравнения прямых совпадают
+  if (l == r)
+    return {0, 0};
+
   double x = (r.second - l.second) / (l.first - r.first);
   double y = l.first * x + l.second;
   return {x, y};
@@ -1081,13 +1111,14 @@ double Closed::_atten(double param) {
     return 6.9 + 20 * log10(qSqrt(qPow((param - .1), 2) + 1) + param - .1);
 }
 
-}  // namespace Land
+} // namespace Land
 
 bool Free::Item::exec() {
   data->ws = 122 + 20 * log10((data->constant.area_length / 1e+3) /
                               (data->constant.lambda * 1e+2));
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
@@ -1104,7 +1135,8 @@ bool Air::Item::exec() {
              ((1 - (data->constant.temperature - 15) * .01) * gamma_oxygen +
               (1 - (data->constant.temperature - 15) * .06) * gamma_water);
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
@@ -1132,11 +1164,12 @@ bool Acceptable::Item::exec() {
   data->mainWindow->label_concValue->setStyleSheet(
       at < data->wp ? "QLabel { background-color : red; color : white; }"
                     : "QLabel { background-color : green; color : white; }");
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
-}  // namespace Atten
+} // namespace Atten
 
 namespace Median {
 
@@ -1161,11 +1194,12 @@ bool Item::exec() {
                        C(data->wa) + C(data->tower.c.first) -
                        C(data->tower.wf.first);
 
-  if (!_data) return false;
+  if (!_data)
+    return false;
   return true;
 }
 
-}  // namespace Median
+} // namespace Median
 
 Core::Core(Ui::NRrlsMainWindow *m, const QString &filename) {
   data = QSharedPointer<Data>::create();
@@ -1197,6 +1231,6 @@ double Core::yRange() {
   return data->mainWindow->customplot->yAxis->range().size();
 }
 
-}  // namespace Calc
+} // namespace Calc
 
-}  // namespace NRrls
+} // namespace NRrls
