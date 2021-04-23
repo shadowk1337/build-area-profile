@@ -318,8 +318,8 @@ void NRrlsMainWindow::onSetFile(bool checked) {
     _d->ui->lineEdit_station2->setText(QString::number(20));
     _d->ui->lineEdit_gradient->setText(QString::number(-8));
     _d->_c->setFreq(1000);
-    _d->_c->setValue(_d->_c->data->tower.f.second, 20);
-    _d->_c->setValue(_d->_c->data->tower.s.second, 20);
+    _d->_c->data->tower.f.setY(20);
+    _d->_c->data->tower.s.setY(20);
     _d->_c->setValue(_d->_c->data->constant.g_standard, -8 * 1e-8);
     in->hide();
 
@@ -332,9 +332,8 @@ void NRrlsMainWindow::onChangeHeight(const QString &text) {
     QLineEdit *l = qobject_cast<QLineEdit *>(sender());
     double h = parse(text.toInt());
     (h > 0) ? l->setText(QString::number(h)) : l->setText("0");
-    (l == _d->ui->lineEdit_station1)
-        ? _d->_c->setValue(_d->_c->data->tower.f.second, h)
-        : _d->_c->setValue(_d->_c->data->tower.s.second, h);
+    (l == _d->ui->lineEdit_station1) ? _d->_c->data->tower.f.setY(h)
+                                     : _d->_c->data->tower.s.setY(h);
     _capacityNotNull();
   }
 }
