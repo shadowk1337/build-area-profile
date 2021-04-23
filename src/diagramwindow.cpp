@@ -38,15 +38,13 @@ DiagramWindow::~DiagramWindow() { delete ui; }
 void DiagramWindow::init(QSharedPointer<NRrls::Calc::Core> c) { _c = c; }
 
 void DiagramWindow::exec() {
-  drawGraph(ui->customplot_1, C(_c->data->spec.p.first),
+  drawGraph(ui->customplot_1, C(fromVtToDbvt(_c->data->spec.p.first)),
             C(_c->data->tower.wf.first), C(_c->data->tower.c.first),
-            C(_c->data->tower.c.second), _c->data->log_p.first,
-            C(_c->data->spec.s.first));
+            C(_c->data->tower.c.second), _c->data->log_p.first);
 
-  drawGraph(ui->customplot_2, C(_c->data->spec.p.second),
+  drawGraph(ui->customplot_2, C(fromVtToDbvt(_c->data->spec.p.second)),
             C(_c->data->tower.wf.second), C(_c->data->tower.c.second),
-            C(_c->data->tower.c.first), _c->data->log_p.second,
-            C(_c->data->spec.s.second));
+            C(_c->data->tower.c.first), _c->data->log_p.second);
 }
 
 void DiagramWindow::setupGraph() {
@@ -66,7 +64,7 @@ void DiagramWindow::setupGraph() {
 }
 
 void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
-                              double c2, double log_p, double s) {
+                              double c2, double log_p) {
   QSharedPointer<GraphPainter> gr = QSharedPointer<GraphPainter>::create(cp);
 
   QVector<double> x(6), y(6);
@@ -98,7 +96,10 @@ void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
   textTicker_r->addTick(y[5], tr("P2"));
   textTicker_r->addTick(y[3], QString(tr("Wсв + Wр")));
 
-  y[3] -= qAbs(log_p - s), y[4] = y[3] + c2, y[5] = log_p - qAbs(log_p - s);
+  //  std::cerr << log_p << ' ' << C(_c->data->spec.q) << " | ";
+
+  y[3] -= C(_c->data->spec.q), y[4] = y[3] + c2,
+                               y[5] = log_p - C(_c->data->spec.q);
   _c->data->gr->draw(x, y, "", QPen(Qt::black, 2, Qt::DashLine));
 
   textTicker_r->addTick(y[5], tr("Pпор"));

@@ -185,6 +185,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     _capacityNotNull();
   });
 
+  connect(_d->ui->lineEdit_probability, &QLineEdit::textEdited, [&]() {
+    if (_d->ui->customplot->graphCount() >= 5) {
+      _d->_c->setValue(_d->_c->data->spec.prob,
+                       _d->ui->lineEdit_probability->text().toDouble());
+      _capacityNotNull();
+    }
+  });
+
   connect(_d->ui->lineEdit_feederAntenna1, &QLineEdit::textEdited, [&]() {
     if (_d->ui->customplot->graphCount() >= 5) {
       _d->_c->setValue(_d->_c->data->tower.wf.first,
@@ -225,14 +233,14 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       exec();
 
       // Обновление окна диаграммы
-      if (_di != nullptr)
-        delete _di;
+      if (_di != nullptr) delete _di;
       _di = new DiagramWindow();
 
       _di->init(_d->_c);
       _di->exec();
 
       _d->ui->pushButton_apply->setEnabled(0);
+      _d->ui->pushButton_diagram->setEnabled(1);
       _d->ui->frame_result->setVisible(1);
     }
 
@@ -253,13 +261,11 @@ NRrlsMainWindow::~NRrlsMainWindow() {
 
 void NRrlsMainWindow::exec() {
   try {
-    if (!_d->_c->exec())
-      throw("");
+    if (!_d->_c->exec()) throw("");
   } catch (...) {
     int ret = QMessageBox::critical(
         this, tr("Ошибка"), tr("Произошла ошибка в расчетах"), QMessageBox::Ok);
-    if (ret == QMessageBox::Ok)
-      qApp->exit();
+    if (ret == QMessageBox::Ok) qApp->exit();
   }
 }
 
@@ -296,13 +302,8 @@ void NRrlsMainWindow::setDebugLevel(int level) {
 }
 
 void NRrlsMainWindow::_capacityNotNull() const {
-  if (!_d->_c->data->spec.p.first || !_d->_c->data->spec.p.second) {
-    _d->ui->pushButton_diagram->setEnabled(0);
-    _d->ui->pushButton_apply->setEnabled(0);
-  } else {
-    _d->ui->pushButton_diagram->setEnabled(1);
-    _d->ui->pushButton_apply->setEnabled(1);
-  }
+  _d->ui->pushButton_apply->setEnabled(
+      (!_d->_c->data->spec.p.first || !_d->_c->data->spec.p.second) ? 0 : 1);
 }
 
 void NRrlsMainWindow::onSetFile(bool checked) {
@@ -372,8 +373,7 @@ void NRrlsMainWindow::onChangeRrsSpec(const QString &text) {
           _d->_c->data->spec.stat[text][1])));
       capacity->setReadOnly(true);
       coef->setReadOnly(true);
-      for (const auto &it : _d->_c->data->spec.j[text].keys())
-        j->addItem(it);
+      for (const auto &it : _d->_c->data->spec.j[text].keys()) j->addItem(it);
     }
 
     capacity->setPalette(*palette);
@@ -418,8 +418,7 @@ void NRrlsMainWindow::onChangeSens(const QString &text) {
 
 void NRrlsMainWindow::onOpenFirstStation() {
   if (_d->ui->customplot->graphCount() >= 5) {
-    if (_f != nullptr)
-      delete _f;
+    if (_f != nullptr) delete _f;
     _f = new FirstStationWindow();
     _f->show();
   }
@@ -427,8 +426,7 @@ void NRrlsMainWindow::onOpenFirstStation() {
 
 void NRrlsMainWindow::onOpenSecondStation() {
   if (_d->ui->customplot->graphCount() >= 5) {
-    if (_c != nullptr)
-      delete _c;
+    if (_c != nullptr) delete _c;
     _s = new SecondStationWindow();
     _s->show();
   }
@@ -436,24 +434,22 @@ void NRrlsMainWindow::onOpenSecondStation() {
 
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot->graphCount() >= 5) {
-    const double h = .01 * _d->_c->xRange(); ///< Длина перекрестия
-    const double v =
-        h * _d->_c->yRange() / _d->_c->xRange(); ///< Высота перекрестия
+    const double h = .005 * _d->_c->xRange();  ///< Длина перекрестия
+    const double v = h * (_d->_c->yRange() / _d->_c->xRange()) *
+                     _d->ui->customplot->width() / _d->ui->customplot->height();
 
     QCustomPlot *customplot = qobject_cast<QCustomPlot *>(sender());
 
     _xa = customplot->xAxis->pixelToCoord(event->pos().x());
 
-    if (_d->h_line != nullptr)
-      delete _d->h_line;
+    if (_d->h_line != nullptr) delete _d->h_line;
 
     _d->h_line = new QCPItemLine(_d->ui->customplot);
     _d->h_line->setPen(QPen(QColor(Qt::darkMagenta)));
     _d->h_line->start->setCoords(_d->_c->coordX(_xa) - h, _d->_c->coordY(_xa));
     _d->h_line->end->setCoords(_d->_c->coordX(_xa) + h, _d->_c->coordY(_xa));
 
-    if (_d->v_line != nullptr)
-      delete _d->v_line;
+    if (_d->v_line != nullptr) delete _d->v_line;
 
     _d->v_line = new QCPItemLine(_d->ui->customplot);
     _d->v_line->setPen(QPen(QColor(Qt::darkMagenta)));
@@ -466,8 +462,7 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
 
 void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
   if (_d->ui->customplot->graphCount() >= 5) {
-    if (_c != nullptr)
-      delete _c;
+    if (_c != nullptr) delete _c;
 
     _c = new CoordsWindow();
     _c->setGeometry(NRrlsMainWindow::x() + event->pos().x(),
@@ -500,23 +495,25 @@ void NRrlsMainWindow::onPlottableClicked(QCPAbstractPlottable *plottable,
 
 void NRrlsMainWindow::onApplyButtonEntered() {
   if (!_d->ui->pushButton_apply->isEnabled()) {
-    _d->ui->pushButton_apply->setWhatsThis(
-        tr("Для вывода результатов настройте станции"));
+    QWhatsThis::enterWhatsThisMode();
+    QWhatsThis::showText(_d->ui->pushButton_apply->pos(),
+                         tr("Для вывода результатов настройте станции"));
+    //    _d->ui->pushButton_apply->setWhatsThis(
+    //        tr("Для вывода результатов настройте станции"));
     _d->ui->frame_result->setVisible(0);
   }
 }
 
 bool NRrlsMainWindow::eventFilter(QObject *obj, QEvent *event) {
-  if (obj != _d->ui->pushButton_apply)
-    return false;
+  if (obj != _d->ui->pushButton_apply) return false;
 
   bool result = QObject::eventFilter(obj, event);
   switch (event->type()) {
-  case QEvent::Enter:
-    emit MouseEnterSignal();
-    break;
-  default:
-    break;
+    case QEvent::Enter:
+      emit MouseEnterSignal();
+      break;
+    default:
+      break;
   }
   return result;
 }

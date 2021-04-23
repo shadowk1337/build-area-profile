@@ -33,13 +33,18 @@
 
 #define FIND (c, begin, end, f) find_if_el(c, begin, end, f)
 
-#define C(x) (  sgn(x) * log10(1 + qAbs(x) / 10))
+#define C(x) (sgn(x) * log10(1 + qAbs(x) / 10))
 
 #define C_REVERSE(x) (sgn(x) * 10 * (qPow(10, x / sgn(x)) - 1))
 
 template <typename T>
 int sgn(T val) {
   return (T(0) < val) - (val < T(0));
+}
+
+template <typename T = double>
+double fromVtToDbvt(T to_dbvt) {
+  return 10 * log10(to_dbvt);
 }
 
 template <typename Iterator, typename Func>
@@ -82,14 +87,22 @@ namespace Spec {
  * Параметры РРЛС
  */
 struct Data {
-  double f = 0;                      ///< Частота
+  double f = 0;     ///< Частота
+  double q = 0;     ///< Надежность (Запас) связи
+  double prob = 0;  ///< Вероятность связи
+  double sesrg = 0;
+  double sesrc = 0;
   QPair<double, double> p = {0, 0};  ///< Мощность
   QPair<double, double> s = {0, 0};  ///< Чувствительность
 
-  const QMap<QString, QVector<double>> stat = {
+  using CapacityNCoef = QVector<double>;
+
+  const QMap<QString, CapacityNCoef> stat = {
       {QObject::tr("Р-419МЦ"), {48, 10}}};
 
-  QMap<QString, QMap<QString, double>> j = {
+  using Sensitivity = QMap<QString, double>;
+
+  QMap<QString, Sensitivity> j = {
       {QObject::tr("Р-419МЦ"),
        {{QObject::tr("68/136"), 4},
         {QObject::tr("85/170"), 7},
@@ -102,6 +115,61 @@ struct Data {
         {QObject::tr("А6-4"), 7},
         {QObject::tr("БУК"), 6},
         {QObject::tr("А6-5"), 10}}}};
+
+  using GraphDots = QVector<QPointF>;
+
+  const QMap<double, GraphDots> depend = {
+      {100, {{11, 0}, {10, .04}, {8, .3}, {6, 2}, {4, 10}, {0, 50}}},
+      {200, {{15, 0}, {14, .035}, {12, .2}, {8, 2}, {6, 6}, {4, 16}, {0, 50}}},
+      {400, {{18.2, 0}, {16, .055}, {12, .55}, {8, 3.9}, {6, 11}, {0, 50}}},
+      {800,
+       {{25, 0},
+        {20, .1},
+        {18, .2},
+        {16, .4},
+        {12, 1.5},
+        {10, 3},
+        {8, 7},
+        {4, 24},
+        {0, 50}}},
+      {2000,
+       {{31.2, 0},
+        {26, .004},
+        {20, .19},
+        {18, .49},
+        {16, .79},
+        {10, 4.9},
+        {4, 24},
+        {0, 50}}},
+      {4000,
+       {{35.2, 0},
+        {26, .11},
+        {24, .18},
+        {18, .7},
+        {12, 4.8},
+        {10, 6},
+        {6, 16.2},
+        {0, 50}}},
+      {6000,
+       {{36, .022},
+        {32, .05},
+        {24, .32},
+        {20, .7},
+        {16, 2},
+        {12, 5},
+        {10, 8},
+        {6, 20},
+        {0, 50}}},
+      {8000,
+       {{36, .054},
+        {30, .18},
+        {24, .5},
+        {20, 1},
+        {12, 6},
+        {10, 10},
+        {6, 20},
+        {4, 30},
+        {0, 50}}}};
 };
 
 }  // namespace Spec
@@ -112,8 +180,8 @@ namespace Towers {
  * Параметры антенн
  */
 struct Data {
-  QPair<double, double> f = {0, 0};  ///< Координаты первой антенны
-  QPair<double, double> s = {0, 0};  ///< Координаты второй антенны
+  QPointF f = {0, 0};  ///< Координаты первой антенны
+  QPointF s = {0, 0};  ///< Координаты второй антенны
   QPair<double, double> c = {0, 0};  ///< Коэффициент усиления
   QPair<double, double> wf = {0,
                               0};  ///< Затухания в фидерах на передачу и прием
