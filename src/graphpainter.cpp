@@ -13,7 +13,7 @@ GraphPainter::GraphPainter(QCustomPlot *cp) {
 
 GraphPainter::~GraphPainter() { update(_cp); }
 
-void GraphPainter::draw(const QVector<double> &x, const QVector<double> &y,
+void GraphPainter::draw(const QVector<double> &x, const QVector<double> &y, // TODO: сделать добавление в _data
                         const QString &name, QPen pen, QBrush brush) {
   _cp->addGraph();
   _cp->graph(_number)->setName(name);
@@ -25,7 +25,7 @@ void GraphPainter::draw(const QVector<double> &x, const QVector<double> &y,
 
 int GraphPainter::getNumber() const { return _number; }
 
-void GraphPainter::update(QCustomPlot *cp) {
+void GraphPainter::update(QCustomPlot *cp) { 
   if (_cp == cp) {
     _number = 0;
     if (!_data[cp].empty()) _data[cp].clear();
