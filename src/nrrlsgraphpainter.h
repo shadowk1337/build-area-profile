@@ -1,7 +1,6 @@
 #ifndef GRAPHPAINTER_H
 #define GRAPHPAINTER_H
 
-#include <iostream>
 #include "qcustomplot.h"
 
 class GraphPainter {

@@ -1,4 +1,4 @@
-#include "coordswindow.h"
+#include "nrrlscoordswindow.h"
 #include <iostream>
 #include "ui_coordswindow.h"
 

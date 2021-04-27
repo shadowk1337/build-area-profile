@@ -1,4 +1,4 @@
-#include "graphpainter.h"
+#include "nrrlsgraphpainter.h"
 
 QCustomPlot *GraphPainter::_cp;
 

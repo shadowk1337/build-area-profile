@@ -1,4 +1,4 @@
-#include "secondstationwindow.h"
+#include "nrrlssecondstationwindow.h"
 #include "ui_secondstationwindow.h"
 
 SecondStationWindow::SecondStationWindow(QWidget *parent) :

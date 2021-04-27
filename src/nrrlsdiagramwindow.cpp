@@ -1,4 +1,4 @@
-#include "diagramwindow.h"
+#include "nrrlsdiagramwindow.h"
 #include "ui_diagramwindow.h"
 
 DiagramWindow::DiagramWindow(QWidget *parent)

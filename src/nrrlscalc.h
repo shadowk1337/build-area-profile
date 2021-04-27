@@ -11,7 +11,7 @@
 #include <iostream>
 #include <utility>
 
-#include "graphpainter.h"
+#include "nrrlsgraphpainter.h"
 
 #include "ui_coordswindow.h"
 #include "ui_diagramwindow.h"

@@ -4,8 +4,6 @@
 #include "nrrlslogcategory.h"
 #include "nrrlsmainwindow.h"
 
-inline int parse(int h) { return (h > 100) ? 100 : (h < 0) ? 0 : h; }
-
 struct NRrlsMainWindow::Private {
   Private() {}
 
@@ -31,24 +29,29 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   setSettings(options);
   setMouseTracking(true);
 
+  QRect rect;
+  rect.setWidth(1362);
+  rect.setHeight(301);
+  _d->ui->hiderFrame->setFrameRect(rect);
+
   _d->ui->customplot->xAxis->setVisible(0);
   _d->ui->customplot->yAxis->setVisible(0);
-  _d->ui->frame_result->setVisible(0);
-  _d->ui->pushButton_diagram->setEnabled(0);
-  _d->ui->pushButton_apply->setEnabled(0);
+  _d->ui->resultFrame->setVisible(0);
+  _d->ui->trackDiagramPushButton->setEnabled(0);
+  _d->ui->applyPushButton->setEnabled(0);
 
-  _d->ui->comboBox_rrsStation1->addItem(tr("Выбрать станцию"));
-  _d->ui->comboBox_rrsStation2->addItem(tr("Выбрать станцию"));
-  _d->ui->comboBox_rrsStation1->addItem(tr("Р-419МЦ"));
-  _d->ui->comboBox_rrsStation2->addItem(tr("Р-419МЦ"));
+  _d->ui->rrs1TypeComboBox->addItem(tr("Выбрать станцию"));
+  _d->ui->rrs2TypeComboBox->addItem(tr("Выбрать станцию"));
+  _d->ui->rrs1TypeComboBox->addItem(tr("Р-419МЦ"));
+  _d->ui->rrs2TypeComboBox->addItem(tr("Р-419МЦ"));
 
-  _d->ui->comboBox_jobStation1->addItem(tr("Выбрать режим"));
-  _d->ui->comboBox_jobStation2->addItem(tr("Выбрать режим"));
+  _d->ui->rrs1ModeSpinBox->addItem(tr("Выбрать режим"));
+  _d->ui->rrs2ModeSpinBox->addItem(tr("Выбрать режим"));
 
-  connect(_d->ui->action_fileOpen, &QAction::triggered, this,
+  connect(_d->ui->fileOpenAction, &QAction::triggered, this,
           &NRrlsMainWindow::onSetFile);
 
-  connect(_d->ui->action_fileReplot, &QAction::triggered, this, [&]() {
+  connect(_d->ui->fileReplotAction, &QAction::triggered, this, [&]() {
     _d->ui->customplot->replot();
     _capacityNotNull();
   });
@@ -56,10 +59,10 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
     if (_d->ui->action_13->text() == "Скрыть нижнюю панель") {
       _d->ui->action_13->setText(tr("Показать нижнюю панель"));
-      _d->ui->frame_hider->hide();
+      _d->ui->hiderFrame->hide();
     } else {
       _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
-      _d->ui->frame_hider->show();
+      _d->ui->hiderFrame->show();
     }
     _capacityNotNull();
   });
@@ -91,144 +94,152 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     _capacityNotNull();
   });
 
-  connect(_d->ui->lineEdit_freq, &QLineEdit::textEdited, [&]() {
-    freq = _d->ui->lineEdit_freq->text().toDouble();
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setFreq(freq);
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->trackFrequencySpinBox,
+          QOverload<double>::of(
+              QOverload<double>::of(&QDoubleSpinBox::valueChanged)),
+          [&]() {
+            freq = _d->ui->trackFrequencySpinBox->value();
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setFreq(freq);
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_station1, &QLineEdit::textEdited, this,
+  connect(_d->ui->rrs1HeightSpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
           &NRrlsMainWindow::onChangeHeight);
 
-  connect(_d->ui->lineEdit_station2, &QLineEdit::textEdited, this,
+  connect(_d->ui->rrs2HeightSpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
           &NRrlsMainWindow::onChangeHeight);
 
-  connect(_d->ui->comboBox_rrsStation1, &QComboBox::currentTextChanged, this,
+  connect(_d->ui->rrs1TypeComboBox, &QComboBox::currentTextChanged, this,
           &NRrlsMainWindow::onChangeRrsSpec);
 
-  connect(_d->ui->comboBox_rrsStation2, &QComboBox::currentTextChanged, this,
+  connect(_d->ui->rrs2TypeComboBox, &QComboBox::currentTextChanged, this,
           &NRrlsMainWindow::onChangeRrsSpec);
 
-  connect(_d->ui->comboBox_jobStation1, &QComboBox::currentTextChanged, this,
+  connect(_d->ui->rrs1ModeSpinBox, &QComboBox::currentTextChanged, this,
           &NRrlsMainWindow::onChangeSens);
 
-  connect(_d->ui->comboBox_jobStation2, &QComboBox::currentTextChanged, this,
+  connect(_d->ui->rrs2ModeSpinBox, &QComboBox::currentTextChanged, this,
           &NRrlsMainWindow::onChangeSens);
 
-  connect(_d->ui->lineEdit_capStation1, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->spec.p.first,
-                       _d->ui->lineEdit_capStation1->text().toDouble());
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->rrs1CapacitySpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->spec.p.first,
+                               _d->ui->rrs1CapacitySpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_capStation2, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->spec.p.second,
-                       _d->ui->lineEdit_capStation2->text().toDouble());
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->rrs2CapacitySpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->spec.p.second,
+                               _d->ui->rrs2CapacitySpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_sensStation1, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->spec.s.first,
-                       _d->ui->lineEdit_sensStation1->text().toDouble());
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->rrs1SensitivitySpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->spec.s.first,
+                               _d->ui->rrs1SensitivitySpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_sensStation2, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->spec.s.second,
-                       _d->ui->lineEdit_sensStation2->text().toDouble());
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->rrs2SensitivitySpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->spec.s.second,
+                               _d->ui->rrs2SensitivitySpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_coefAntenna1, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->tower.c.first,
-                       _d->ui->lineEdit_coefAntenna1->text().toDouble());
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->rrs1CoefSpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->tower.c.first,
+                               _d->ui->rrs1CoefSpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_coefAntenna2, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->tower.c.second,
-                       _d->ui->lineEdit_coefAntenna2->text().toDouble());
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->rrs2CoefSpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->tower.c.second,
+                               _d->ui->rrs2CoefSpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_gradient, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->constant.g_standard,
-                       _d->ui->lineEdit_gradient->text().toDouble() * 1e-08);
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->trackGradientSpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->constant.g_standard,
+                               _d->ui->trackGradientSpinBox->value() * 1e-08);
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->pushButton_diagram, &QPushButton::clicked, [&]() {
+  connect(_d->ui->trackDiagramPushButton, &QPushButton::clicked, [&]() {
     if (_d->ui->customplot->graphCount() >= 5) {
       _di->show();
     }
   });
 
-  connect(_d->ui->lineEdit_temperature, &QLineEdit::textEdited, [&]() {
-    _d->_c->setValue(_d->_c->data->constant.temperature,
-                     _d->ui->lineEdit_temperature->text().toDouble());
-    _capacityNotNull();
-  });
+  connect(_d->ui->trackTemperatureSpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->constant.temperature,
+                               _d->ui->trackTemperatureSpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_probability, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->spec.prob,
-                       _d->ui->lineEdit_probability->text().toDouble());
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->trackProbabilitySpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->spec.prob,
+                               _d->ui->trackProbabilitySpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_feederAntenna1, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->tower.wf.first,
-                       _d->ui->lineEdit_feederAntenna1->text().toDouble());
-      _capacityNotNull();
-    }
-  });
+  connect(_d->ui->rrs1FeederSpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->tower.wf.first,
+                               _d->ui->rrs1FeederSpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
-  connect(_d->ui->lineEdit_feederAntenna2, &QLineEdit::textEdited, [&]() {
-    if (_d->ui->customplot->graphCount() >= 5) {
-      _d->_c->setValue(_d->_c->data->tower.wf.second,
-                       _d->ui->lineEdit_feederAntenna2->text().toDouble());
-      _capacityNotNull();
-    }
-  });
-
-  connect(_d->ui->pushButton_addStation1, &QPushButton::clicked, this,
-          &NRrlsMainWindow::onOpenFirstStation);
-
-  connect(_d->ui->pushButton_addStation2, &QPushButton::clicked, this,
-          &NRrlsMainWindow::onOpenSecondStation);
+  connect(_d->ui->rrs2FeederSpinBox,
+          QOverload<double>::of(&QDoubleSpinBox::valueChanged), [&]() {
+            if (_d->ui->customplot->graphCount() >= 5) {
+              _d->_c->setValue(_d->_c->data->tower.wf.second,
+                               _d->ui->rrs2FeederSpinBox->value());
+              _capacityNotNull();
+            }
+          });
 
   connect(_d->ui->customplot, &QCustomPlot::mouseDoubleClick, this,
           &NRrlsMainWindow::onCustomPlotClicked);
 
-  //  connect(_d->ui->customplot, SIGNAL(QCustomPlot::plottableClick()),
-  //          SLOT(NRrlsMainWindow::onPlottableClicked()),
-  //          SIGNAL(QCustomPlot::mousePress()), Qt::QueuedConnection);
-
   connect(_d->ui->customplot, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
 
-  connect(_d->ui->pushButton_apply, SIGNAL(MouseEnterSignal()), this,
+  connect(_d->ui->applyPushButton, SIGNAL(MouseEnterSignal()), this,
           SLOT(NRrlsMainWindow::onApplyButtonEntered()));
 
-  connect(_d->ui->pushButton_apply, &QPushButton::clicked, this, [&]() {
+  connect(_d->ui->applyPushButton, &QPushButton::clicked, this, [&]() {
     if (_d->ui->customplot->graphCount() >= 5) {
       exec();
 
@@ -239,12 +250,12 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _di->init(_d->_c);
       _di->exec();
 
-      _d->ui->pushButton_apply->setEnabled(0);
-      _d->ui->pushButton_diagram->setEnabled(1);
-      _d->ui->frame_result->setVisible(1);
+      _d->ui->applyPushButton->setEnabled(0);
+      _d->ui->trackDiagramPushButton->setEnabled(1);
+      _d->ui->resultFrame->setVisible(1);
     }
 
-    _d->ui->pushButton_apply->installEventFilter(this);
+    _d->ui->applyPushButton->installEventFilter(this);
   });
 }
 
@@ -302,8 +313,11 @@ void NRrlsMainWindow::setDebugLevel(int level) {
 }
 
 void NRrlsMainWindow::_capacityNotNull() const {
-  _d->ui->pushButton_apply->setEnabled(
-      (!_d->_c->data->spec.p.first || !_d->_c->data->spec.p.second) ? 0 : 1);
+  _d->ui->applyPushButton->setEnabled((!_d->_c->data->spec.p.first ||
+                                       !_d->_c->data->spec.p.second ||
+                                       _d->_c->data->spec.prob < 50)
+                                          ? 0
+                                          : 1);
 }
 
 void NRrlsMainWindow::onSetFile(bool checked) {
@@ -311,12 +325,13 @@ void NRrlsMainWindow::onSetFile(bool checked) {
   in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
   QString temp = in->getOpenFileName(this, tr("Открыть файл"), "", "*.csv");
   if (!temp.isEmpty()) {
+    _d->ui->mainStack->setCurrentIndex(1);
     _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
 
-    _d->ui->lineEdit_freq->setText(QString::number(1000));
-    _d->ui->lineEdit_station1->setText(QString::number(20));
-    _d->ui->lineEdit_station2->setText(QString::number(20));
-    _d->ui->lineEdit_gradient->setText(QString::number(-8));
+    _d->ui->trackFrequencySpinBox->setValue(1000);
+    _d->ui->rrs1HeightSpinBox->setValue(20);
+    _d->ui->rrs2HeightSpinBox->setValue(20);
+    _d->ui->trackGradientSpinBox->setValue(-8);
     _d->_c->setFreq(1000);
     _d->_c->data->tower.f.setY(20);
     _d->_c->data->tower.s.setY(20);
@@ -327,13 +342,11 @@ void NRrlsMainWindow::onSetFile(bool checked) {
   }
 }
 
-void NRrlsMainWindow::onChangeHeight(const QString &text) {
+void NRrlsMainWindow::onChangeHeight(double d) {
   if (_d->ui->customplot->graphCount() >= 5) {
-    QLineEdit *l = qobject_cast<QLineEdit *>(sender());
-    double h = parse(text.toInt());
-    (h > 0) ? l->setText(QString::number(h)) : l->setText("0");
-    (l == _d->ui->lineEdit_station1) ? _d->_c->data->tower.f.setY(h)
-                                     : _d->_c->data->tower.s.setY(h);
+    QDoubleSpinBox *sp = qobject_cast<QDoubleSpinBox *>(sender());
+    (sp == _d->ui->rrs1HeightSpinBox) ? _d->_c->data->tower.f.setY(d)
+                                      : _d->_c->data->tower.s.setY(d);
     _capacityNotNull();
   }
 }
@@ -341,15 +354,14 @@ void NRrlsMainWindow::onChangeHeight(const QString &text) {
 void NRrlsMainWindow::onChangeRrsSpec(const QString &text) {
   if (_d->ui->customplot->graphCount() >= 5) {
     QComboBox *c = qobject_cast<QComboBox *>(sender());
-    QComboBox *j = (c == _d->ui->comboBox_rrsStation1)
-                       ? _d->ui->comboBox_jobStation1
-                       : _d->ui->comboBox_jobStation2;
-    QLineEdit *capacity = (c == _d->ui->comboBox_rrsStation1)
-                              ? _d->ui->lineEdit_capStation1
-                              : _d->ui->lineEdit_capStation2,
-              *coef = (c == _d->ui->comboBox_rrsStation1)
-                          ? _d->ui->lineEdit_coefAntenna1
-                          : _d->ui->lineEdit_coefAntenna2;
+    QComboBox *j = (c == _d->ui->rrs1TypeComboBox) ? _d->ui->rrs1ModeSpinBox
+                                                   : _d->ui->rrs2ModeSpinBox;
+    QDoubleSpinBox *capacity = (c == _d->ui->rrs1TypeComboBox)
+                                   ? _d->ui->rrs1CapacitySpinBox
+                                   : _d->ui->rrs2CapacitySpinBox,
+                   *coef = (c == _d->ui->rrs1TypeComboBox)
+                               ? _d->ui->rrs1CoefSpinBox
+                               : _d->ui->rrs2CoefSpinBox;
     QPalette *palette = new QPalette();
 
     j->clear();
@@ -362,14 +374,14 @@ void NRrlsMainWindow::onChangeRrsSpec(const QString &text) {
     } else {
       palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
                                             QWidget::backgroundRole()));
-      capacity->setText(QString::number(_d->_c->setValueWithReturn(
-          (c == _d->ui->comboBox_rrsStation1) ? _d->_c->data->spec.p.first
-                                              : _d->_c->data->spec.p.second,
-          _d->_c->data->spec.stat[text][0])));
-      coef->setText(QString::number(_d->_c->setValueWithReturn(
-          (c == _d->ui->comboBox_rrsStation1) ? _d->_c->data->tower.c.first
-                                              : _d->_c->data->tower.c.second,
-          _d->_c->data->spec.stat[text][1])));
+      capacity->setValue(_d->_c->setValueWithReturn(
+          (c == _d->ui->rrs1TypeComboBox) ? _d->_c->data->spec.p.first
+                                          : _d->_c->data->spec.p.second,
+          _d->_c->data->spec.stat[text][0]));
+      coef->setValue(_d->_c->setValueWithReturn(
+          (c == _d->ui->rrs1TypeComboBox) ? _d->_c->data->tower.c.first
+                                          : _d->_c->data->tower.c.second,
+          _d->_c->data->spec.stat[text][1]));
       capacity->setReadOnly(true);
       coef->setReadOnly(true);
       for (const auto &it : _d->_c->data->spec.j[text].keys()) j->addItem(it);
@@ -383,16 +395,14 @@ void NRrlsMainWindow::onChangeRrsSpec(const QString &text) {
   }
 }
 
-// TODO: доделать
 void NRrlsMainWindow::onChangeSens(const QString &text) {
   if (_d->ui->customplot->graphCount() >= 5) {
     QComboBox *c = qobject_cast<QComboBox *>(sender());
-    QComboBox *r = (c == _d->ui->comboBox_jobStation1)
-                       ? _d->ui->comboBox_rrsStation1
-                       : _d->ui->comboBox_rrsStation2;
-    QLineEdit *s = (c == _d->ui->comboBox_jobStation1)
-                       ? _d->ui->lineEdit_sensStation1
-                       : _d->ui->lineEdit_sensStation2;
+    QComboBox *r = (c == _d->ui->rrs1ModeSpinBox) ? _d->ui->rrs1TypeComboBox
+                                                  : _d->ui->rrs2TypeComboBox;
+    QDoubleSpinBox *s = (c == _d->ui->rrs1ModeSpinBox)
+                            ? _d->ui->rrs1SensitivitySpinBox
+                            : _d->ui->rrs2SensitivitySpinBox;
     QPalette *palette = new QPalette();
 
     if (c->currentIndex() <= 0) {
@@ -401,10 +411,10 @@ void NRrlsMainWindow::onChangeSens(const QString &text) {
     } else {
       palette->setColor(QPalette::Base, NRrlsMainWindow::palette().color(
                                             QWidget::backgroundRole()));
-      s->setText(QString::number(_d->_c->setValueWithReturn(
-          (c == _d->ui->comboBox_jobStation1) ? _d->_c->data->spec.s.first
-                                              : _d->_c->data->spec.s.second,
-          _d->_c->data->spec.j[r->currentText()][text])));
+      s->setValue(_d->_c->setValueWithReturn(
+          (c == _d->ui->rrs1ModeSpinBox) ? _d->_c->data->spec.s.first
+                                         : _d->_c->data->spec.s.second,
+          _d->_c->data->spec.j[r->currentText()][text]));
       s->setReadOnly(true);
     }
 
@@ -412,22 +422,6 @@ void NRrlsMainWindow::onChangeSens(const QString &text) {
     delete palette;
 
     _capacityNotNull();
-  }
-}
-
-void NRrlsMainWindow::onOpenFirstStation() {
-  if (_d->ui->customplot->graphCount() >= 5) {
-    if (_f != nullptr) delete _f;
-    _f = new FirstStationWindow();
-    _f->show();
-  }
-}
-
-void NRrlsMainWindow::onOpenSecondStation() {
-  if (_d->ui->customplot->graphCount() >= 5) {
-    if (_c != nullptr) delete _c;
-    _s = new SecondStationWindow();
-    _s->show();
   }
 }
 
@@ -486,33 +480,11 @@ void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
   }
 }
 
-void NRrlsMainWindow::onPlottableClicked(QCPAbstractPlottable *plottable,
-                                         int dataIndex, QMouseEvent *event) {
-  //  if (plottable == fr_up_idx)
-  _d->_c->data->mainWindow->customplot->replot();
-}
-
 void NRrlsMainWindow::onApplyButtonEntered() {
-  if (!_d->ui->pushButton_apply->isEnabled()) {
+  if (!_d->ui->applyPushButton->isEnabled()) {
     QWhatsThis::enterWhatsThisMode();
-    QWhatsThis::showText(_d->ui->pushButton_apply->pos(),
+    QWhatsThis::showText(_d->ui->applyPushButton->pos(),
                          tr("Для вывода результатов настройте станции"));
-    //    _d->ui->pushButton_apply->setWhatsThis(
-    //        tr("Для вывода результатов настройте станции"));
-    _d->ui->frame_result->setVisible(0);
+    _d->ui->resultFrame->setVisible(0);
   }
-}
-
-bool NRrlsMainWindow::eventFilter(QObject *obj, QEvent *event) {
-  if (obj != _d->ui->pushButton_apply) return false;
-
-  bool result = QObject::eventFilter(obj, event);
-  switch (event->type()) {
-    case QEvent::Enter:
-      emit MouseEnterSignal();
-      break;
-    default:
-      break;
-  }
-  return result;
 }

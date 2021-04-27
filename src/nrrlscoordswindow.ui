@@ -25,7 +25,6 @@
     </property>
     <property name="font">
      <font>
-      <family>FreeSans</family>
       <pointsize>9</pointsize>
       <weight>75</weight>
       <bold>true</bold>
@@ -53,7 +52,6 @@
          <widget class="QLabel" name="label_3">
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -80,7 +78,6 @@
           </property>
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -105,7 +102,6 @@
          <widget class="QLabel" name="label_4">
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -132,7 +128,6 @@
           </property>
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -165,7 +160,6 @@
     </property>
     <property name="font">
      <font>
-      <family>FreeSans</family>
       <pointsize>9</pointsize>
       <weight>75</weight>
       <bold>true</bold>
@@ -179,7 +173,7 @@
       <rect>
        <x>20</x>
        <y>20</y>
-       <width>261</width>
+       <width>274</width>
        <height>91</height>
       </rect>
      </property>
@@ -193,7 +187,6 @@
          <widget class="QLabel" name="label_7">
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -220,7 +213,6 @@
           </property>
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -245,7 +237,6 @@
          <widget class="QLabel" name="label_9">
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -272,7 +263,6 @@
           </property>
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -297,7 +287,6 @@
          <widget class="QLabel" name="label_11">
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -324,7 +313,6 @@
           </property>
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -357,7 +345,6 @@
     </property>
     <property name="font">
      <font>
-      <family>FreeSans</family>
       <pointsize>9</pointsize>
       <weight>75</weight>
       <bold>true</bold>
@@ -388,7 +375,6 @@
          <widget class="QLabel" name="label_13">
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -415,7 +401,6 @@
           </property>
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -443,7 +428,6 @@
          <widget class="QLabel" name="label_15">
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>
@@ -470,7 +454,6 @@
           </property>
           <property name="font">
            <font>
-            <family>FreeSans</family>
             <pointsize>9</pointsize>
             <weight>50</weight>
             <bold>false</bold>

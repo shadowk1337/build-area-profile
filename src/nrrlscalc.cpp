@@ -779,16 +779,18 @@ bool Interval::Item::exec() {
 
   switch (data->interval_type) {
     case (1):
-      data->mainWindow->label_intervalType->setText(QObject::tr("Открытый"));
+      data->mainWindow->concIntervalTypeValueLabel->setText(
+          QObject::tr("Открытый"));
       colourArea(50, 255, 50, 30);
       break;
     case (2):
-      data->mainWindow->label_intervalType->setText(
+      data->mainWindow->concIntervalTypeValueLabel->setText(
           QObject::tr("Полуоткрытый"));
       colourArea(241, 245, 20, 30);
       break;
     case (3):
-      data->mainWindow->label_intervalType->setText(QObject::tr("Закрытый"));
+      data->mainWindow->concIntervalTypeValueLabel->setText(
+          QObject::tr("Закрытый"));
       colourArea(255, 50, 50, 30);
       break;
   }
@@ -802,7 +804,7 @@ void Interval::Item::colourArea(int r, int g, int b, int a) {
           data->mainWindow->customplot->graph(data->fr_dw_idx));
   data->mainWindow->customplot->graph(data->fr_up_idx)
       ->setBrush(QColor(r, g, b, a));
-  data->mainWindow->label_intervalType->setStyleSheet(
+  data->mainWindow->concIntervalTypeValueLabel->setStyleSheet(
       QString("QLabel {background-color: rgba(%1, %2, %3, %4);}")
           .arg(r)
           .arg(g)
@@ -1172,21 +1174,25 @@ bool Acceptable::Item::exec() {
 
   double to_dbvt = 10 * log10(qPow(to_uv * 1e-6, 2) / 50);
 
-  data->spec.q = data->p.first - to_dbvt;
+  data->spec.q = std::min(data->p.first, data->p.second) - to_dbvt;
 
-  data->mainWindow->label_sensValue->setText(QString::number(to_dbvt));
-  data->mainWindow->label_attenValue_2->setText(QString::number(data->wp));
-  data->mainWindow->label_attenValue_3->setText(QString::number(data->ws));
-  data->mainWindow->label_attenValue_4->setText(QString::number(data->wa));
-  data->mainWindow->label_stockValue->setText(QString::number(data->spec.q));
+  data->mainWindow->concFreeAttenValueLabel->setText(QString::number(data->ws));
+  data->mainWindow->concSensitivityValueLabel->setText(
+      QString::number(to_dbvt));
+  data->mainWindow->concAirAttenValueLabel->setText(QString::number(data->wa));
+  data->mainWindow->concReliefAttenValueLabel->setText(
+      QString::number(data->wp));
+  data->mainWindow->concStockValueLabel->setText(QString::number(data->spec.q));
 
-  if (data->spec.q < 0 || data->spec.q < getStock(100 - data->spec.prob)) {
-    data->mainWindow->label_concValue->setText(QObject::tr("Связи не будет"));
-    data->mainWindow->label_concValue->setStyleSheet(
+  if (data->spec.q < 0 || data->spec.q < getStock(100 - data->spec.prob) ||
+      data->spec.f < 60 || data->spec.f > 645) {
+    data->mainWindow->concConcValueLabel->setText(
+        QObject::tr("Связи не будет"));
+    data->mainWindow->concConcValueLabel->setStyleSheet(
         "QLabel { background-color : red; color : white; }");
   } else {
-    data->mainWindow->label_concValue->setText(QObject::tr("Связь будет"));
-    data->mainWindow->label_concValue->setStyleSheet(
+    data->mainWindow->concConcValueLabel->setText(QObject::tr("Связь будет"));
+    data->mainWindow->concConcValueLabel->setStyleSheet(
         "QLabel { background-color : green; color : white; }");
   }
 
@@ -1263,8 +1269,6 @@ bool Sesrg::exec() {
 }
 
 bool Sesrc::exec() {
-
-
   if (!_data) return false;
   return true;
 }
