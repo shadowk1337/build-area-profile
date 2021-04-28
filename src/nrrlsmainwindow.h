@@ -30,6 +30,7 @@ class NRrlsMainWindow : public QMainWindow {
   void setSettings(const QVariantMap &options);
   void setWidgets();
   void setDebugLevel(int level);
+  void setFile(const QString &filename);
 
  private:
   struct Private;
@@ -40,14 +41,15 @@ class NRrlsMainWindow : public QMainWindow {
   DiagramWindow *_di;       ///<  Окно диграммы
   double _xa;  ///< Абсцисса перекрестия на графике
 
- signals:
-  void MouseEnterSignal();
+ private:
+  void capacityNotNull() const;
 
  private:
-  void _capacityNotNull() const;
+  void dragEnterEvent(QDragEnterEvent *event);
+  void dropEvent(QDropEvent *event);
 
  private slots:
-  void onSetFile(bool checked);
+  void onSetFile();
   void onChangeHeight(double d);
   void onChangeSens(const QString &text);
   void onChangeRrsSpec(const QString &text);

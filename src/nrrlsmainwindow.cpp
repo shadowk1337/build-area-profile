@@ -27,7 +27,9 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   setWindowTitle(tr("РРЛС"));
 
   setSettings(options);
+
   setMouseTracking(true);
+  setAcceptDrops(true);
 
   QRect rect;
   rect.setWidth(1362);
@@ -53,8 +55,10 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
   connect(_d->ui->fileReplotAction, &QAction::triggered, this, [&]() {
     _d->ui->customplot->replot();
-    _capacityNotNull();
+    capacityNotNull();
   });
+
+  //  connect(_d->ui->mainBlankPage, )
 
   connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
     if (_d->ui->action_13->text() == "Скрыть нижнюю панель") {
@@ -64,12 +68,12 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->ui->action_13->setText(tr("Скрыть нижнюю панель"));
       _d->ui->hiderFrame->show();
     }
-    _capacityNotNull();
+    capacityNotNull();
   });
 
   connect(_d->ui->action_4, &QAction::triggered, this, [&]() {
     qApp->exit();
-    _capacityNotNull();
+    capacityNotNull();
   });
 
   connect(_d->ui->action_10, &QAction::triggered, this, [&]() {
@@ -80,7 +84,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
       _d->ui->action_10->setText(tr("Оконный режим"));
       NRrlsMainWindow::showFullScreen();
     }
-    _capacityNotNull();
+    capacityNotNull();
   });
 
   connect(_d->ui->action_11, &QAction::triggered, this, [&]() {
@@ -91,7 +95,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
                     .arg(QDate::currentDate().year())
                     .arg(QDate::currentDate().month())
                     .arg(QDate::currentDate().day()));
-    _capacityNotNull();
+    capacityNotNull();
   });
 
   connect(_d->ui->trackFrequencySpinBox,
@@ -101,7 +105,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             freq = _d->ui->trackFrequencySpinBox->value();
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setFreq(freq);
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -130,7 +134,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->spec.p.first,
                                _d->ui->rrs1CapacitySpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -139,7 +143,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->spec.p.second,
                                _d->ui->rrs2CapacitySpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -148,7 +152,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->spec.s.first,
                                _d->ui->rrs1SensitivitySpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -157,7 +161,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->spec.s.second,
                                _d->ui->rrs2SensitivitySpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -166,7 +170,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->tower.c.first,
                                _d->ui->rrs1CoefSpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -175,7 +179,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->tower.c.second,
                                _d->ui->rrs2CoefSpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -184,7 +188,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->constant.g_standard,
                                _d->ui->trackGradientSpinBox->value() * 1e-08);
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -199,7 +203,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->constant.temperature,
                                _d->ui->trackTemperatureSpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -208,7 +212,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->spec.prob,
                                _d->ui->trackProbabilitySpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -217,7 +221,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->tower.wf.first,
                                _d->ui->rrs1FeederSpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -226,7 +230,7 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             if (_d->ui->customplot->graphCount() >= 5) {
               _d->_c->setValue(_d->_c->data->tower.wf.second,
                                _d->ui->rrs2FeederSpinBox->value());
-              _capacityNotNull();
+              capacityNotNull();
             }
           });
 
@@ -312,7 +316,7 @@ void NRrlsMainWindow::setDebugLevel(int level) {
   QLoggingCategory::setFilterRules(p.join("\n") + "\n");
 }
 
-void NRrlsMainWindow::_capacityNotNull() const {
+void NRrlsMainWindow::capacityNotNull() const {
   _d->ui->applyPushButton->setEnabled((!_d->_c->data->spec.p.first ||
                                        !_d->_c->data->spec.p.second ||
                                        _d->_c->data->spec.prob < 50)
@@ -320,26 +324,39 @@ void NRrlsMainWindow::_capacityNotNull() const {
                                           : 1);
 }
 
-void NRrlsMainWindow::onSetFile(bool checked) {
+void NRrlsMainWindow::dragEnterEvent(QDragEnterEvent *event) {
+  if (event->mimeData()->hasFormat("text/plain")) event->acceptProposedAction();
+}
+
+void NRrlsMainWindow::dropEvent(QDropEvent *event) {
+  setFile(event->mimeData()->text().mid(7));
+
+  event->acceptProposedAction();
+}
+
+void NRrlsMainWindow::setFile(const QString &filename) {
+  _d->ui->mainStack->setCurrentIndex(1);
+  _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, filename);
+
+  _d->ui->trackFrequencySpinBox->setValue(1000);
+  _d->ui->rrs1HeightSpinBox->setValue(20);
+  _d->ui->rrs2HeightSpinBox->setValue(20);
+  _d->ui->trackGradientSpinBox->setValue(-8);
+  _d->_c->setFreq(1000);
+  _d->_c->data->tower.f.setY(20);
+  _d->_c->data->tower.s.setY(20);
+  _d->_c->setValue(_d->_c->data->constant.g_standard, -8 * 1e-8);
+
+  exec();
+}
+
+void NRrlsMainWindow::onSetFile() {
   QFileDialog *in = new QFileDialog(this);
   in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
   QString temp = in->getOpenFileName(this, tr("Открыть файл"), "", "*.csv");
-  if (!temp.isEmpty()) {
-    _d->ui->mainStack->setCurrentIndex(1);
-    _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, temp);
-
-    _d->ui->trackFrequencySpinBox->setValue(1000);
-    _d->ui->rrs1HeightSpinBox->setValue(20);
-    _d->ui->rrs2HeightSpinBox->setValue(20);
-    _d->ui->trackGradientSpinBox->setValue(-8);
-    _d->_c->setFreq(1000);
-    _d->_c->data->tower.f.setY(20);
-    _d->_c->data->tower.s.setY(20);
-    _d->_c->setValue(_d->_c->data->constant.g_standard, -8 * 1e-8);
-    in->hide();
-
-    exec();
-  }
+  std::cerr << temp.toStdString() << ' ';
+  if (!temp.isEmpty()) setFile(temp);
+  in->hide();
 }
 
 void NRrlsMainWindow::onChangeHeight(double d) {
@@ -347,7 +364,7 @@ void NRrlsMainWindow::onChangeHeight(double d) {
     QDoubleSpinBox *sp = qobject_cast<QDoubleSpinBox *>(sender());
     (sp == _d->ui->rrs1HeightSpinBox) ? _d->_c->data->tower.f.setY(d)
                                       : _d->_c->data->tower.s.setY(d);
-    _capacityNotNull();
+    capacityNotNull();
   }
 }
 
@@ -391,7 +408,7 @@ void NRrlsMainWindow::onChangeRrsSpec(const QString &text) {
     coef->setPalette(*palette);
     delete palette;
 
-    _capacityNotNull();
+    capacityNotNull();
   }
 }
 
@@ -421,7 +438,7 @@ void NRrlsMainWindow::onChangeSens(const QString &text) {
     s->setPalette(*palette);
     delete palette;
 
-    _capacityNotNull();
+    capacityNotNull();
   }
 }
 
