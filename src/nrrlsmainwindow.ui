@@ -42,7 +42,7 @@
     <item>
      <widget class="QStackedWidget" name="mainStack">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="mainBlankPage">
        <layout class="QGridLayout" name="gridLayout_4">
@@ -121,6 +121,12 @@
            <enum>Qt::Vertical</enum>
           </property>
           <widget class="QFrame" name="frame">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -156,8 +162,8 @@
               </property>
               <property name="minimumSize">
                <size>
-                <width>1341</width>
-                <height>500</height>
+                <width>0</width>
+                <height>0</height>
                </size>
               </property>
               <property name="maximumSize">
@@ -174,6 +180,12 @@
            </layout>
           </widget>
           <widget class="QFrame" name="hiderFrame">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -1824,6 +1836,20 @@
    <addaction name="menu_3"/>
    <addaction name="menu_2"/>
   </widget>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="rrs1Action"/>
+   <addaction name="resultAction"/>
+   <addaction name="rrs2Action"/>
+  </widget>
   <action name="fileOpenAction">
    <property name="text">
     <string>Открыть файл с помощью...</string>
@@ -1900,6 +1926,34 @@
     </font>
    </property>
   </action>
+  <action name="rrs1Action">
+   <property name="icon">
+    <iconset resource="nrrlsimages.qrc">
+     <normaloff>:/images/rrs1.svg</normaloff>:/images/rrs1.svg</iconset>
+   </property>
+   <property name="text">
+    <string>РРС1</string>
+   </property>
+   <property name="toolTip">
+    <string>Настроить параметры РРС1</string>
+   </property>
+  </action>
+  <action name="resultAction">
+   <property name="text">
+    <string>Результаты расчета</string>
+   </property>
+   <property name="toolTip">
+    <string>Посмотреть результаты расчета</string>
+   </property>
+  </action>
+  <action name="rrs2Action">
+   <property name="text">
+    <string>РРС2</string>
+   </property>
+   <property name="toolTip">
+    <string>Настроить параметры РРС2</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -1931,6 +1985,8 @@
   <tabstop>rrs2CoefSpinBox</tabstop>
   <tabstop>rrs2FeederSpinBox</tabstop>
  </tabstops>
- <resources/>
+ <resources>
+  <include location="nrrlsimages.qrc"/>
+ </resources>
  <connections/>
 </ui>

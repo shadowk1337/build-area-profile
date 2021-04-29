@@ -521,7 +521,7 @@ bool Item::exec() {
   count = 0;
 
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-    estream << QString("Couldn't open file %1\n").arg(data->filename);
+    estream << QString("Could not open file %1\n").arg(data->filename);
     return false;
   }
   int l = -1, h = -1;

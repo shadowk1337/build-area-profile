@@ -1,3 +1,4 @@
+#include <QBitmap>
 #include <QFileDialog>
 
 #include "nrrlscalc.h"
@@ -31,24 +32,8 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
   setMouseTracking(true);
   setAcceptDrops(true);
 
-  QRect rect;
-  rect.setWidth(1362);
-  rect.setHeight(301);
-  _d->ui->hiderFrame->setFrameRect(rect);
-
-  _d->ui->customplot->xAxis->setVisible(0);
-  _d->ui->customplot->yAxis->setVisible(0);
-  _d->ui->resultFrame->setVisible(0);
-  _d->ui->trackDiagramPushButton->setEnabled(0);
-  _d->ui->applyPushButton->setEnabled(0);
-
-  _d->ui->rrs1TypeComboBox->addItem(tr("Выбрать станцию"));
-  _d->ui->rrs2TypeComboBox->addItem(tr("Выбрать станцию"));
-  _d->ui->rrs1TypeComboBox->addItem(tr("Р-419МЦ"));
-  _d->ui->rrs2TypeComboBox->addItem(tr("Р-419МЦ"));
-
-  _d->ui->rrs1ModeSpinBox->addItem(tr("Выбрать режим"));
-  _d->ui->rrs2ModeSpinBox->addItem(tr("Выбрать режим"));
+  setMainWindow();
+  setToolBar();
 
   connect(_d->ui->fileOpenAction, &QAction::triggered, this,
           &NRrlsMainWindow::onSetFile);
@@ -57,8 +42,6 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     _d->ui->customplot->replot();
     capacityNotNull();
   });
-
-  //  connect(_d->ui->mainBlankPage, )
 
   connect(_d->ui->action_13, &QAction::triggered, this, [&]() {
     if (_d->ui->action_13->text() == "Скрыть нижнюю панель") {
@@ -317,21 +300,46 @@ void NRrlsMainWindow::setDebugLevel(int level) {
 }
 
 void NRrlsMainWindow::capacityNotNull() const {
-  _d->ui->applyPushButton->setEnabled((!_d->_c->data->spec.p.first ||
-                                       !_d->_c->data->spec.p.second ||
-                                       _d->_c->data->spec.prob < 50)
-                                          ? 0
-                                          : 1);
+  _d->ui->applyPushButton->setEnabled(
+      (!_d->_c->data->spec.p.first || !_d->_c->data->spec.p.second) ? 0 : 1);
 }
 
 void NRrlsMainWindow::dragEnterEvent(QDragEnterEvent *event) {
-  if (event->mimeData()->hasFormat("text/plain")) event->acceptProposedAction();
+  if (event->mimeData()->hasFormat("text/csv")) event->accept();
+  //  else
+  //    event->ignore();
 }
 
 void NRrlsMainWindow::dropEvent(QDropEvent *event) {
   setFile(event->mimeData()->text().mid(7));
+  event->accept();
+}
 
-  event->acceptProposedAction();
+void NRrlsMainWindow::setMainWindow() {
+  QRect rect;
+  rect.setWidth(1362);
+  rect.setHeight(301);
+  _d->ui->hiderFrame->setFrameRect(rect);
+
+  _d->ui->customplot->xAxis->setVisible(0);
+  _d->ui->customplot->yAxis->setVisible(0);
+  _d->ui->resultFrame->setVisible(0);
+  _d->ui->trackDiagramPushButton->setEnabled(0);
+  _d->ui->applyPushButton->setEnabled(0);
+
+  _d->ui->rrs1TypeComboBox->addItem(tr("Выбрать станцию"));
+  _d->ui->rrs2TypeComboBox->addItem(tr("Выбрать станцию"));
+  _d->ui->rrs1TypeComboBox->addItem(tr("Р-419МЦ"));
+  _d->ui->rrs2TypeComboBox->addItem(tr("Р-419МЦ"));
+
+  _d->ui->rrs1ModeSpinBox->addItem(tr("Выбрать режим"));
+  _d->ui->rrs2ModeSpinBox->addItem(tr("Выбрать режим"));
+}
+
+void NRrlsMainWindow::setToolBar() {
+//  _d->ui->rrs1Action->setIcon(QIcon(":/images/rrs1.svg"));
+//  _d->ui->rrs2Action->setIcon(QIcon(":/images/rrs2.svg"));
+  _d->ui->rrs1Action->setText("fdas");
 }
 
 void NRrlsMainWindow::setFile(const QString &filename) {

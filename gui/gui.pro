@@ -44,3 +44,6 @@ FORMS +=                            \
     ../src/nrrlssecondstationwindow.ui   \
     ../src/nrrlscoordswindow.ui          \
     ../src/nrrlsdiagramwindow.ui
+
+RESOURCES += \
+    ../src/nrrlsimages.qrc

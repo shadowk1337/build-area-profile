@@ -30,6 +30,9 @@ class NRrlsMainWindow : public QMainWindow {
   void setSettings(const QVariantMap &options);
   void setWidgets();
   void setDebugLevel(int level);
+
+  void setToolBar();
+  void setMainWindow();
   void setFile(const QString &filename);
 
  private:
