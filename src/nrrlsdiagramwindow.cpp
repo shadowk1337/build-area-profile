@@ -1,8 +1,8 @@
 #include "nrrlsdiagramwindow.h"
-#include "ui_diagramwindow.h"
+#include "ui_nrrlsdiagramwindow.h"
 
-DiagramWindow::DiagramWindow(QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::DiagramWindow) {
+NRrlsDiagramWindow::NRrlsDiagramWindow(QWidget *parent)
+    : QMainWindow(parent), ui(new Ui::NRrlsDiagramWindow) {
   ui->setupUi(this);
 
   setWindowTitle(tr("Диаграммы уровней передачи"));
@@ -33,11 +33,11 @@ DiagramWindow::DiagramWindow(QWidget *parent)
   setupGraph();
 }
 
-DiagramWindow::~DiagramWindow() { delete ui; }
+NRrlsDiagramWindow::~NRrlsDiagramWindow() { delete ui; }
 
-void DiagramWindow::init(QSharedPointer<NRrls::Calc::Core> c) { _c = c; }
+void NRrlsDiagramWindow::init(QSharedPointer<NRrls::Calc::Core> c) { _c = c; }
 
-void DiagramWindow::exec() {
+void NRrlsDiagramWindow::exec() {
   drawGraph(ui->customplot_1, C(fromVtToDbvt(_c->data->spec.p.first)),
             C(_c->data->tower.wf.first), C(_c->data->tower.c.first),
             C(_c->data->tower.c.second), _c->data->log_p.first);
@@ -47,7 +47,7 @@ void DiagramWindow::exec() {
             C(_c->data->tower.c.first), _c->data->log_p.second);
 }
 
-void DiagramWindow::setupGraph() {
+void NRrlsDiagramWindow::setupGraph() {
   ui->customplot_1->yAxis->setVisible(true);
   ui->customplot_1->yAxis->setTickLength(0);
   ui->customplot_1->yAxis->setSubTickLength(0);
@@ -63,7 +63,7 @@ void DiagramWindow::setupGraph() {
   ui->customplot_2->yAxis2->setSubTickLength(0);
 }
 
-void DiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
+void NRrlsDiagramWindow::drawGraph(QCustomPlot *cp, double sp, double wf, double c1,
                               double c2, double log_p) {
   QSharedPointer<GraphPainter> gr = QSharedPointer<GraphPainter>::create(cp);
 

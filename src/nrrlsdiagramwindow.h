@@ -5,15 +5,15 @@
 #include <QMainWindow>
 
 namespace Ui {
-class DiagramWindow;
+class NRrlsDiagramWindow;
 }
 
-class DiagramWindow : public QMainWindow {
+class NRrlsDiagramWindow : public QMainWindow {
   Q_OBJECT
 
 public:
-  explicit DiagramWindow(QWidget *parent = nullptr);
-  ~DiagramWindow();
+  explicit NRrlsDiagramWindow(QWidget *parent = nullptr);
+  ~NRrlsDiagramWindow();
 
   // Заполнение структуры данными
   void init(QSharedPointer<NRrls::Calc::Core> c);
@@ -28,7 +28,7 @@ private:
   void drawGraph(QCustomPlot *cp, double sp, double wf1, double c1,
                  double c2, double log_p);
 
-  Ui::DiagramWindow *ui;
+  Ui::NRrlsDiagramWindow *ui;
 
 private:
   QSharedPointer<NRrls::Calc::Core> _c;

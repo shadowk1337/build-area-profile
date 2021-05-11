@@ -1,11 +1,6 @@
 #ifndef NRRLSCALC_H
 #define NRRLSCALC_H
 
-#include <QDebug>
-#include <QFile>
-#include <QIODevice>
-#include <QSharedPointer>
-#include <QVector>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -13,11 +8,11 @@
 
 #include "nrrlsgraphpainter.h"
 
-#include "ui_coordswindow.h"
-#include "ui_diagramwindow.h"
-#include "ui_firststationwindow.h"
+#include "ui_nrrlscoordswindow.h"
+#include "ui_nrrlsdiagramwindow.h"
+#include "ui_nrrlsfirststationwidget.h"
 #include "ui_nrrlsmainwindow.h"
-#include "ui_secondstationwindow.h"
+#include "ui_nrrlssecondstationwindow.h"
 
 #define QSHDEF(x) typedef QSharedPointer<x> Ptr
 

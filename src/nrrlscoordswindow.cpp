@@ -1,14 +1,14 @@
 #include "nrrlscoordswindow.h"
 #include <iostream>
-#include "ui_coordswindow.h"
+#include "ui_nrrlscoordswindow.h"
 
-struct CoordsWindow::Private {
-  Ui::CoordsWindow *ui;
+struct NRrlsCoordsWindow::Private {
+  Ui::NRrlsCoordsWindow *ui;
 };
 
-CoordsWindow::CoordsWindow(QWidget *parent)
+NRrlsCoordsWindow::NRrlsCoordsWindow(QWidget *parent)
     : QMainWindow(parent), _d(new Private) {
-  _d->ui = new Ui::CoordsWindow;
+  _d->ui = new Ui::NRrlsCoordsWindow;
   _d->ui->setupUi(this);
 
   setWindowTitle(tr("Информация"));
@@ -17,8 +17,8 @@ CoordsWindow::CoordsWindow(QWidget *parent)
   setFixedSize(w, h);
 }
 
-void CoordsWindow::init(double l, double r, double hl, double hv,
-                        double he, double h, double hn) {
+void NRrlsCoordsWindow::init(double l, double r, double hl, double hv,
+                             double he, double h, double hn) {
   _d->ui->label_5->setText(QString::number(l));
   _d->ui->label_6->setText(QString::number(r));
   _d->ui->label_8->setText(QString::number(hl));
@@ -28,4 +28,4 @@ void CoordsWindow::init(double l, double r, double hl, double hv,
   _d->ui->label_16->setText(QString::number(hn));
 }
 
-CoordsWindow::~CoordsWindow() { delete _d->ui; }
+NRrlsCoordsWindow::~NRrlsCoordsWindow() { delete _d->ui; }

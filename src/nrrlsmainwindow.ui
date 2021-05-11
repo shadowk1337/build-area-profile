@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1379</width>
-    <height>918</height>
+    <width>1024</width>
+    <height>768</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -39,6 +39,21 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout_2">
+    <property name="spacing">
+     <number>6</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
     <item>
      <widget class="QStackedWidget" name="mainStack">
       <property name="currentIndex">
@@ -124,7 +139,7 @@
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
              <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
+             <verstretch>100</verstretch>
             </sizepolicy>
            </property>
            <property name="minimumSize">
@@ -134,10 +149,16 @@
             </size>
            </property>
            <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
+            <enum>QFrame::Box</enum>
            </property>
            <property name="frameShadow">
             <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
+           <property name="midLineWidth">
+            <number>1</number>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_10">
             <property name="leftMargin">
@@ -181,15 +202,15 @@
           </widget>
           <widget class="QFrame" name="hiderFrame">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-             <horstretch>0</horstretch>
+            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+             <horstretch>100</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>300</height>
+             <height>285</height>
             </size>
            </property>
            <property name="maximumSize">
@@ -204,20 +225,26 @@
             </font>
            </property>
            <property name="frameShape">
-            <enum>QFrame::StyledPanel</enum>
+            <enum>QFrame::Box</enum>
            </property>
            <property name="frameShadow">
             <enum>QFrame::Sunken</enum>
            </property>
            <property name="lineWidth">
-            <number>1</number>
+            <number>0</number>
            </property>
            <property name="midLineWidth">
             <number>1</number>
            </property>
-           <layout class="QGridLayout" name="gridLayout">
-            <item row="1" column="0">
+           <layout class="QHBoxLayout" name="horizontalLayout_21">
+            <item>
              <widget class="QSplitter" name="splitter">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
               <property name="orientation">
                <enum>Qt::Horizontal</enum>
               </property>
@@ -659,7 +686,7 @@
                     <property name="font">
                      <font>
                       <family>Ubuntu</family>
-                      <pointsize>10</pointsize>
+                      <pointsize>9</pointsize>
                       <weight>50</weight>
                       <bold>false</bold>
                      </font>
@@ -882,6 +909,9 @@
                     <bold>false</bold>
                    </font>
                   </property>
+                  <property name="cursor">
+                   <cursorShape>PointingHandCursor</cursorShape>
+                  </property>
                   <property name="text">
                    <string>Диаграмма уровней передачи</string>
                   </property>
@@ -902,6 +932,12 @@
                 </item>
                 <item>
                  <widget class="Line" name="line_7">
+                  <property name="lineWidth">
+                   <number>0</number>
+                  </property>
+                  <property name="midLineWidth">
+                   <number>1</number>
+                  </property>
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -927,6 +963,9 @@
                     <weight>50</weight>
                     <bold>false</bold>
                    </font>
+                  </property>
+                  <property name="cursor">
+                   <cursorShape>PointingHandCursor</cursorShape>
                   </property>
                   <property name="text">
                    <string>Применить</string>
@@ -1322,14 +1361,32 @@
            <property name="maximumSize">
             <size>
              <width>16777215</width>
-             <height>50</height>
+             <height>16777215</height>
             </size>
+           </property>
+           <property name="frameShape">
+            <enum>QFrame::Box</enum>
+           </property>
+           <property name="frameShadow">
+            <enum>QFrame::Sunken</enum>
+           </property>
+           <property name="lineWidth">
+            <number>0</number>
+           </property>
+           <property name="midLineWidth">
+            <number>1</number>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_22">
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_7">
               <item>
                <widget class="QLabel" name="concIntervalTypeLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1341,20 +1398,23 @@
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="concIntervalTypeValueLabel">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>70</horstretch>
-                  <verstretch>20</verstretch>
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>100</width>
-                  <height>20</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1367,6 +1427,12 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Тип интервала</string>
+                </property>
+                <property name="toolTipDuration">
+                 <number>0</number>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::StyledPanel</enum>
@@ -1386,6 +1452,12 @@
             </item>
             <item>
              <widget class="Line" name="line_4">
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>1</number>
+              </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -1395,24 +1467,32 @@
              <layout class="QHBoxLayout" name="horizontalLayout_8">
               <item>
                <widget class="QLabel" name="concFreeAttenLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Величина затухания в
-свободном пространстве, дБ:</string>
+                 <string>Величина затухания в свободном пространстве, дБ:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="concFreeAttenValueLabel">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
                   <horstretch>70</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1420,7 +1500,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>20</height>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1433,6 +1513,12 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Величина затухания в свободном пространстве</string>
+                </property>
+                <property name="toolTipDuration">
+                 <number>0</number>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::StyledPanel</enum>
@@ -1449,6 +1535,12 @@
             </item>
             <item>
              <widget class="Line" name="line">
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>1</number>
+              </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -1458,24 +1550,35 @@
              <layout class="QHBoxLayout" name="horizontalLayout_20">
               <item>
                <widget class="QLabel" name="concAirAttenLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
                  </font>
                 </property>
+                <property name="toolTip">
+                 <string/>
+                </property>
                 <property name="text">
-                 <string>Величина затухания
-в газах, дБ:</string>
+                 <string>Величина затухания в газах, дБ:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="concAirAttenValueLabel">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
                   <horstretch>70</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1483,7 +1586,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>20</height>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1496,6 +1599,12 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Величина затухания в газах</string>
+                </property>
+                <property name="toolTipDuration">
+                 <number>0</number>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::StyledPanel</enum>
@@ -1512,6 +1621,15 @@
             </item>
             <item>
              <widget class="Line" name="line_3">
+              <property name="frameShadow">
+               <enum>QFrame::Sunken</enum>
+              </property>
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>1</number>
+              </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -1521,32 +1639,40 @@
              <layout class="QHBoxLayout" name="horizontalLayout_19">
               <item>
                <widget class="QLabel" name="concReliefAttenLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Величина затухания 
-на рельефе, дБ:</string>
+                 <string>Величина затухания на рельефе, дБ:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="concReliefAttenValueLabel">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-                  <horstretch>70</horstretch>
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>20</height>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1559,6 +1685,12 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Величина затухания на рельефе</string>
+                </property>
+                <property name="toolTipDuration">
+                 <number>0</number>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::StyledPanel</enum>
@@ -1578,6 +1710,12 @@
             </item>
             <item>
              <widget class="Line" name="line_5">
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>1</number>
+              </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -1587,26 +1725,40 @@
              <layout class="QHBoxLayout" name="horizontalLayout_24">
               <item>
                <widget class="QLabel" name="concSensitivityLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
                  </font>
                 </property>
                 <property name="text">
-                 <string>Порог. зн-ие чувстви-
-тельности, дБВт:</string>
+                 <string>Порог. зн-ие чувствительности, дБВт:</string>
                 </property>
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+                </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="concSensitivityValueLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>20</height>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1619,6 +1771,12 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Пороговое значение чувствительности</string>
+                </property>
+                <property name="toolTipDuration">
+                 <number>0</number>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::StyledPanel</enum>
@@ -1635,6 +1793,12 @@
             </item>
             <item>
              <widget class="Line" name="line_6">
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>1</number>
+              </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -1644,6 +1808,12 @@
              <layout class="QHBoxLayout" name="horizontalLayout_18">
               <item>
                <widget class="QLabel" name="concStockLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1655,12 +1825,18 @@
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
+                <property name="openExternalLinks">
+                 <bool>false</bool>
+                </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="concStockValueLabel">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
@@ -1668,7 +1844,7 @@
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
-                  <height>20</height>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1681,6 +1857,12 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Запас связи</string>
+                </property>
+                <property name="toolTipDuration">
+                 <number>0</number>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::StyledPanel</enum>
@@ -1697,6 +1879,12 @@
             </item>
             <item>
              <widget class="Line" name="line_2">
+              <property name="lineWidth">
+               <number>0</number>
+              </property>
+              <property name="midLineWidth">
+               <number>1</number>
+              </property>
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -1706,6 +1894,12 @@
              <layout class="QHBoxLayout" name="horizontalLayout_9">
               <item>
                <widget class="QLabel" name="concConcLabel">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>9</pointsize>
@@ -1717,20 +1911,23 @@
                 <property name="alignment">
                  <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
                 </property>
+                <property name="wordWrap">
+                 <bool>true</bool>
+                </property>
                </widget>
               </item>
               <item>
                <widget class="QLabel" name="concConcValueLabel">
                 <property name="sizePolicy">
-                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-                  <horstretch>100</horstretch>
-                  <verstretch>20</verstretch>
+                 <sizepolicy hsizetype="Ignored" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>100</width>
-                  <height>20</height>
+                  <width>0</width>
+                  <height>0</height>
                  </size>
                 </property>
                 <property name="maximumSize">
@@ -1743,6 +1940,12 @@
                  <font>
                   <pointsize>9</pointsize>
                  </font>
+                </property>
+                <property name="toolTip">
+                 <string>Вывод</string>
+                </property>
+                <property name="toolTipDuration">
+                 <number>0</number>
                 </property>
                 <property name="frameShape">
                  <enum>QFrame::StyledPanel</enum>
@@ -1775,7 +1978,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1379</width>
+     <width>1024</width>
      <height>22</height>
     </rect>
    </property>
@@ -1927,10 +2130,6 @@
    </property>
   </action>
   <action name="rrs1Action">
-   <property name="icon">
-    <iconset resource="nrrlsimages.qrc">
-     <normaloff>:/images/rrs1.svg</normaloff>:/images/rrs1.svg</iconset>
-   </property>
    <property name="text">
     <string>РРС1</string>
    </property>
@@ -1985,8 +2184,6 @@
   <tabstop>rrs2CoefSpinBox</tabstop>
   <tabstop>rrs2FeederSpinBox</tabstop>
  </tabstops>
- <resources>
-  <include location="nrrlsimages.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

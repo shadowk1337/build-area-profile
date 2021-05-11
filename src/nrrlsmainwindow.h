@@ -1,13 +1,10 @@
 #ifndef NRRLSMMAINWINDOW_H
 #define NRRLSMMAINWINDOW_H
 
-#include <QtCore>
-#include <QtWidgets>
-
 #include "nrrlscoordswindow.h"
 #include "nrrlsdiagramwindow.h"
-#include "nrrlsfirststationwindow.h"
-#include "nrrlssecondstationwindow.h"
+#include "nrrlsfirststationwidget.h"
+#include "nrrlssecondstationwidget.h"
 
 /**
  * Главное окно
@@ -38,10 +35,10 @@ class NRrlsMainWindow : public QMainWindow {
  private:
   struct Private;
   Private *const _d;
-  FirstStationWindow *_f;   ///< Окно РРС1
-  SecondStationWindow *_s;  ///< Окно РРС2
-  CoordsWindow *_c;         ///< Окно координат
-  DiagramWindow *_di;       ///<  Окно диграммы
+  NRrlsFirstStationWidget *_f;   ///< Окно РРС1
+  NRrlsSecondStationWidget *_s;  ///< Окно РРС2
+  NRrlsCoordsWindow *_co;        ///< Окно координат
+  NRrlsDiagramWindow *_di;       ///<  Окно диграммы
   double _xa;  ///< Абсцисса перекрестия на графике
 
  private:

@@ -4,15 +4,15 @@
 #include <QMainWindow>
 
 namespace Ui {
-class CoordsWindow;
+class NRrlsCoordsWindow;
 }
 
-class CoordsWindow : public QMainWindow {
+class NRrlsCoordsWindow : public QMainWindow {
   Q_OBJECT
 
  public:
-  explicit CoordsWindow(QWidget *parent = nullptr);
-  ~CoordsWindow();
+  explicit NRrlsCoordsWindow(QWidget *parent = nullptr);
+  ~NRrlsCoordsWindow();
 
  public:
   void init(double l, double r, double hl, double hv, double he,

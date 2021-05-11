@@ -1,5 +1,4 @@
-#include <QBitmap>
-#include <QFileDialog>
+#include <QFile>
 
 #include "nrrlscalc.h"
 #include "nrrlslogcategory.h"
@@ -18,10 +17,10 @@ double freq, h1, h2;
 NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     : QMainWindow(parent), _d(new Private) {
   _d->ui = new Ui::NRrlsMainWindow;
-  _f = new FirstStationWindow();
-  _s = new SecondStationWindow();
-  _c = new CoordsWindow();
-  _di = new DiagramWindow();
+  _f = new NRrlsFirstStationWidget(this);
+  _s = new NRrlsSecondStationWidget(this);
+  _co = new NRrlsCoordsWindow();
+  _di = new NRrlsDiagramWindow();
 
   _d->ui->setupUi(this);
 
@@ -80,6 +79,10 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
                     .arg(QDate::currentDate().day()));
     capacityNotNull();
   });
+
+  connect(_d->ui->rrs1Action, &QAction::triggered, this, [&]() { _f->show(); });
+
+  connect(_d->ui->rrs2Action, &QAction::triggered, this, [&]() { _s->show(); });
 
   connect(_d->ui->trackFrequencySpinBox,
           QOverload<double>::of(
@@ -232,14 +235,41 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
       // Обновление окна диаграммы
       if (_di != nullptr) delete _di;
-      _di = new DiagramWindow();
+      _di = new NRrlsDiagramWindow();
 
       _di->init(_d->_c);
       _di->exec();
 
       _d->ui->applyPushButton->setEnabled(0);
       _d->ui->trackDiagramPushButton->setEnabled(1);
-      _d->ui->resultFrame->setVisible(1);
+      if (_d->ui->resultFrame->isHidden()) {
+        QRect r = _d->ui->resultFrame->rect();
+        QRect h = _d->ui->hiderFrame->rect();
+        QFrame *rf = _d->ui->resultFrame;
+        QFrame *hf = _d->ui->hiderFrame;
+        // TODO: сделать анимацию
+        //        QPropertyAnimation *animation_result_frame =
+        //            new QPropertyAnimation(rf, "pos");
+        //        animation_result_frame->setDuration(1000);
+        //        animation_result_frame->setStartValue(rf->pos());
+        //        animation_result_frame->setEndValue(QPoint(
+        //            0, _d->ui->frame->height() + hf->height() + 8 -
+        //            rf->height()));
+        //        //        std::cerr << _d->ui->frame->sizeHint().height() +
+        //        // _d->ui->hiderFrame->sizeHint().height() + 8
+        //        //                  << ' ';
+
+        //        QPropertyAnimation *animation_hider_frame =
+        //            new QPropertyAnimation(hf, "opacity");
+        //        animation_hider_frame->setDuration(10);
+        //        animation_hider_frame->setStartValue(1);
+        //        animation_hider_frame->setEndValue(0);
+
+        //        animation_hider_frame->start();
+        //        animation_result_frame->start();
+
+        rf->show();
+      }
     }
 
     _d->ui->applyPushButton->installEventFilter(this);
@@ -252,7 +282,7 @@ NRrlsMainWindow::~NRrlsMainWindow() {
   delete _d->v_line;
   delete _f;
   delete _s;
-  delete _c;
+  delete _co;
   delete _di;
   delete _d;
 }
@@ -337,9 +367,9 @@ void NRrlsMainWindow::setMainWindow() {
 }
 
 void NRrlsMainWindow::setToolBar() {
-//  _d->ui->rrs1Action->setIcon(QIcon(":/images/rrs1.svg"));
-//  _d->ui->rrs2Action->setIcon(QIcon(":/images/rrs2.svg"));
-  _d->ui->rrs1Action->setText("fdas");
+  _d->ui->rrs1Action->setIcon(QIcon(":/images/radio-tower.svg"));
+  _d->ui->rrs2Action->setIcon(QIcon(":/images/radio-tower.svg"));
+  _d->ui->resultAction->setIcon(QIcon(":/images/arrow-horizontal.svg"));
 }
 
 void NRrlsMainWindow::setFile(const QString &filename) {
@@ -480,28 +510,28 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
 
 void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
   if (_d->ui->customplot->graphCount() >= 5) {
-    if (_c != nullptr) delete _c;
+    if (_co != nullptr) delete _co;
 
-    _c = new CoordsWindow();
-    _c->setGeometry(NRrlsMainWindow::x() + event->pos().x(),
-                    NRrlsMainWindow::y() + event->pos().y(), _c->width(),
-                    _c->height());
+    _co = new NRrlsCoordsWindow();
+    _co->setGeometry(NRrlsMainWindow::x() + event->pos().x(),
+                     NRrlsMainWindow::y() + event->pos().y(), _co->width(),
+                     _co->height());
 
-    _c->init(_d->_c->data->param.coords.lowerBound(_xa).key(),
-             _d->_c->data->constant.area_length -
-                 _d->_c->data->param.coords.lowerBound(_xa).key(),
-             _d->_c->data->param.los.first *
-                     _d->_c->data->param.coords.lowerBound(_xa).key() +
-                 _d->_c->data->param.los.second -
-                 (_d->_c->data->param.coordsAndEarth.lowerBound(_xa).value() -
-                  _d->_c->data->param.coords.lowerBound(_xa).value()),
-             _d->_c->data->param.coords.lowerBound(_xa).value(),
-             _d->_c->data->param.coordsAndEarth.lowerBound(_xa).value() -
-                 _d->_c->data->param.coords.lowerBound(_xa).value(),
-             _d->_c->data->param.H.lowerBound(_xa).value(),
-             _d->_c->data->param.H_null.lowerBound(_xa).value());
+    _co->init(_d->_c->data->param.coords.lowerBound(_xa).key(),
+              _d->_c->data->constant.area_length -
+                  _d->_c->data->param.coords.lowerBound(_xa).key(),
+              _d->_c->data->param.los.first *
+                      _d->_c->data->param.coords.lowerBound(_xa).key() +
+                  _d->_c->data->param.los.second -
+                  (_d->_c->data->param.coordsAndEarth.lowerBound(_xa).value() -
+                   _d->_c->data->param.coords.lowerBound(_xa).value()),
+              _d->_c->data->param.coords.lowerBound(_xa).value(),
+              _d->_c->data->param.coordsAndEarth.lowerBound(_xa).value() -
+                  _d->_c->data->param.coords.lowerBound(_xa).value(),
+              _d->_c->data->param.H.lowerBound(_xa).value(),
+              _d->_c->data->param.H_null.lowerBound(_xa).value());
 
-    _c->show();
+    _co->show();
   }
 }
 
