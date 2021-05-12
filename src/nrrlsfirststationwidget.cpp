@@ -1,7 +1,16 @@
 #include "nrrlsfirststationwidget.h"
 #include "ui_nrrlsfirststationwidget.h"
 
-NRrlsFirstStationWidget::NRrlsFirstStationWidget(QWidget *parent)
-    : QWidget(parent), ui(new Ui::NRrlsFirstStationWidget) {}
+NRrlsFirstStationWidget::NRrlsFirstStationWidget(QWidget *parent) :
+  QWidget(parent),
+  ui(new Ui::NRrlsFirstStationWidget)
+{
+  ui->setupUi(this);
 
-NRrlsFirstStationWidget::~NRrlsFirstStationWidget() { delete ui; }
+  setWindowTitle(tr("РРС 1"));
+}
+
+NRrlsFirstStationWidget::~NRrlsFirstStationWidget()
+{
+  delete ui;
+}

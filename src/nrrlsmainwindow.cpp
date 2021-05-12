@@ -17,8 +17,8 @@ double freq, h1, h2;
 NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     : QMainWindow(parent), _d(new Private) {
   _d->ui = new Ui::NRrlsMainWindow;
-  _f = new NRrlsFirstStationWidget(this);
-  _s = new NRrlsSecondStationWidget(this);
+  _f = new NRrlsFirstStationWidget();
+  _s = new NRrlsSecondStationWidget();
   _co = new NRrlsCoordsWindow();
   _di = new NRrlsDiagramWindow();
 
@@ -80,9 +80,22 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     capacityNotNull();
   });
 
-  connect(_d->ui->rrs1Action, &QAction::triggered, this, [&]() { _f->show(); });
+  connect(_d->ui->rrs1Action, &QAction::triggered, this, [&]() {
+    _f->setGeometry(
+        NRrlsMainWindow::x() + QWidget::mapFromGlobal(QCursor::pos()).x(),
+        NRrlsMainWindow::y() + QWidget::mapFromGlobal(QCursor::pos()).y(),
+        _f->width(), _f->height());
+    _f->show();
+  });
 
-  connect(_d->ui->rrs2Action, &QAction::triggered, this, [&]() { _s->show(); });
+  connect(_d->ui->rrs2Action, &QAction::triggered, this, [&]() {
+    _s->setGeometry(
+        NRrlsMainWindow::x() + QWidget::mapFromGlobal(QCursor::pos()).x(),
+        NRrlsMainWindow::y() + QWidget::mapFromGlobal(QCursor::pos()).y(),
+        _s->width(), _s->height());
+
+    _s->show();
+  });
 
   connect(_d->ui->trackFrequencySpinBox,
           QOverload<double>::of(
@@ -392,7 +405,6 @@ void NRrlsMainWindow::onSetFile() {
   QFileDialog *in = new QFileDialog(this);
   in->setOption(QFileDialog::DontUseNativeDialog, QFileDialog::ReadOnly);
   QString temp = in->getOpenFileName(this, tr("Открыть файл"), "", "*.csv");
-  std::cerr << temp.toStdString() << ' ';
   if (!temp.isEmpty()) setFile(temp);
   in->hide();
 }
@@ -482,7 +494,7 @@ void NRrlsMainWindow::onChangeSens(const QString &text) {
 
 void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   if (_d->ui->customplot->graphCount() >= 5) {
-    const double h = .005 * _d->_c->xRange();  ///< Длина перекрестия
+    const double h = .01 * _d->_c->xRange();  ///< Длина перекрестия
     const double v = h * (_d->_c->yRange() / _d->_c->xRange()) *
                      _d->ui->customplot->width() / _d->ui->customplot->height();
 

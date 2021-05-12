@@ -12,7 +12,7 @@
 #include "ui_nrrlsdiagramwindow.h"
 #include "ui_nrrlsfirststationwidget.h"
 #include "ui_nrrlsmainwindow.h"
-#include "ui_nrrlssecondstationwindow.h"
+#include "ui_nrrlssecondstationwidget.h"
 
 #define QSHDEF(x) typedef QSharedPointer<x> Ptr
 
