@@ -35,10 +35,10 @@ class NRrlsMainWindow : public QMainWindow {
  private:
   struct Private;
   Private *const _d;
-  NRrlsFirstStationWidget *_f;   ///< Окно РРС1
-  NRrlsSecondStationWidget *_s;  ///< Окно РРС2
-  NRrlsCoordsWindow *_co;        ///< Окно координат
-  NRrlsDiagramWindow *_di;       ///<  Окно диграммы
+  NRrlsFirstStationWidget *_f = nullptr;   ///< Окно РРС1
+  NRrlsSecondStationWidget *_s = nullptr;  ///< Окно РРС2
+  NRrlsCoordsWindow *_co = nullptr;        ///< Окно координат
+  NRrlsDiagramWindow *_di = nullptr;       ///<  Окно диграммы
   double _xa;  ///< Абсцисса перекрестия на графике
 
  private:
@@ -57,7 +57,11 @@ class NRrlsMainWindow : public QMainWindow {
   void onApplyButtonEntered();
 
  private slots:
-  void onCustomPlotClicked(QMouseEvent *event);
+  void onPlottableClicked(QCPAbstractPlottable *plottable, int dataindex,
+                          QMouseEvent *event);
+  void onCustomPlotDoubleClicked(QMouseEvent *event);
+  void onMousePressed(QMouseEvent *event);
+  void onMouseReleased(QMouseEvent *event);
 };
 
 #endif  // NRRLSMMAINWINDOW_H

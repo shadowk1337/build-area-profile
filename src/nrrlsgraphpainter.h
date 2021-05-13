@@ -5,14 +5,15 @@
 
 class GraphPainter {
  public:
-  using Attribute = QMap<int, QPair<QPen, QBrush>>;
+  using Attribute = QMap<int, QVariant>;
 
   explicit GraphPainter(QCustomPlot *cp);
 
   ~GraphPainter();
 
   void draw(const QVector<double> &x, const QVector<double> &y,
-            const QString &name, QPen pen = {}, QBrush brush = {});
+            const QString &name, QPen pen = {}, QBrush brush = {},
+            QCP::SelectionType s_type = QCP::SelectionType::stWhole);
 
   int getNumber() const;
 

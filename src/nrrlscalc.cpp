@@ -698,7 +698,8 @@ void Earth::drawGrid(const QVector<double> &x, const QVector<double> &y,
   for (double i = 0; i < 10; ++i) {
     for (auto it = f_y.begin(); it != f_y.end(); ++it)
       *it += .1 * (maxHeight + 100);
-    data->gr->draw(x, f_y, "", QPen(Qt::gray, 1, Qt::DotLine));
+    data->gr->draw(x, f_y, "", QPen(Qt::gray, 1, Qt::DotLine), {},
+                   QCP::SelectionType::stNone);
   }
 }
 

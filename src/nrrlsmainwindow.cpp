@@ -17,12 +17,10 @@ double freq, h1, h2;
 NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
     : QMainWindow(parent), _d(new Private) {
   _d->ui = new Ui::NRrlsMainWindow;
-  _f = new NRrlsFirstStationWidget();
-  _s = new NRrlsSecondStationWidget();
-  _co = new NRrlsCoordsWindow();
-  _di = new NRrlsDiagramWindow();
 
   _d->ui->setupUi(this);
+
+  _d->ui->customplot->setInteractions(QCP::iSelectPlottables);
 
   setWindowTitle(tr("РРЛС"));
 
@@ -233,8 +231,17 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
             }
           });
 
+  connect(_d->ui->customplot, &QCustomPlot::plottableClick, this,
+          &NRrlsMainWindow::onPlottableClicked);
+
+  connect(_d->ui->customplot, &QCustomPlot::mousePress, this,
+          &NRrlsMainWindow::onMousePressed);
+
+  connect(_d->ui->customplot, &QCustomPlot::mouseRelease, this,
+          &NRrlsMainWindow::onMouseReleased);
+
   connect(_d->ui->customplot, &QCustomPlot::mouseDoubleClick, this,
-          &NRrlsMainWindow::onCustomPlotClicked);
+          &NRrlsMainWindow::onCustomPlotDoubleClicked);
 
   connect(_d->ui->customplot, &QCustomPlot::mouseMove, this,
           &NRrlsMainWindow::onMouseMove);
@@ -280,8 +287,11 @@ NRrlsMainWindow::NRrlsMainWindow(const QVariantMap &options, QWidget *parent)
 
         //        animation_hider_frame->start();
         //        animation_result_frame->start();
-
+        auto tmp_height = _d->ui->centralWidget->maximumHeight();
+        std::cerr << _d->ui->resultFrame->maximumHeight() << ' ';
         rf->show();
+        std::cerr << _d->ui->resultFrame->maximumHeight() << ' ';
+        //        _d->ui->centralWidget->setFixedHeight(tmp_height);
       }
     }
 
@@ -386,6 +396,16 @@ void NRrlsMainWindow::setToolBar() {
 }
 
 void NRrlsMainWindow::setFile(const QString &filename) {
+  if (_f != nullptr) delete _f;
+  if (_s != nullptr) delete _s;
+  if (_co != nullptr) delete _co;
+  if (_di != nullptr) delete _di;
+
+  _f = new NRrlsFirstStationWidget(_d->_c);
+  _s = new NRrlsSecondStationWidget();
+  _co = new NRrlsCoordsWindow();
+  _di = new NRrlsDiagramWindow();
+
   _d->ui->mainStack->setCurrentIndex(1);
   _d->_c = QSharedPointer<NRrls::Calc::Core>::create(_d->ui, filename);
 
@@ -520,7 +540,47 @@ void NRrlsMainWindow::onMouseMove(QMouseEvent *event) {
   }
 }
 
-void NRrlsMainWindow::onCustomPlotClicked(QMouseEvent *event) {
+//=================
+void NRrlsMainWindow::onPlottableClicked(QCPAbstractPlottable *plottable,
+                                         int dataindex, QMouseEvent *event) {
+  double dataValue = plottable->interface1D()->dataMainValue(dataindex);
+  if (plottable->selectable()) {
+    QString message = QString("Выбран график '%1' в точке #%2 со значением %3.")
+                          .arg(plottable->name())
+                          .arg(dataindex)
+                          .arg(dataValue);
+    _d->ui->statusBar->showMessage(message, 2500);
+  }
+}
+
+void NRrlsMainWindow::onMousePressed(QMouseEvent *event) {
+  bool graph_selected = false;
+  std::cerr << " 2";
+
+  for (int i = 0; i < _d->ui->customplot->graphCount(); ++i) {
+    QCPGraph *graph = _d->ui->customplot->graph(i);
+    if (graph->selectable())
+      if (graph->selected()) {
+        graph_selected =
+            true; /*
+(i == _d->_c->data->fr_dw_idx)
+? _d->ui->customplot->graph(_d->_c->data->fr_up_idx)->setSelection() ;*/
+        break;
+      }
+  }
+
+  if (graph_selected) {
+    double index = event->pos().x();
+    double value = event->pos().y();
+
+
+  }
+}
+
+void NRrlsMainWindow::onMouseReleased(QMouseEvent *event) { std::cerr << "1"; }
+//======================
+
+void NRrlsMainWindow::onCustomPlotDoubleClicked(QMouseEvent *event) {
   if (_d->ui->customplot->graphCount() >= 5) {
     if (_co != nullptr) delete _co;
 

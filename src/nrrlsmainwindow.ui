@@ -38,6 +38,12 @@
    <set>QMainWindow::AllowTabbedDocks|QMainWindow::AnimatedDocks</set>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="sizePolicy">
+    <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+     <horstretch>100</horstretch>
+     <verstretch>100</verstretch>
+    </sizepolicy>
+   </property>
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <property name="spacing">
      <number>6</number>
@@ -135,7 +141,7 @@
           <property name="sizePolicy">
            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
             <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
+            <verstretch>100</verstretch>
            </sizepolicy>
           </property>
           <property name="orientation">
@@ -143,7 +149,7 @@
           </property>
           <widget class="QFrame" name="frame">
            <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+            <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
              <horstretch>0</horstretch>
              <verstretch>100</verstretch>
             </sizepolicy>
@@ -151,7 +157,7 @@
            <property name="minimumSize">
             <size>
              <width>0</width>
-             <height>0</height>
+             <height>300</height>
             </size>
            </property>
            <property name="frameShape">
@@ -182,7 +188,7 @@
             <item>
              <widget class="QCustomPlot" name="customplot" native="true">
               <property name="sizePolicy">
-               <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+               <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                 <horstretch>0</horstretch>
                 <verstretch>0</verstretch>
                </sizepolicy>
@@ -209,7 +215,7 @@
           <widget class="QFrame" name="hiderFrame">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>100</horstretch>
+             <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
            </property>
@@ -243,7 +249,16 @@
             <number>1</number>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_21">
-            <item>
+            <property name="leftMargin">
+             <number>9</number>
+            </property>
+            <property name="topMargin">
+             <number>6</number>
+            </property>
+            <property name="bottomMargin">
+             <number>6</number>
+            </property>
+            <item alignment="Qt::AlignBottom">
              <widget class="QSplitter" name="splitter">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -357,6 +372,9 @@
                         <kerning>true</kerning>
                        </font>
                       </property>
+                      <property name="statusTip">
+                       <string>Выбрать станцию</string>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -405,6 +423,9 @@
                         <kerning>true</kerning>
                        </font>
                       </property>
+                      <property name="statusTip">
+                       <string>Выбрать режим работы</string>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -440,6 +461,9 @@
                         <bold>false</bold>
                         <kerning>true</kerning>
                        </font>
+                      </property>
+                      <property name="statusTip">
+                       <string>Выбрать мощность станции</string>
                       </property>
                       <property name="maximum">
                        <double>100.000000000000000</double>
@@ -482,6 +506,9 @@
                         <bold>false</bold>
                         <kerning>true</kerning>
                        </font>
+                      </property>
+                      <property name="statusTip">
+                       <string>Выбрать чувствительность станции</string>
                       </property>
                       <property name="maximum">
                        <double>50.000000000000000</double>
@@ -557,6 +584,9 @@
                            <kerning>true</kerning>
                           </font>
                          </property>
+                         <property name="statusTip">
+                          <string>Выбрать высоту антенны над уровнем моря</string>
+                         </property>
                          <property name="maximum">
                           <double>100.000000000000000</double>
                          </property>
@@ -595,6 +625,9 @@
                            <bold>false</bold>
                            <kerning>true</kerning>
                           </font>
+                         </property>
+                         <property name="statusTip">
+                          <string>Выбрать коэффициент усиления антенны</string>
                          </property>
                          <property name="maximum">
                           <double>100.000000000000000</double>
@@ -637,6 +670,9 @@
                            <bold>false</bold>
                            <kerning>true</kerning>
                           </font>
+                         </property>
+                         <property name="statusTip">
+                          <string>Выбрать ослабление в фидере</string>
                          </property>
                          <property name="singleStep">
                           <double>0.100000000000000</double>
@@ -715,6 +751,9 @@
                       <bold>false</bold>
                      </font>
                     </property>
+                    <property name="statusTip">
+                     <string>Выбрать частоту радиопередачи</string>
+                    </property>
                     <property name="alignment">
                      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
                     </property>
@@ -757,6 +796,9 @@
                       <weight>50</weight>
                       <bold>false</bold>
                      </font>
+                    </property>
+                    <property name="statusTip">
+                     <string>Указать желаемую вероятность связи</string>
                     </property>
                     <property name="decimals">
                      <number>5</number>
@@ -841,6 +883,9 @@
                            <bold>false</bold>
                           </font>
                          </property>
+                         <property name="statusTip">
+                          <string>Выбрать температуру на трассе</string>
+                         </property>
                          <property name="minimum">
                           <double>-100.000000000000000</double>
                          </property>
@@ -888,6 +933,9 @@
                            <bold>false</bold>
                           </font>
                          </property>
+                         <property name="statusTip">
+                          <string>Выбрать градиент диэлектрической проницаемости</string>
+                         </property>
                          <property name="maximum">
                           <double>30.000000000000000</double>
                          </property>
@@ -918,10 +966,26 @@
                   <property name="cursor">
                    <cursorShape>PointingHandCursor</cursorShape>
                   </property>
+                  <property name="statusTip">
+                   <string>Открыть диаграмму уровней передач</string>
+                  </property>
                   <property name="text">
                    <string>Диаграмма уровней передачи</string>
                   </property>
                  </widget>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>40</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                 <item>
                  <widget class="Line" name="line_7">
@@ -959,6 +1023,9 @@
                   </property>
                   <property name="cursor">
                    <cursorShape>PointingHandCursor</cursorShape>
+                  </property>
+                  <property name="statusTip">
+                   <string>Применить все изменения</string>
                   </property>
                   <property name="text">
                    <string>Применить</string>
@@ -1063,6 +1130,9 @@
                         <bold>false</bold>
                        </font>
                       </property>
+                      <property name="statusTip">
+                       <string>Выбрать станцию</string>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -1107,6 +1177,9 @@
                         <bold>false</bold>
                        </font>
                       </property>
+                      <property name="statusTip">
+                       <string>Выбрать режим работы</string>
+                      </property>
                      </widget>
                     </item>
                    </layout>
@@ -1138,6 +1211,9 @@
                         <weight>50</weight>
                         <bold>false</bold>
                        </font>
+                      </property>
+                      <property name="statusTip">
+                       <string>Выбрать мощность станции</string>
                       </property>
                       <property name="maximum">
                        <double>100.000000000000000</double>
@@ -1176,6 +1252,9 @@
                         <weight>50</weight>
                         <bold>false</bold>
                        </font>
+                      </property>
+                      <property name="statusTip">
+                       <string>Выбрать чувствительность станции</string>
                       </property>
                       <property name="maximum">
                        <double>50.000000000000000</double>
@@ -1253,6 +1332,9 @@
                            <bold>false</bold>
                           </font>
                          </property>
+                         <property name="statusTip">
+                          <string>Выбрать высоту антенны над уровнем моря</string>
+                         </property>
                          <property name="maximum">
                           <double>100.000000000000000</double>
                          </property>
@@ -1287,6 +1369,9 @@
                            <weight>50</weight>
                            <bold>false</bold>
                           </font>
+                         </property>
+                         <property name="statusTip">
+                          <string>Выбрать коэффициент усиления антенны</string>
                          </property>
                          <property name="maximum">
                           <double>100.000000000000000</double>
@@ -1325,6 +1410,9 @@
                            <weight>50</weight>
                            <bold>false</bold>
                           </font>
+                         </property>
+                         <property name="statusTip">
+                          <string>Выбрать ослабление в фидере</string>
                          </property>
                          <property name="singleStep">
                           <double>0.100000000000000</double>
@@ -1370,10 +1458,37 @@
             <number>1</number>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_7">
+            <property name="spacing">
+             <number>0</number>
+            </property>
+            <property name="leftMargin">
+             <number>0</number>
+            </property>
+            <property name="topMargin">
+             <number>0</number>
+            </property>
+            <property name="rightMargin">
+             <number>0</number>
+            </property>
+            <property name="bottomMargin">
+             <number>0</number>
+            </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_30">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>3</number>
+              </property>
+              <property name="rightMargin">
+               <number>3</number>
+              </property>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_7">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
                 <item>
                  <widget class="QLabel" name="concIntervalTypeLabel">
                   <property name="sizePolicy">
@@ -1447,6 +1562,18 @@
               </item>
               <item>
                <widget class="Line" name="line_4">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>10</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="lineWidth">
                  <number>0</number>
                 </property>
@@ -1460,6 +1587,9 @@
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_24">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
                 <item>
                  <widget class="QLabel" name="concSensitivityLabel">
                   <property name="sizePolicy">
@@ -1530,6 +1660,18 @@
               </item>
               <item>
                <widget class="Line" name="line_2">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>10</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="lineWidth">
                  <number>0</number>
                 </property>
@@ -1543,6 +1685,9 @@
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_18">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
                 <item>
                  <widget class="QLabel" name="concStockLabel">
                   <property name="sizePolicy">
@@ -1616,6 +1761,18 @@
               </item>
               <item>
                <widget class="Line" name="line_6">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>10</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="lineWidth">
                  <number>0</number>
                 </property>
@@ -1629,6 +1786,9 @@
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_9">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
                 <item>
                  <widget class="QLabel" name="concConcLabel">
                   <property name="sizePolicy">
@@ -1717,8 +1877,20 @@
             </item>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_28">
+              <property name="spacing">
+               <number>0</number>
+              </property>
+              <property name="leftMargin">
+               <number>3</number>
+              </property>
+              <property name="rightMargin">
+               <number>3</number>
+              </property>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_8">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
                 <item>
                  <widget class="QLabel" name="concFreeAttenLabel">
                   <property name="sizePolicy">
@@ -1789,6 +1961,18 @@
               </item>
               <item>
                <widget class="Line" name="line">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>10</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="lineWidth">
                  <number>0</number>
                 </property>
@@ -1802,6 +1986,9 @@
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_20">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
                 <item>
                  <widget class="QLabel" name="concAirAttenLabel">
                   <property name="sizePolicy">
@@ -1875,6 +2062,18 @@
               </item>
               <item>
                <widget class="Line" name="line_5">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Fixed" vsizetype="Preferred">
+                  <horstretch>0</horstretch>
+                  <verstretch>0</verstretch>
+                 </sizepolicy>
+                </property>
+                <property name="minimumSize">
+                 <size>
+                  <width>10</width>
+                  <height>0</height>
+                 </size>
+                </property>
                 <property name="lineWidth">
                  <number>0</number>
                 </property>
@@ -1888,6 +2087,9 @@
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_19">
+                <property name="spacing">
+                 <number>10</number>
+                </property>
                 <item>
                  <widget class="QLabel" name="concReliefAttenLabel">
                   <property name="sizePolicy">
@@ -2048,9 +2250,12 @@
     <bool>false</bool>
    </attribute>
    <addaction name="rrs1Action"/>
+   <addaction name="separator"/>
    <addaction name="resultAction"/>
+   <addaction name="separator"/>
    <addaction name="rrs2Action"/>
   </widget>
+  <widget class="QStatusBar" name="statusBar"/>
   <action name="fileOpenAction">
    <property name="text">
     <string>Открыть файл с помощью...</string>
